@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CineNube Gallery</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 0; min-height:100vh; }
   header { text-align: center; padding: 2rem; background: #222; }
-  h1 { margin: 0; font-size: 2.5rem; }
+  h1 { margin: 0; font-size: 2.2rem; }
   nav { text-align: center; margin: 1rem 0; }
   nav button { margin: 0 0.5rem; padding: 0.5rem 1rem; cursor: pointer; background: #444; color: #eee; border: none; border-radius: 5px; }
-  nav button.active { background: #ff6600; }
-  section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; }
-  .item { background: #222; border-radius: 8px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; }
-  .item:hover { transform: scale(1.05); }
-  .item img { width: 100%; border-radius: 8px 8px 0 0; }
-  .item h3 { margin: 0.5rem 0; font-size: 1.1rem; }
-  .item a { display: inline-block; margin: 0.5rem 0 1rem 0; padding: 0.5rem; background: #ff6600; color: #fff; text-decoration: none; border-radius: 5px; }
+  nav button.active { background: #ff6600; color: #111; }
+  section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
+  .item { background: #222; border-radius: 8px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; }
+  .item:hover { transform: scale(1.03); }
+  .item img { width: 100%; height: 300px; object-fit: cover; display:block; }
+  .item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
+  .item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
+  .item a { display: inline-block; margin: 0.4rem 0.3rem 0.8rem 0.3rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
+  .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
   .hidden { display: none; }
+  .message { text-align: center; color: #888; padding: 2rem; width:100%; }
 </style>
 </head>
 <body>
@@ -32,50 +35,35 @@
   <button data-filter="recent">Reciente Agregado</button>
 </nav>
 
-<section id="gallery"></section>
+<section id="gallery">
+  <p class="message">Cargando catálogo…</p>
+</section>
 
 <script>
+/*
+  index.html corregido para usar la variable "catalogo".
+  Asegúrate de que catalogo.json esté en la misma carpeta que este index.html en tu repo.
+*/
+
 const gallery = document.getElementById('gallery');
-let catalog = [];
+let catalogo = []; // <-- usamos "catalogo" tal como indicaste
 
-// Carga el catalogo.json desde GitHub Pages
-fetch("catalogo.json")
-  .then(response => response.json())
-  .then(data => {
-    catalog = data;
-    showItems('movies');
-  })
-  .catch(err => {
-    gallery.innerHTML = '<p style="color:red;">❌ Error cargando el catálogo</p>';
-    console.error(err);
-  });
-
-// Filtrado
-const buttons = document.querySelectorAll('nav button');
-buttons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    buttons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    showItems(btn.dataset.filter);
-  });
-});
-
-// Mostrar items según filtro
+// Función para mostrar items según filtro
 function showItems(filter) {
   gallery.innerHTML = '';
 
   let items = [];
   if (filter === 'movies') {
-    items = catalog.filter(i => i.type === 'movie');
+    items = catalogo.filter(i => i.type === 'movie');
   } else if (filter === 'series') {
-    items = catalog.filter(i => i.type === 'series');
+    items = catalogo.filter(i => i.type === 'series');
   } else if (filter === 'recent') {
-    // mostrar últimos 5 agregados
-    items = catalog.slice(-5).reverse();
+    // últimos 5 agregados (si catalogo tiene menos, muestra lo que haya)
+    items = catalogo.slice(-5).reverse();
   }
 
-  if (items.length === 0) {
-    gallery.innerHTML = '<p style="color:#888;">No hay contenido disponible.</p>';
+  if (!items || items.length === 0) {
+    gallery.innerHTML = '<p class="message">No hay contenido disponible.</p>';
     return;
   }
 
@@ -85,31 +73,43 @@ function showItems(filter) {
 
     const img = document.createElement('img');
     img.src = item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
-    img.alt = item.title;
+    img.alt = item.title || 'Sin título';
 
     const h3 = document.createElement('h3');
-    h3.textContent = item.title;
+    h3.textContent = item.title || 'Sin título';
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
 
     div.appendChild(img);
     div.appendChild(h3);
+    div.appendChild(meta);
 
     // Película simple
     if (item.type === 'movie') {
       const link = document.createElement('a');
-      link.href = item.terabox;
+      link.href = item.terabox || '#';
       link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       link.textContent = 'Ver Película';
       div.appendChild(link);
     }
 
-    // Series con temporadas y episodios
+    // Series con temporadas y episodios (si existen)
     if (item.type === 'series' && Array.isArray(item.seasons)) {
+      // Añadimos un contenedor de episodios para mantener orden
       item.seasons.forEach(season => {
+        if (!Array.isArray(season.episodes)) return;
         season.episodes.forEach(ep => {
           const link = document.createElement('a');
-          link.href = ep.terabox;
+          link.href = ep.terabox || '#';
           link.target = '_blank';
-          link.textContent = `S${season.season}E${ep.episode}`;
+          link.rel = 'noopener noreferrer';
+          link.className = 'small-link';
+          // Mostrar S{n}E{m} y, si existe, el título del episodio
+          const epText = `S${season.season}E${ep.episode}` + (ep.title ? ` · ${ep.title}` : '');
+          link.textContent = epText;
           div.appendChild(link);
         });
       });
@@ -118,6 +118,38 @@ function showItems(filter) {
     gallery.appendChild(div);
   });
 }
+
+// Manejo de botones de filtro
+const buttons = document.querySelectorAll('nav button');
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showItems(btn.dataset.filter);
+  });
+});
+
+// Cargar catalogo.json (ruta relativa)
+fetch('catalogo.json')
+  .then(response => {
+    if (!response.ok) throw new Error('HTTP error ' + response.status);
+    return response.json();
+  })
+  .then(data => {
+    // Aseguramos que data sea un array
+    if (!Array.isArray(data)) {
+      console.error('catalogo.json no contiene un array:', data);
+      gallery.innerHTML = '<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';
+      return;
+    }
+    catalogo = data;
+    showItems('movies'); // mostrar películas por defecto
+  })
+  .catch(err => {
+    console.error('Error cargando catalogo.json:', err);
+    gallery.innerHTML = '<p class="message" style="color:tomato;">❌ Error cargando el catálogo. Revisa la ruta y que catalogo.json exista.</p>';
+  });
+
 </script>
 
 </body>
