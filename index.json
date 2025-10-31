@@ -153,4 +153,4 @@ fetch('catalogo.json')
 </script>
 
 </body>
-</html>
+</json>
