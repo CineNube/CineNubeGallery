@@ -41,7 +41,7 @@ let currentView = 'movies';
 
 async function loadData() {
   try {
-fetch('./catalogo.json')  // ✅ relativa a la misma carpeta
+fetch('https://moviesfreakzone.github.io/CineNubeGallery/catalogo.json')
     data = await resp.json();
     showMovies();
   } catch (e) {
