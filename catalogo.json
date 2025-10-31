@@ -5,31 +5,22 @@
     "title": "The Witcher",
     "year": "2025",
     "poster": "https://media.themoviedb.org/t/p/w600_and_h900_bestv2/gvn0m0LCIslrURjSo7UG5Rx6mV2.jpg",
-    "overview": "Una aventura fantástica que no necesita presentación.",
+    "overview": "Una aventura fantástica que mezcla magia, monstruos y destino.",
+    "rating": 4.7,
+    "added": "2025-10-31",
     "seasons": [
       {
-        "season": 4,
+        "season": 1,
         "episodes": [
-          {
-            "episode": 1,
-            "title": "El principio del fin",
-            "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w"
-          },
-          {
-            "episode": 2,
-            "title": "Lunas de sangre",
-            "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w"
-          },
-          {
-            "episode": 3,
-            "title": "El fuego eterno",
-            "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w"
-          },
-          {
-            "episode": 4,
-            "title": "La espada del destino",
-            "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w"
-          }
+          { "episode": 1, "title": "El principio del fin", "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w" },
+          { "episode": 2, "title": "Lunas de sangre", "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w" }
+        ]
+      },
+      {
+        "season": 2,
+        "episodes": [
+          { "episode": 1, "title": "El regreso", "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w" },
+          { "episode": 2, "title": "La amenaza crece", "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w" }
         ]
       }
     ]
@@ -40,7 +31,9 @@
     "title": "Dune: Parte Dos",
     "year": "2024",
     "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg",
-    "overview": "Paul Atreides se une a los Fremen y busca venganza contra quienes destruyeron a su familia.",
+    "overview": "Paul Atreides busca venganza y unidad entre los Fremen en un universo hostil.",
+    "rating": 4.5,
+    "added": "2025-10-30",
     "terabox": "https://1024terabox.com/s/1L6q9kz7S3Jh7QGyZ87PxMg"
   },
   {
@@ -49,7 +42,58 @@
     "title": "Deadpool y Wolverine",
     "year": "2024",
     "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/vJU3rXSP9hwUuLeq8IpfsJShLOk.jpg",
-    "overview": "El antihéroe más loco del universo Marvel une fuerzas con el mutante más gruñón.",
+    "overview": "El antihéroe más loco se une con el mutante más gruñón en aventuras absurdas.",
+    "rating": 4.2,
+    "added": "2025-10-31",
     "terabox": "https://1024terabox.com/s/1YoK8mCvnxV78zJTRXxZrSw"
+  },
+  {
+    "id": "stranger_things",
+    "type": "series",
+    "title": "Stranger Things",
+    "year": "2025",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/x2LSRK2Cm7MZhjluni1msVJ3wDF.jpg",
+    "overview": "Un grupo de niños descubre misterios sobrenaturales en su ciudad.",
+    "rating": 4.8,
+    "added": "2025-10-30",
+    "seasons": [
+      {
+        "season": 1,
+        "episodes": [
+          { "episode": 1, "title": "El niño perdido", "terabox": "https://1024terabox.com/s/2abc1234" },
+          { "episode": 2, "title": "La chica de otra dimensión", "terabox": "https://1024terabox.com/s/2abc1234" }
+        ]
+      },
+      {
+        "season": 2,
+        "episodes": [
+          { "episode": 1, "title": "El regreso de lo oscuro", "terabox": "https://1024terabox.com/s/2abc1234" }
+        ]
+      },
+      {
+        "season": 3,
+        "episodes": [
+          { "episode": 1, "title": "El ataque final", "terabox": "https://1024terabox.com/s/2abc1234" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "avatar_the_last_airbender",
+    "type": "series",
+    "title": "Avatar: La Leyenda de Aang",
+    "year": "2005",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/abc123.jpg",
+    "overview": "Aang, el último Maestro Aire, debe salvar al mundo con sus amigos.",
+    "rating": 4.9,
+    "added": "2025-10-29",
+    "seasons": [
+      {
+        "season": 1,
+        "episodes": [
+          { "episode": 1, "title": "El niño en el iceberg", "terabox": "https://1024terabox.com/s/3xyz9876" }
+        ]
+      }
+    ]
   }
 ]
