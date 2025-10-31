@@ -1,173 +1,165 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CineNube</title>
 <style>
-body{margin:0;padding:0;font-family:Arial,sans-serif;background:#111;color:#eee;min-height:100vh;}
-header{text-align:center;padding:2rem;background:#222;}
-h1{margin:0;font-size:2.5rem;letter-spacing:1px;}
-nav{text-align:center;margin:1rem 0;}
-nav button{margin:0 0.5rem;padding:0.5rem 1rem;border:none;border-radius:5px;cursor:pointer;background:#444;color:#eee;transition:0.3s;}
-nav button.active{background:#ff6600;color:#111;}
-nav button:hover{opacity:0.8;}
-#search,#today{margin:0.5rem;padding:0.5rem 0.8rem;border:none;border-radius:5px;}
-#search{width:60%;max-width:400px;}
-#today{background:#ff6600;color:#111;cursor:pointer;transition:0.3s;}
-#today:hover{opacity:0.85;}
-section{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:1rem;justify-items:center;min-height:60vh;}
-.item{background:#222;border-radius:10px;overflow:hidden;box-shadow:0 0 15px #000;position:relative;transition:transform 0.3s,box-shadow 0.3s;width:100%;max-width:220px;}
-.item:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(255,102,0,0.6);}
-.item img{width:100%;height:300px;object-fit:cover;display:block;}
-.item h3{margin:0.5rem;font-size:1.1rem;text-align:center;}
-.meta{font-size:0.8rem;color:#bbb;margin:0.2rem 0 0.5rem;text-align:center;}
-.overview{font-size:0.85rem;color:#ddd;padding:0 0.5rem;margin-bottom:0.5rem;}
-a{display:inline-block;margin:0.3rem;padding:0.4rem 0.6rem;border-radius:5px;font-weight:600;text-decoration:none;background:#ff6600;color:#111;transition:0.3s;}
-a:hover{opacity:0.85;}
-.small-link{background:#444;font-size:0.75rem;padding:0.25rem 0.4rem;margin:0.1rem;}
-.new-badge{position:absolute;top:5px;left:5px;background:#ff6600;color:#111;font-size:0.75rem;font-weight:600;padding:2px 5px;border-radius:3px;}
-.tag-type{position:absolute;top:5px;right:5px;background:#333;color:#ff6600;font-size:0.7rem;padding:2px 5px;border-radius:3px;}
-.stars{color:#ffcc00;font-size:0.85rem;text-align:center;margin-bottom:0.5rem;}
-.message{text-align:center;color:#888;padding:2rem;grid-column:1/-1;}
-@media(max-width:600px){section{grid-template-columns:1fr;}}
+  body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 0; min-height:100vh; }
+  header { text-align: center; padding: 2rem; background: linear-gradient(135deg, #111, #222); box-shadow: 0 2px 10px #000; }
+  h1 { margin: 0; font-size: 2.5rem; color: #ff6600; letter-spacing: 1px; }
+  nav { text-align: center; margin: 1rem 0; }
+  nav button { margin: 0.4rem; padding: 0.6rem 1.2rem; cursor: pointer; background: #333; color: #eee; border: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+  nav button:hover { background: #ff6600; color: #111; }
+  nav button.active { background: #ff6600; color: #111; }
+
+  #searchBox { display:block; margin: 0 auto 1.5rem auto; padding: 0.6rem 1rem; width: 80%; max-width:400px; border-radius: 8px; border:none; font-size:1rem; }
+
+  section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; gap: 1rem; }
+  .item { background: #1b1b1b; border-radius: 10px; width: 210px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s, box-shadow 0.2s; overflow: hidden; }
+  .item:hover { transform: scale(1.04); box-shadow: 0 0 20px #ff660055; }
+  .item img { width: 100%; height: 310px; object-fit: cover; display:block; border-bottom: 2px solid #333; }
+  .item h3 { margin: 0.6rem 0; font-size: 1.05rem; color:#ff6600; }
+  .item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
+  .item a { display: inline-block; margin: 0.3rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; transition: 0.2s; }
+  .item a:hover { background: #ffa347; }
+  .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
+  .hidden { display: none; }
+  .message { text-align: center; color: #888; padding: 2rem; width:100%; }
 </style>
 </head>
 <body>
 
-<header><h1>CineNube</h1></header>
+<header>
+  <h1>CineNube</h1>
+</header>
 
 <nav>
   <button data-filter="movies" class="active">Películas</button>
   <button data-filter="series">Series</button>
   <button data-filter="recent">Recientes</button>
-  <button data-filter="all">Mostrar todo</button>
 </nav>
 
-<div style="text-align:center;">
-  <input type="text" id="search" placeholder="Buscar título o sinopsis..."/>
-  <button id="today">Agregados hoy</button>
-</div>
+<input id="searchBox" type="text" placeholder="🔍 Buscar películas o series..."/>
 
-<section id="gallery"><p class="message">Cargando catálogo…</p></section>
+<section id="gallery">
+  <p class="message">Cargando catálogo…</p>
+</section>
 
 <script>
-const gallery=document.getElementById('gallery');
-let catalogo=[];
-const searchInput=document.getElementById('search');
-const todayBtn=document.getElementById('today');
+const gallery = document.getElementById('gallery');
+const searchBox = document.getElementById('searchBox');
+let catalogo = [];
 
-function normalizeText(text){
-  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/gi,'');
-}
+// Función principal: mostrar ítems según filtro
+function showItems(filter, searchTerm = '') {
+  gallery.innerHTML = '';
+  let items = [];
 
-function renderStars(rating){
-  const full=Math.floor(rating);
-  const half=(rating-full)>=0.5?1:0;
-  const empty=5-full-half;
-  return '★'.repeat(full)+'½'.repeat(half)+'☆'.repeat(empty);
-}
+  // Filtrado por tipo
+  if (filter === 'movies') {
+    items = catalogo.filter(i => i.type?.toLowerCase() === 'movie');
+  } else if (filter === 'series') {
+    items = catalogo.filter(i => i.type?.toLowerCase() === 'series');
+  } else if (filter === 'recent') {
+    items = [...catalogo].sort((a,b)=> new Date(b.added) - new Date(a.added));
+  } else {
+    items = catalogo;
+  }
 
-function showFilteredItems(items){
-  gallery.innerHTML='';
-  if(!items.length){gallery.innerHTML='<p class="message">No hay contenido disponible.</p>';return;}
-  const today=new Date().toISOString().split('T')[0];
-  items.forEach(item=>{
-    const div=document.createElement('div'); div.className='item';
+  // Buscador (tolerante a errores)
+  if (searchTerm.trim() !== '') {
+    const clean = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    items = items.filter(i => clean(i.title||'').includes(clean(searchTerm)));
+  }
 
-    if(item.added===today){const badge=document.createElement('div');badge.className='new-badge';badge.textContent='Nuevo';div.appendChild(badge);}
-    const tag=document.createElement('div');tag.className='tag-type';tag.textContent=item.type==='movie'?'Película':'Serie';div.appendChild(tag);
+  if (items.length === 0) {
+    gallery.innerHTML = '<p class="message">No se encontró contenido.</p>';
+    return;
+  }
 
-    const img=document.createElement('img');img.src=item.poster||'https://via.placeholder.com/220x300?text=Sin+Imagen';img.alt=item.title||'Sin título';
-    const h3=document.createElement('h3');h3.textContent=item.title||'Sin título';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'item';
 
-    const meta=document.createElement('div');meta.className='meta';meta.textContent=item.year?(item.year+' · '):''+(item.type==='movie'?'Película':'Serie');
+    const img = document.createElement('img');
+    img.src = item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
+    img.alt = item.title || 'Sin título';
+    div.appendChild(img);
 
-    const overview=document.createElement('p');overview.className='overview';
-    if(item.overview){const words=item.overview.split(' ');if(words.length>25){overview.textContent=words.slice(0,25).join(' ')+'... ';const more=document.createElement('span');more.textContent='Leer más';more.style.color='#ff6600';more.style.cursor='pointer';more.addEventListener('click',()=>{overview.textContent=item.overview;});overview.appendChild(more);}else overview.textContent=item.overview;}
+    const h3 = document.createElement('h3');
+    h3.textContent = item.title || 'Sin título';
+    div.appendChild(h3);
 
-    const stars=document.createElement('div');stars.className='stars';
-    let rating=item.rating; if(!rating) rating=Math.floor(Math.random()*5*10)/10+1;
-    stars.textContent=renderStars(rating);
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
+    div.appendChild(meta);
 
-    div.appendChild(img);div.appendChild(h3);div.appendChild(meta);div.appendChild(stars);div.appendChild(overview);
-
-    // Botones de temporada para series
-    if(item.type==='series'){
-      if(item.season_links){
-        try{item.season_links=JSON.parse(item.season_links);}catch(e){item.season_links=[];}
-        item.season_links.forEach(s=>{
-          const btn=document.createElement('a');
-          btn.href=s.link||'#';
-          btn.target='_blank';
-          btn.rel='noopener noreferrer';
-          btn.textContent=`Temporada ${s.season}`;
-          btn.style.display='block';
-          btn.style.textAlign='center';
-          btn.style.marginBottom='0.3rem';
-          btn.style.background='#ff6600';
-          btn.style.color='#111';
-          btn.style.borderRadius='5px';
-          btn.style.padding='0.3rem';
-          div.appendChild(btn);
-        });
-      }
-      // Mostrar capítulos como referencia (sin links individuales)
-      if(item.seasons){
-        try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
-        item.seasons.forEach(season=>{
-          if(!Array.isArray(season.episodes)) return;
-          season.episodes.forEach(ep=>{
-            const span=document.createElement('span');
-            span.className='small-link';
-            span.textContent=`S${season.season}E${ep.episode}`+(ep.title?` · ${ep.title}`:'');
-            div.appendChild(span);
-          });
-        });
-      }
+    // Películas
+    if (item.type === 'movie' && item.terabox) {
+      const link = document.createElement('a');
+      link.href = item.terabox;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'Ver Película';
+      div.appendChild(link);
     }
 
-    // Botón película
-    if(item.type==='movie' && item.terabox){
-      const link=document.createElement('a');link.href=item.terabox;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Ver Película';div.appendChild(link);
+    // Series con temporadas
+    if (item.type === 'series' && item.season_links) {
+      try {
+        const seasons = JSON.parse(item.season_links);
+        if (Array.isArray(seasons)) {
+          seasons.forEach(season => {
+            if (season.link) {
+              const sLink = document.createElement('a');
+              sLink.href = season.link;
+              sLink.target = '_blank';
+              sLink.rel = 'noopener noreferrer';
+              sLink.textContent = `Temporada ${season.season}`;
+              sLink.className = 'small-link';
+              div.appendChild(sLink);
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error parseando season_links:', err, item.season_links);
+      }
     }
 
     gallery.appendChild(div);
   });
 }
 
-function showItems(filter){
-  let items=[];
-  const sorted=catalogo.slice().sort((a,b)=> new Date(b.added)-new Date(a.added));
-  if(filter==='movies') items=sorted.filter(i=>i.type==='movie');
-  else if(filter==='series') items=sorted.filter(i=>i.type==='series');
-  else if(filter==='recent') items=sorted.slice(0,5);
-  else if(filter==='all') items=sorted;
-  showFilteredItems(items);
-}
-
-document.querySelectorAll('nav button').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');showItems(btn.dataset.filter);searchInput.value='';});});
-
-searchInput.addEventListener('input',()=>{
-  const term=normalizeText(searchInput.value);
-  const filtered=catalogo.filter(item=>normalizeText(item.title).includes(term) || (item.overview && normalizeText(item.overview).includes(term)));
-  showFilteredItems(filtered);
+// Filtros de navegación
+const buttons = document.querySelectorAll('nav button');
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showItems(btn.dataset.filter, searchBox.value);
+  });
 });
 
-todayBtn.addEventListener('click',()=>{const today=new Date().toISOString().split('T')[0];const filtered=catalogo.filter(item=>item.added===today);showFilteredItems(filtered);});
+// Buscador
+searchBox.addEventListener('input', e => {
+  const active = document.querySelector('nav button.active').dataset.filter;
+  showItems(active, e.target.value);
+});
 
-// Cargar catálogo desde Google Sheets via Sheet.best
+// Cargar desde tu hoja de Google Sheets (Sheet.best)
 fetch('https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501')
-.then(r=>r.json())
-.then(data=>{
-  catalogo=data.map(item=>{
-    if(item.seasons) try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
-    if(item.season_links) try{item.season_links=JSON.parse(item.season_links);}catch(e){item.season_links=[];}
-    return item;
+  .then(r => r.json())
+  .then(data => {
+    catalogo = data;
+    console.log('✅ Catálogo cargado:', catalogo);
+    showItems('movies');
+  })
+  .catch(err => {
+    console.error('❌ Error al cargar el catálogo:', err);
+    gallery.innerHTML = '<p class="message" style="color:tomato;">Error al cargar el catálogo.</p>';
   });
-  showItems('movies');
-})
-.catch(err=>{console.error('Error cargando Google Sheet:',err);gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando el catálogo.</p>';});
 </script>
 
 </body>
