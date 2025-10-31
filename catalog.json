@@ -1,29 +1,33 @@
 [
   {
-    "id": "v2-venom2",
-    "type": "movie",
-    "title": "Venom 2",
-    "year": "2021",
-    "poster": "https://image.tmdb.org/t/p/w500/8YFL5QQVPy3AgrEQxNYVSgiPEbe.jpg",
-    "terabox": "https://terabox.com/example-venom2",
-    "overview": "Eddie Brock vuelve con Venom en una aventura de acción y humor negro. Ideal para fans del anti-héroe."
-  },
-  {
-    "id": "dune-2021",
-    "type": "movie",
-    "title": "Dune",
-    "year": "2021",
-    "poster": "https://image.tmdb.org/t/p/w500/6DrHO1jr3qVrViUO6s6kFiAGM7.jpg",
-    "terabox": "https://terabox.com/example-dune",
-    "overview": "Épica adaptación de la novela de Frank Herbert, con visuales espectaculares y una historia inmensa."
-  },
-  {
-    "id": "chihiro-2001",
+    "id": "the_witcher_s01e01",
     "type": "series",
-    "title": "El Viaje de Chihiro (ejemplo)",
-    "year": "2001",
-    "poster": "https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg",
-    "terabox": "https://terabox.com/example-chihiro",
+    "title": "The Witcher",
+    "season": 4,
+    "episode": 1,2,3,4,5,6,7,8,
+    "year": "2025",
+    "poster": "https://media.themoviedb.org/t/p/w600_and_h900_bestv2/gvn0m0LCIslrURjSo7UG5Rx6mV2.jpg",
+    "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w",
     "overview": "Una aventura fantástica que no necesita presentación. Ejemplo como 'serie' para probar."
+  },
+  {
+    "id": "the_witcher_s01e02",
+    "type": "series",
+    "title": "The Witcher",
+    "season": 1,
+    "episode": 2,
+    "year": "2025",
+    "poster": "https://media.themoviedb.org/t/p/w600_and_h900_bestv2/gvn0m0LCIslrURjSo7UG5Rx6mV2.jpg",
+    "terabox": "https://1024terabox.com/s/1pH8P29HdWNg_Jk8zvAC56w",
+    "overview": "Segundo episodio de la primera temporada."
+  },
+  {
+    "id": "matrix_resurrections",
+    "type": "movie",
+    "title": "Matrix Resurrections",
+    "year": "2021",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/abc123.jpg",
+    "terabox": "https://1024terabox.com/s/EXAMPLE123",
+    "overview": "La última entrega de Matrix, acción y ciencia ficción a tope."
   }
 ]
