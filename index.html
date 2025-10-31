@@ -1,132 +1,132 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CineNube Gallery</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #111;
-      color: #eee;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #222;
-      padding: 1rem;
-      text-align: center;
-    }
-    h1 {
-      margin: 0;
-      font-size: 2rem;
-      color: #f39c12;
-    }
-    section {
-      padding: 1rem;
-    }
-    h2 {
-      color: #f1c40f;
-      margin-bottom: 0.5rem;
-    }
-    .galeria {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1rem;
-    }
-    .card {
-      background-color: #222;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 8px #000;
-      transition: transform 0.2s;
-    }
-    .card:hover {
-      transform: scale(1.03);
-    }
-    .card img {
-      width: 100%;
-      display: block;
-    }
-    .card h3 {
-      font-size: 1rem;
-      margin: 0.5rem;
-    }
-    .card a {
-      display: block;
-      text-align: center;
-      margin: 0.5rem;
-      padding: 0.5rem;
-      background-color: #f39c12;
-      color: #111;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-    .card a:hover {
-      background-color: #e67e22;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineNube Gallery</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0;}
+  header { background: #1e1e1e; padding: 1em; text-align: center; }
+  h1 { margin: 0; font-size: 2em; }
+  nav { display: flex; justify-content: center; gap: 1em; margin: 1em 0; flex-wrap: wrap; }
+  nav button { padding: 0.5em 1em; border: none; border-radius: 5px; background: #333; color: #fff; cursor: pointer; transition: 0.2s; }
+  nav button:hover { background: #ff6600; }
+  nav button.active { background: #ff6600; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 1em; padding: 1em; }
+  .item { background: #1e1e1e; border-radius: 8px; overflow: hidden; text-align: center; transition: 0.2s; }
+  .item:hover { transform: scale(1.03); }
+  .item img { width: 100%; display: block; }
+  .item h3 { margin: 0.5em 0; font-size: 1em; }
+  .item a { display: inline-block; margin: 0.3em 0; padding: 0.3em 0.6em; background: #ff6600; color: #fff; text-decoration: none; border-radius: 4px; font-size: 0.85em; }
+  .episodes { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3em; margin-bottom: 0.5em; }
+</style>
 </head>
 <body>
-  <header>
-    <h1>CineNube Gallery</h1>
-  </header>
+<header>
+  <h1>CineNube Gallery</h1>
+  <nav>
+    <button id="btn-movies" class="active">Películas</button>
+    <button id="btn-series">Series</button>
+    <button id="btn-recents">Reciente Agregado</button>
+  </nav>
+</header>
 
-  <section>
-    <h2>Películas</h2>
-    <div id="peliculas" class="galeria"></div>
-  </section>
+<main>
+  <div class="gallery" id="gallery"></div>
+</main>
 
-  <section>
-    <h2>Series</h2>
-    <div id="series" class="galeria"></div>
-  </section>
+<script>
+let data = [];
+let currentView = 'movies';
 
-  <section>
-    <h2>Reciente Agregado</h2>
-    <div id="reciente" class="galeria"></div>
-  </section>
+async function loadData() {
+  try {
+    const resp = await fetch('catalogo.json');
+    data = await resp.json();
+    showMovies();
+  } catch (e) {
+    console.error('Error cargando catalogo.json:', e);
+    document.getElementById('gallery').innerHTML = '<p>Error cargando contenido.</p>';
+  }
+}
 
-  <script>
-    fetch('catalogo.json')
-      .then(resp => resp.json())
-      .then(catalog => {
-        const peliculasContainer = document.getElementById("peliculas");
-        const seriesContainer = document.getElementById("series");
-        const recienteContainer = document.getElementById("reciente");
+function clearActive() {
+  document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+}
 
-        // ordenar por agregado (últimos primero)
-        const catalogReciente = catalog.slice().reverse();
+document.getElementById('btn-movies').addEventListener('click', () => { clearActive(); currentView='movies'; showMovies(); document.getElementById('btn-movies').classList.add('active'); });
+document.getElementById('btn-series').addEventListener('click', () => { clearActive(); currentView='series'; showSeries(); document.getElementById('btn-series').classList.add('active'); });
+document.getElementById('btn-recents').addEventListener('click', () => { clearActive(); currentView='recents'; showRecents(); document.getElementById('btn-recents').classList.add('active'); });
 
-        catalog.forEach(item => {
-          if(item.type === "movie") {
-            mostrarItem(peliculasContainer, item.title, item.poster, item.terabox);
-            mostrarItem(recienteContainer, item.title, item.poster, item.terabox);
-          }
-          else if(item.type === "series") {
-            item.seasons.forEach(season => {
-              season.episodes.forEach(ep => {
-                const titulo = `${item.title} S${season.season}E${ep.episode}`;
-                mostrarItem(seriesContainer, titulo, item.poster, ep.terabox);
-                mostrarItem(recienteContainer, titulo, item.poster, ep.terabox);
-              });
-            });
-          }
+function showMovies() {
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  const movies = data.filter(item => item.type === 'movie');
+  movies.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <img src="${m.poster}" alt="${m.title}">
+      <h3>${m.title} (${m.year})</h3>
+      <a href="${m.terabox}" target="_blank">Ver Película</a>
+    `;
+    gallery.appendChild(div);
+  });
+}
+
+function showSeries() {
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  const series = data.filter(item => item.type === 'series');
+  series.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    let episodesHTML = '';
+    if (s.seasons && s.seasons.length > 0) {
+      s.seasons.forEach(season => {
+        episodesHTML += `<div class="episodes">`;
+        season.episodes.forEach(ep => {
+          episodesHTML += `<a href="${ep.terabox}" target="_blank">S${season.season}E${ep.episode}</a>`;
         });
-      })
-      .catch(err => console.error("Error cargando catalogo.json:", err));
-
-    function mostrarItem(container, title, poster, url) {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${poster}" alt="${title}" />
-        <h3>${title}</h3>
-        <a href="${url}" target="_blank">Ver</a>
-      `;
-      container.appendChild(card);
+        episodesHTML += `</div>`;
+      });
     }
-  </script>
+    div.innerHTML = `
+      <img src="${s.poster}" alt="${s.title}">
+      <h3>${s.title} (${s.year})</h3>
+      ${episodesHTML}
+    `;
+    gallery.appendChild(div);
+  });
+}
+
+function showRecents() {
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  const recents = [...data].reverse();
+  recents.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    let episodesHTML = '';
+    if (item.type === 'series' && item.seasons && item.seasons.length > 0) {
+      item.seasons.forEach(season => {
+        episodesHTML += `<div class="episodes">`;
+        season.episodes.forEach(ep => {
+          episodesHTML += `<a href="${ep.terabox}" target="_blank">S${season.season}E${ep.episode}</a>`;
+        });
+        episodesHTML += `</div>`;
+      });
+    }
+    div.innerHTML = `
+      <img src="${item.poster}" alt="${item.title}">
+      <h3>${item.title} (${item.year})</h3>
+      ${item.type === 'movie' ? `<a href="${item.terabox}" target="_blank">Ver Película</a>` : episodesHTML}
+    `;
+    gallery.appendChild(div);
+  });
+}
+
+loadData();
+</script>
 </body>
 </html>
