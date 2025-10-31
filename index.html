@@ -39,10 +39,11 @@ const gallery = document.getElementById('gallery');
 let catalog = [];
 
 // Carga el catalogo.json desde GitHub Pages
-fetch('./catalogo.json')
-  .then(res => res.json())
-  .then(data => {
-    catalog = data;
+fetch("catalogo.json")
+  .then(response => response.json())
+  .then(data => { /* resto del código */ })
+
+    catalogo = data;
     showItems('movies');
   })
   .catch(err => {
