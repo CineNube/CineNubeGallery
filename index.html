@@ -5,32 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube</title>
 <style>
-  body{margin:0;padding:0;font-family:Arial,sans-serif;background:#111;color:#eee;min-height:100vh;}
-  header{text-align:center;padding:2rem;background:#222;}
-  h1{margin:0;font-size:2.5rem;letter-spacing:1px;}
-  nav{text-align:center;margin:1rem 0;}
-  nav button{margin:0 0.5rem;padding:0.5rem 1rem;border:none;border-radius:5px;cursor:pointer;background:#444;color:#eee;transition:0.3s;}
-  nav button.active{background:#ff6600;color:#111;}
-  nav button:hover{opacity:0.8;}
-  #search,#today{margin:0.5rem;padding:0.5rem 0.8rem;border:none;border-radius:5px;}
-  #search{width:60%;max-width:400px;}
-  #today{background:#ff6600;color:#111;cursor:pointer;transition:0.3s;}
-  #today:hover{opacity:0.85;}
-  section{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:1rem;justify-items:center;min-height:60vh;}
-  .item{background:#222;border-radius:10px;overflow:hidden;box-shadow:0 0 15px #000;position:relative;transition:transform 0.3s,box-shadow 0.3s;width:100%;max-width:220px;}
-  .item:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(255,102,0,0.6);}
-  .item img{width:100%;height:300px;object-fit:cover;display:block;}
-  .item h3{margin:0.5rem;font-size:1.1rem;text-align:center;}
-  .meta{font-size:0.8rem;color:#bbb;margin:0.2rem 0 0.5rem;text-align:center;}
-  .overview{font-size:0.85rem;color:#ddd;padding:0 0.5rem;margin-bottom:0.5rem;}
-  a{display:inline-block;margin:0.3rem;padding:0.4rem 0.6rem;border-radius:5px;font-weight:600;text-decoration:none;background:#ff6600;color:#111;transition:0.3s;}
-  a:hover{opacity:0.85;}
-  .small-link{background:#444;font-size:0.75rem;padding:0.25rem 0.4rem;}
-  .new-badge{position:absolute;top:5px;left:5px;background:#ff6600;color:#111;font-size:0.75rem;font-weight:600;padding:2px 5px;border-radius:3px;}
-  .tag-type{position:absolute;top:5px;right:5px;background:#333;color:#ff6600;font-size:0.7rem;padding:2px 5px;border-radius:3px;}
-  .stars{color:#ffcc00;font-size:0.85rem;text-align:center;margin-bottom:0.5rem;}
-  .message{text-align:center;color:#888;padding:2rem;grid-column:1/-1;}
-  @media(max-width:600px){section{grid-template-columns:1fr;}}
+body{margin:0;padding:0;font-family:Arial,sans-serif;background:#111;color:#eee;min-height:100vh;}
+header{text-align:center;padding:2rem;background:#222;}
+h1{margin:0;font-size:2.5rem;letter-spacing:1px;}
+nav{text-align:center;margin:1rem 0;}
+nav button{margin:0 0.5rem;padding:0.5rem 1rem;border:none;border-radius:5px;cursor:pointer;background:#444;color:#eee;transition:0.3s;}
+nav button.active{background:#ff6600;color:#111;}
+nav button:hover{opacity:0.8;}
+#search,#today{margin:0.5rem;padding:0.5rem 0.8rem;border:none;border-radius:5px;}
+#search{width:60%;max-width:400px;}
+#today{background:#ff6600;color:#111;cursor:pointer;transition:0.3s;}
+#today:hover{opacity:0.85;}
+section{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:1rem;justify-items:center;min-height:60vh;}
+.item{background:#222;border-radius:10px;overflow:hidden;box-shadow:0 0 15px #000;position:relative;transition:transform 0.3s,box-shadow 0.3s;width:100%;max-width:220px;}
+.item:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(255,102,0,0.6);}
+.item img{width:100%;height:300px;object-fit:cover;display:block;}
+.item h3{margin:0.5rem;font-size:1.1rem;text-align:center;}
+.meta{font-size:0.8rem;color:#bbb;margin:0.2rem 0 0.5rem;text-align:center;}
+.overview{font-size:0.85rem;color:#ddd;padding:0 0.5rem;margin-bottom:0.5rem;}
+a{display:inline-block;margin:0.3rem;padding:0.4rem 0.6rem;border-radius:5px;font-weight:600;text-decoration:none;background:#ff6600;color:#111;transition:0.3s;}
+a:hover{opacity:0.85;}
+.small-link{background:#444;font-size:0.75rem;padding:0.25rem 0.4rem;}
+.new-badge{position:absolute;top:5px;left:5px;background:#ff6600;color:#111;font-size:0.75rem;font-weight:600;padding:2px 5px;border-radius:3px;}
+.tag-type{position:absolute;top:5px;right:5px;background:#333;color:#ff6600;font-size:0.7rem;padding:2px 5px;border-radius:3px;}
+.stars{color:#ffcc00;font-size:0.85rem;text-align:center;margin-bottom:0.5rem;}
+.message{text-align:center;color:#888;padding:2rem;grid-column:1/-1;}
+@media(max-width:600px){section{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -93,7 +93,8 @@ function showFilteredItems(items){
     div.appendChild(img);div.appendChild(h3);div.appendChild(meta);div.appendChild(stars);div.appendChild(overview);
 
     if(item.type==='movie'){const link=document.createElement('a');link.href=item.terabox||'#';link.target='_blank';link.rel='noopener noreferrer';link.textContent='Ver Película';div.appendChild(link);}
-    if(item.type==='series' && Array.isArray(item.seasons)){
+    if(item.type==='series' && item.seasons){
+      try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
       item.seasons.forEach(season=>{if(!Array.isArray(season.episodes)) return;
         season.episodes.forEach(ep=>{const link=document.createElement('a');link.href=ep.terabox||'#';link.target='_blank';link.rel='noopener noreferrer';link.className='small-link';link.title=ep.title||'';link.textContent=`S${season.season}E${ep.episode}`+(ep.title?` · ${ep.title}`:'');div.appendChild(link);});});
     }
@@ -122,10 +123,17 @@ searchInput.addEventListener('input',()=>{
 
 todayBtn.addEventListener('click',()=>{const today=new Date().toISOString().split('T')[0];const filtered=catalogo.filter(item=>item.added===today);showFilteredItems(filtered);});
 
-fetch('catalogo.json')
-.then(r=>{if(!r.ok)throw new Error('HTTP error '+r.status);return r.json();})
-.then(data=>{if(!Array.isArray(data)){gallery.innerHTML='<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';return;}catalogo=data;showItems('movies');})
-.catch(err=>{console.error('Error cargando catalogo.json:',err);gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando el catálogo.</p>';});
+// Cambiamos fetch a Google Sheets mediante Sheet.best
+fetch('https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501')
+.then(r=>r.json())
+.then(data=>{
+  catalogo=data.map(item=>{
+    if(item.seasons) try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
+    return item;
+  });
+  showItems('movies');
+})
+.catch(err=>{console.error('Error cargando Google Sheet:',err);gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando el catálogo.</p>';});
 </script>
 
 </body>
