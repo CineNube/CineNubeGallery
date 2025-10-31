@@ -1,0 +1,29 @@
+[
+  {
+    "id": "v2-venom2",
+    "type": "movie",
+    "title": "Venom 2",
+    "year": "2021",
+    "poster": "https://image.tmdb.org/t/p/w500/8YFL5QQVPy3AgrEQxNYVSgiPEbe.jpg",
+    "terabox": "https://terabox.com/example-venom2",
+    "overview": "Eddie Brock vuelve con Venom en una aventura de acción y humor negro. Ideal para fans del anti-héroe."
+  },
+  {
+    "id": "dune-2021",
+    "type": "movie",
+    "title": "Dune",
+    "year": "2021",
+    "poster": "https://image.tmdb.org/t/p/w500/6DrHO1jr3qVrViUO6s6kFiAGM7.jpg",
+    "terabox": "https://terabox.com/example-dune",
+    "overview": "Épica adaptación de la novela de Frank Herbert, con visuales espectaculares y una historia inmensa."
+  },
+  {
+    "id": "chihiro-2001",
+    "type": "series",
+    "title": "El Viaje de Chihiro (ejemplo)",
+    "year": "2001",
+    "poster": "https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg",
+    "terabox": "https://terabox.com/example-chihiro",
+    "overview": "Una aventura fantástica que no necesita presentación. Ejemplo como 'serie' para probar."
+  }
+]
