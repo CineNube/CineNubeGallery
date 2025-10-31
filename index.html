@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CineNube Gallery</title>
+<title>CineNube</title>
 <style>
   body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 0; min-height:100vh; }
   header { text-align: center; padding: 2rem; background: #222; }
   h1 { margin: 0; font-size: 2.2rem; }
   nav { text-align: center; margin: 1rem 0; }
-  nav button { margin: 0 0.5rem; padding: 0.5rem 1rem; cursor: pointer; background: #444; color: #eee; border: none; border-radius: 5px; }
+  nav button { margin: 0 0.5rem; padding: 0.5rem 1rem; cursor: pointer; background: #444; color: #eee; border: none; border-radius: 5px; transition: 0.2s; }
   nav button.active { background: #ff6600; color: #111; }
+  nav button:hover { opacity: 0.85; }
   section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
-  .item { background: #222; border-radius: 8px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; }
+  .item { background: #222; border-radius: 8px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; }
   .item:hover { transform: scale(1.03); }
   .item img { width: 100%; height: 300px; object-fit: cover; display:block; }
   .item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
@@ -20,15 +21,18 @@
   .item p.overview { font-size: 0.85rem; color: #ddd; padding: 0 0.5rem; margin-bottom: 0.5rem; }
   .item a { display: inline-block; margin: 0.4rem 0.3rem 0.8rem 0.3rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
   .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
-  input#search { padding:0.5rem; width:60%; max-width:400px; border-radius:5px; border:none; margin-bottom:1rem;}
-  button#today { padding:0.5rem 1rem; margin-left:0.5rem; cursor:pointer; border-radius:5px; border:none; background:#ff6600; color:#111;}
+  input#search { padding:0.5rem; width:60%; max-width:400px; border-radius:5px; border:none; margin-bottom:1rem; }
+  button#today { padding:0.5rem 1rem; margin-left:0.5rem; cursor:pointer; border-radius:5px; border:none; background:#ff6600; color:#111; transition:0.2s; }
+  button#today:hover { opacity:0.85; }
   .message { text-align: center; color: #888; padding: 2rem; width:100%; }
+  .new-badge { position:absolute; top:5px; left:5px; background:#ff6600; color:#111; font-size:0.75rem; font-weight:600; padding:2px 5px; border-radius:3px; }
+  @media(max-width:600px){ .item{ width: 90%; } }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>CineNube Gallery</h1>
+  <h1>CineNube</h1>
 </header>
 
 <nav>
@@ -61,9 +65,19 @@ function showFilteredItems(items) {
     return;
   }
 
+  const today = new Date().toISOString().split('T')[0];
+
   items.forEach(item => {
     const div = document.createElement('div');
     div.className = 'item';
+
+    // Etiqueta Nuevo si agregado hoy
+    if(item.added === today){
+      const badge = document.createElement('div');
+      badge.className = 'new-badge';
+      badge.textContent = 'Nuevo';
+      div.appendChild(badge);
+    }
 
     const img = document.createElement('img');
     img.src = item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
@@ -127,13 +141,14 @@ function showFilteredItems(items) {
   });
 }
 
-// Función principal de filtrado
+// Filtrado principal
 function showItems(filter) {
   let items = [];
-  if (filter === 'movies') items = catalogo.filter(i => i.type === 'movie');
-  else if (filter === 'series') items = catalogo.filter(i => i.type === 'series');
-  else if (filter === 'recent') items = catalogo.slice(-5).reverse();
-  else if (filter === 'all') items = catalogo.slice(); // todo
+  const sortedCatalog = catalogo.slice().sort((a,b)=> new Date(b.added) - new Date(a.added));
+  if (filter === 'movies') items = sortedCatalog.filter(i => i.type==='movie');
+  else if (filter === 'series') items = sortedCatalog.filter(i => i.type==='series');
+  else if (filter === 'recent') items = sortedCatalog.slice(0,5);
+  else if (filter === 'all') items = sortedCatalog;
   showFilteredItems(items);
 }
 
@@ -144,7 +159,7 @@ buttons.forEach(btn => {
     buttons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     showItems(btn.dataset.filter);
-    searchInput.value = ''; // reset search
+    searchInput.value = '';
   });
 });
 
@@ -158,7 +173,7 @@ searchInput.addEventListener('input', () => {
   showFilteredItems(filtered);
 });
 
-// Filtrar agregados hoy
+// Agregados hoy
 todayBtn.addEventListener('click', () => {
   const today = new Date().toISOString().split('T')[0];
   const filtered = catalogo.filter(item => item.added === today);
@@ -167,23 +182,20 @@ todayBtn.addEventListener('click', () => {
 
 // Cargar catalogo.json
 fetch('catalogo.json')
-  .then(response => {
-    if (!response.ok) throw new Error('HTTP error ' + response.status);
-    return response.json();
-  })
+  .then(resp => { if(!resp.ok) throw new Error('HTTP error '+resp.status); return resp.json(); })
   .then(data => {
-    if (!Array.isArray(data)) {
-      console.error('catalogo.json no contiene un array:', data);
-      gallery.innerHTML = '<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';
+    if(!Array.isArray(data)){
+      gallery.innerHTML='<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';
       return;
     }
     catalogo = data;
-    showItems('movies'); // por defecto películas
+    showItems('movies');
   })
   .catch(err => {
-    console.error('Error cargando catalogo.json:', err);
-    gallery.innerHTML = '<p class="message" style="color:tomato;">❌ Error cargando el catálogo. Revisa la ruta y que catalogo.json exista.</p>';
+    console.error('Error cargando catalogo.json:',err);
+    gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando el catálogo. Revisa la ruta y que catalogo.json exista.</p>';
   });
+
 </script>
 
 </body>
