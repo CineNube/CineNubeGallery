@@ -5,46 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube</title>
 <style>
-  /* Reset y body */
-  body { margin:0; padding:0; font-family:'Arial',sans-serif; background:#111; color:#eee; min-height:100vh;}
-  header { text-align:center; padding:2rem; background:#222;}
-  h1 { margin:0; font-size:2.5rem; letter-spacing:1px;}
-  nav { text-align:center; margin:1rem 0;}
-  nav button { margin:0 0.5rem; padding:0.5rem 1rem; border:none; border-radius:5px; cursor:pointer; background:#444; color:#eee; transition:0.3s; }
-  nav button.active { background:#ff6600; color:#111;}
-  nav button:hover { opacity:0.8;}
-  #search, #today { margin:0.5rem; padding:0.5rem 0.8rem; border:none; border-radius:5px; }
-  #search { width:60%; max-width:400px; }
-  #today { background:#ff6600; color:#111; cursor:pointer; transition:0.3s;}
-  #today:hover { opacity:0.85;}
-
-  /* Gallery grid */
-  section { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:1rem; padding:1rem; justify-items:center; min-height:60vh; }
-
-  /* Cards */
-  .item { background:#222; border-radius:10px; overflow:hidden; box-shadow:0 0 15px #000; position:relative; transition:transform 0.3s, box-shadow 0.3s; width:100%; max-width:220px;}
-  .item:hover { transform: translateY(-5px); box-shadow:0 10px 25px rgba(255,102,0,0.6);}
-  .item img { width:100%; height:300px; object-fit:cover; display:block; }
-  .item h3 { margin:0.5rem; font-size:1.1rem; text-align:center; }
-  .meta { font-size:0.8rem; color:#bbb; margin:0.2rem 0 0.5rem; text-align:center;}
-  .overview { font-size:0.85rem; color:#ddd; padding:0 0.5rem; margin-bottom:0.5rem; }
-  a { display:inline-block; margin:0.3rem; padding:0.4rem 0.6rem; border-radius:5px; font-weight:600; text-decoration:none; background:#ff6600; color:#111; transition:0.3s;}
-  a:hover { opacity:0.85; }
-
-  .small-link { background:#444; font-size:0.75rem; padding:0.25rem 0.4rem;}
-  .new-badge { position:absolute; top:5px; left:5px; background:#ff6600; color:#111; font-size:0.75rem; font-weight:600; padding:2px 5px; border-radius:3px; }
-  .tag-type { position:absolute; top:5px; right:5px; background:#333; color:#ff6600; font-size:0.7rem; padding:2px 5px; border-radius:3px; }
-
-  .message { text-align:center; color:#888; padding:2rem; grid-column:1/-1; }
-
-  @media(max-width:600px){ section { grid-template-columns:1fr; } }
+  body{margin:0;padding:0;font-family:Arial,sans-serif;background:#111;color:#eee;min-height:100vh;}
+  header{text-align:center;padding:2rem;background:#222;}
+  h1{margin:0;font-size:2.5rem;letter-spacing:1px;}
+  nav{text-align:center;margin:1rem 0;}
+  nav button{margin:0 0.5rem;padding:0.5rem 1rem;border:none;border-radius:5px;cursor:pointer;background:#444;color:#eee;transition:0.3s;}
+  nav button.active{background:#ff6600;color:#111;}
+  nav button:hover{opacity:0.8;}
+  #search,#today{margin:0.5rem;padding:0.5rem 0.8rem;border:none;border-radius:5px;}
+  #search{width:60%;max-width:400px;}
+  #today{background:#ff6600;color:#111;cursor:pointer;transition:0.3s;}
+  #today:hover{opacity:0.85;}
+  section{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:1rem;justify-items:center;min-height:60vh;}
+  .item{background:#222;border-radius:10px;overflow:hidden;box-shadow:0 0 15px #000;position:relative;transition:transform 0.3s,box-shadow 0.3s;width:100%;max-width:220px;}
+  .item:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(255,102,0,0.6);}
+  .item img{width:100%;height:300px;object-fit:cover;display:block;}
+  .item h3{margin:0.5rem;font-size:1.1rem;text-align:center;}
+  .meta{font-size:0.8rem;color:#bbb;margin:0.2rem 0 0.5rem;text-align:center;}
+  .overview{font-size:0.85rem;color:#ddd;padding:0 0.5rem;margin-bottom:0.5rem;}
+  a{display:inline-block;margin:0.3rem;padding:0.4rem 0.6rem;border-radius:5px;font-weight:600;text-decoration:none;background:#ff6600;color:#111;transition:0.3s;}
+  a:hover{opacity:0.85;}
+  .small-link{background:#444;font-size:0.75rem;padding:0.25rem 0.4rem;}
+  .new-badge{position:absolute;top:5px;left:5px;background:#ff6600;color:#111;font-size:0.75rem;font-weight:600;padding:2px 5px;border-radius:3px;}
+  .tag-type{position:absolute;top:5px;right:5px;background:#333;color:#ff6600;font-size:0.7rem;padding:2px 5px;border-radius:3px;}
+  .stars{color:#ffcc00;font-size:0.85rem;text-align:center;margin-bottom:0.5rem;}
+  .message{text-align:center;color:#888;padding:2rem;grid-column:1/-1;}
+  @media(max-width:600px){section{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>CineNube</h1>
-</header>
+<header><h1>CineNube</h1></header>
 
 <nav>
   <button data-filter="movies" class="active">Películas</button>
@@ -58,94 +49,50 @@
   <button id="today">Agregados hoy</button>
 </div>
 
-<section id="gallery">
-  <p class="message">Cargando catálogo…</p>
-</section>
+<section id="gallery"><p class="message">Cargando catálogo…</p></section>
 
 <script>
-const gallery = document.getElementById('gallery');
-let catalogo = [];
-const searchInput = document.getElementById('search');
-const todayBtn = document.getElementById('today');
+const gallery=document.getElementById('gallery');
+let catalogo=[];
+const searchInput=document.getElementById('search');
+const todayBtn=document.getElementById('today');
+
+function renderStars(rating){
+  const full=Math.floor(rating);
+  const half=(rating-full)>=0.5?1:0;
+  const empty=5-full-half;
+  return '★'.repeat(full)+'½'.repeat(half)+'☆'.repeat(empty);
+}
 
 function showFilteredItems(items){
   gallery.innerHTML='';
-  if(!items.length){
-    gallery.innerHTML='<p class="message">No hay contenido disponible.</p>';
-    return;
-  }
-  const today = new Date().toISOString().split('T')[0];
+  if(!items.length){gallery.innerHTML='<p class="message">No hay contenido disponible.</p>';return;}
+  const today=new Date().toISOString().split('T')[0];
   items.forEach(item=>{
-    const div=document.createElement('div');
-    div.className='item';
+    const div=document.createElement('div'); div.className='item';
 
-    if(item.added===today){
-      const badge=document.createElement('div');
-      badge.className='new-badge';
-      badge.textContent='Nuevo';
-      div.appendChild(badge);
-    }
+    if(item.added===today){const badge=document.createElement('div');badge.className='new-badge';badge.textContent='Nuevo';div.appendChild(badge);}
+    const tag=document.createElement('div');tag.className='tag-type';tag.textContent=item.type==='movie'?'Película':'Serie';div.appendChild(tag);
 
-    const tag=document.createElement('div');
-    tag.className='tag-type';
-    tag.textContent=item.type==='movie'?'Película':'Serie';
-    div.appendChild(tag);
+    const img=document.createElement('img');img.src=item.poster||'https://via.placeholder.com/220x300?text=Sin+Imagen';img.alt=item.title||'Sin título';
+    const h3=document.createElement('h3');h3.textContent=item.title||'Sin título';
 
-    const img=document.createElement('img');
-    img.src=item.poster||'https://via.placeholder.com/220x300?text=Sin+Imagen';
-    img.alt=item.title||'Sin título';
+    const meta=document.createElement('div');meta.className='meta';meta.textContent=item.year?(item.year+' · '):''+(item.type==='movie'?'Película':'Serie');
 
-    const h3=document.createElement('h3');
-    h3.textContent=item.title||'Sin título';
+    const overview=document.createElement('p');overview.className='overview';
+    if(item.overview){const words=item.overview.split(' ');if(words.length>25){overview.textContent=words.slice(0,25).join(' ')+'... ';const more=document.createElement('span');more.textContent='Leer más';more.style.color='#ff6600';more.style.cursor='pointer';more.addEventListener('click',()=>{overview.textContent=item.overview;});overview.appendChild(more);}else overview.textContent=item.overview;}
 
-    const meta=document.createElement('div');
-    meta.className='meta';
-    meta.textContent=item.year?(item.year+' · '):''+(item.type==='movie'?'Película':'Serie');
+    // Valoración
+    const stars=document.createElement('div');stars.className='stars';
+    let rating=item.rating; if(!rating) rating=Math.floor(Math.random()*5*10)/10+1; // si no hay rating aleatorio 1-5
+    stars.textContent=renderStars(rating);
 
-    const overview=document.createElement('p');
-    overview.className='overview';
-    if(item.overview){
-      const words=item.overview.split(' ');
-      if(words.length>25){
-        overview.textContent=words.slice(0,25).join(' ')+'... ';
-        const more=document.createElement('span');
-        more.textContent='Leer más';
-        more.style.color='#ff6600';
-        more.style.cursor='pointer';
-        more.addEventListener('click',()=>{overview.textContent=item.overview;});
-        overview.appendChild(more);
-      } else overview.textContent=item.overview;
-    }
+    div.appendChild(img);div.appendChild(h3);div.appendChild(meta);div.appendChild(stars);div.appendChild(overview);
 
-    div.appendChild(img);
-    div.appendChild(h3);
-    div.appendChild(meta);
-    div.appendChild(overview);
-
-    if(item.type==='movie'){
-      const link=document.createElement('a');
-      link.href=item.terabox||'#';
-      link.target='_blank';
-      link.rel='noopener noreferrer';
-      link.textContent='Ver Película';
-      div.appendChild(link);
-    }
-
+    if(item.type==='movie'){const link=document.createElement('a');link.href=item.terabox||'#';link.target='_blank';link.rel='noopener noreferrer';link.textContent='Ver Película';div.appendChild(link);}
     if(item.type==='series' && Array.isArray(item.seasons)){
-      item.seasons.forEach(season=>{
-        if(!Array.isArray(season.episodes)) return;
-        season.episodes.forEach(ep=>{
-          const link=document.createElement('a');
-          link.href=ep.terabox||'#';
-          link.target='_blank';
-          link.rel='noopener noreferrer';
-          link.className='small-link';
-          link.title=ep.title||'';
-          const epText=`S${season.season}E${ep.episode}`+(ep.title?` · ${ep.title}`:'');
-          link.textContent=epText;
-          div.appendChild(link);
-        });
-      });
+      item.seasons.forEach(season=>{if(!Array.isArray(season.episodes)) return;
+        season.episodes.forEach(ep=>{const link=document.createElement('a');link.href=ep.terabox||'#';link.target='_blank';link.rel='noopener noreferrer';link.className='small-link';link.title=ep.title||'';link.textContent=`S${season.season}E${ep.episode}`+(ep.title?` · ${ep.title}`:'');div.appendChild(link);});});
     }
 
     gallery.appendChild(div);
@@ -162,48 +109,14 @@ function showItems(filter){
   showFilteredItems(items);
 }
 
-// Botones filtro
-document.querySelectorAll('nav button').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    showItems(btn.dataset.filter);
-    searchInput.value='';
-  });
-});
+document.querySelectorAll('nav button').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');showItems(btn.dataset.filter);searchInput.value='';});});
+searchInput.addEventListener('input',()=>{const term=searchInput.value.toLowerCase();const filtered=catalogo.filter(item=>(item.title&&item.title.toLowerCase().includes(term))||(item.overview&&item.overview.toLowerCase().includes(term)));showFilteredItems(filtered);});
+todayBtn.addEventListener('click',()=>{const today=new Date().toISOString().split('T')[0];const filtered=catalogo.filter(item=>item.added===today);showFilteredItems(filtered);});
 
-// Buscador
-searchInput.addEventListener('input',()=>{
-  const term=searchInput.value.toLowerCase();
-  const filtered=catalogo.filter(item=>
-    (item.title && item.title.toLowerCase().includes(term)) ||
-    (item.overview && item.overview.toLowerCase().includes(term))
-  );
-  showFilteredItems(filtered);
-});
-
-// Agregados hoy
-todayBtn.addEventListener('click',()=>{
-  const today=new Date().toISOString().split('T')[0];
-  const filtered=catalogo.filter(item=>item.added===today);
-  showFilteredItems(filtered);
-});
-
-// Cargar JSON
 fetch('catalogo.json')
-  .then(r=>{if(!r.ok)throw new Error('HTTP error '+r.status); return r.json();})
-  .then(data=>{
-    if(!Array.isArray(data)){
-      gallery.innerHTML='<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';
-      return;
-    }
-    catalogo=data;
-    showItems('movies');
-  })
-  .catch(err=>{
-    console.error('Error cargando catalogo.json:',err);
-    gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando el catálogo.</p>';
-  });
+.then(r=>{if(!r.ok)throw new Error('HTTP error '+r.status);return r.json();})
+.then(data=>{if(!Array.isArray(data)){gallery.innerHTML='<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';return;}catalogo=data;showItems('movies');})
+.catch(err=>{console.error('Error cargando catalogo.json:',err);gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando el catálogo.</p>';});
 </script>
 
 </body>
