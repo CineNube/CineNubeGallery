@@ -57,6 +57,10 @@ let catalogo=[];
 const searchInput=document.getElementById('search');
 const todayBtn=document.getElementById('today');
 
+function normalizeText(text){
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/gi,'');
+}
+
 function renderStars(rating){
   const full=Math.floor(rating);
   const half=(rating-full)>=0.5?1:0;
@@ -82,9 +86,8 @@ function showFilteredItems(items){
     const overview=document.createElement('p');overview.className='overview';
     if(item.overview){const words=item.overview.split(' ');if(words.length>25){overview.textContent=words.slice(0,25).join(' ')+'... ';const more=document.createElement('span');more.textContent='Leer más';more.style.color='#ff6600';more.style.cursor='pointer';more.addEventListener('click',()=>{overview.textContent=item.overview;});overview.appendChild(more);}else overview.textContent=item.overview;}
 
-    // Valoración
     const stars=document.createElement('div');stars.className='stars';
-    let rating=item.rating; if(!rating) rating=Math.floor(Math.random()*5*10)/10+1; // si no hay rating aleatorio 1-5
+    let rating=item.rating; if(!rating) rating=Math.floor(Math.random()*5*10)/10+1;
     stars.textContent=renderStars(rating);
 
     div.appendChild(img);div.appendChild(h3);div.appendChild(meta);div.appendChild(stars);div.appendChild(overview);
@@ -110,7 +113,13 @@ function showItems(filter){
 }
 
 document.querySelectorAll('nav button').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');showItems(btn.dataset.filter);searchInput.value='';});});
-searchInput.addEventListener('input',()=>{const term=searchInput.value.toLowerCase();const filtered=catalogo.filter(item=>(item.title&&item.title.toLowerCase().includes(term))||(item.overview&&item.overview.toLowerCase().includes(term)));showFilteredItems(filtered);});
+
+searchInput.addEventListener('input',()=>{
+  const term=normalizeText(searchInput.value);
+  const filtered=catalogo.filter(item=>normalizeText(item.title).includes(term) || (item.overview && normalizeText(item.overview).includes(term)));
+  showFilteredItems(filtered);
+});
+
 todayBtn.addEventListener('click',()=>{const today=new Date().toISOString().split('T')[0];const filtered=catalogo.filter(item=>item.added===today);showFilteredItems(filtered);});
 
 fetch('catalogo.json')
