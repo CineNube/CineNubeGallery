@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎬 CineNube | Catálogo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #ffcc00;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #aaa;
+      margin-bottom: 30px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      justify-items: center;
+    }
+    .card {
+      background: #1b1b1b;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    .card img {
+      width: 100%;
+      display: block;
+    }
+    .card .info {
+      padding: 10px;
+    }
+    .card .info h3 {
+      margin: 0;
+      color: #ffcc00;
+      font-size: 1rem;
+    }
+    .card .info a {
+      display: inline-block;
+      margin-top: 8px;
+      background: #ffcc00;
+      color: #111;
+      padding: 6px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .card .info a:hover {
+      background: #ffd633;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 0.8rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Catálogo CineNube</h1>
+  <p>Explora nuestra colección de películas y series. ¡Haz clic en una para verla! 🍿</p>
+
+  <div class="grid">
+    <div class="card">
+      <img src="https://image.tmdb.org/t/p/w300/8YFL5QQVPy3AgrEQxNYVSgiPEbe.jpg" alt="Venom 2">
+      <div class="info">
+        <h3>Venom 2</h3>
+        <a href="https://terabox.com/">Ver ahora ▶️</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="https://image.tmdb.org/t/p/w300/6DrHO1jr3qVrViUO6s6kFiAGM7.jpg" alt="Dune">
+      <div class="info">
+        <h3>Dune</h3>
+        <a href="https://terabox.com/">Ver ahora ▶️</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="https://image.tmdb.org/t/p/w300/q719jXXEzOoYaps6babgKnONONX.jpg" alt="Spirited Away">
+      <div class="info">
+        <h3>El Viaje de Chihiro</h3>
+        <a href="https://terabox.com/">Ver ahora ▶️</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="https://image.tmdb.org/t/p/w300/lyQBXzOQSuE59IsHyhrp0qIiPAz.jpg" alt="The Batman">
+      <div class="info">
+        <h3>The Batman</h3>
+        <a href="https://terabox.com/">Ver ahora ▶️</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    💖 Apoya el canal en <a href="https://paypal.me/CineNubes" target="_blank">PayPal</a> | © 2025 CineNube
+  </footer>
+</body>
+</html>
