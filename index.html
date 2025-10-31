@@ -1,4 +1,4 @@
-<!DOCTYPE json>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
@@ -36,17 +36,12 @@
 </nav>
 
 <section id="gallery">
-  <p class="message">Cargando catalogo…</p>
+  <p class="message">Cargando catálogo…</p>
 </section>
 
 <script>
-/*
-  index.html corregido para usar la variable "catalogo".
-  Asegúrate de que catalogo.json esté en la misma carpeta que este index.html en tu repo.
-*/
-
 const gallery = document.getElementById('gallery');
-let catalogo = []; // <-- usamos "catalogo" tal como indicaste
+let catalogo = [];
 
 // Función para mostrar items según filtro
 function showItems(filter) {
@@ -58,7 +53,6 @@ function showItems(filter) {
   } else if (filter === 'series') {
     items = catalogo.filter(i => i.type === 'series');
   } else if (filter === 'recent') {
-    // últimos 5 agregados (si catalogo tiene menos, muestra lo que haya)
     items = catalogo.slice(-5).reverse();
   }
 
@@ -86,7 +80,6 @@ function showItems(filter) {
     div.appendChild(h3);
     div.appendChild(meta);
 
-    // Película simple
     if (item.type === 'movie') {
       const link = document.createElement('a');
       link.href = item.terabox || '#';
@@ -96,9 +89,7 @@ function showItems(filter) {
       div.appendChild(link);
     }
 
-    // Series con temporadas y episodios (si existen)
     if (item.type === 'series' && Array.isArray(item.seasons)) {
-      // Añadimos un contenedor de episodios para mantener orden
       item.seasons.forEach(season => {
         if (!Array.isArray(season.episodes)) return;
         season.episodes.forEach(ep => {
@@ -107,7 +98,6 @@ function showItems(filter) {
           link.target = '_blank';
           link.rel = 'noopener noreferrer';
           link.className = 'small-link';
-          // Mostrar S{n}E{m} y, si existe, el título del episodio
           const epText = `S${season.season}E${ep.episode}` + (ep.title ? ` · ${ep.title}` : '');
           link.textContent = epText;
           div.appendChild(link);
@@ -129,28 +119,26 @@ buttons.forEach(btn => {
   });
 });
 
-// Cargar catalogo.json (ruta relativa)
+// Cargar catalogo.json
 fetch('catalogo.json')
   .then(response => {
     if (!response.ok) throw new Error('HTTP error ' + response.status);
     return response.json();
   })
   .then(data => {
-    // Aseguramos que data sea un array
     if (!Array.isArray(data)) {
       console.error('catalogo.json no contiene un array:', data);
       gallery.innerHTML = '<p class="message" style="color:tomato;">❌ El catálogo no tiene el formato correcto.</p>';
       return;
     }
     catalogo = data;
-    showItems('movies'); // mostrar películas por defecto
+    showItems('movies');
   })
   .catch(err => {
     console.error('Error cargando catalogo.json:', err);
     gallery.innerHTML = '<p class="message" style="color:tomato;">❌ Error cargando el catálogo. Revisa la ruta y que catalogo.json exista.</p>';
   });
-
 </script>
 
 </body>
-</json>
+</html>
