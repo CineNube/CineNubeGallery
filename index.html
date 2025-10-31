@@ -25,7 +25,7 @@ section{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));g
 .overview{font-size:0.85rem;color:#ddd;padding:0 0.5rem;margin-bottom:0.5rem;}
 a{display:inline-block;margin:0.3rem;padding:0.4rem 0.6rem;border-radius:5px;font-weight:600;text-decoration:none;background:#ff6600;color:#111;transition:0.3s;}
 a:hover{opacity:0.85;}
-.small-link{background:#444;font-size:0.75rem;padding:0.25rem 0.4rem;}
+.small-link{background:#444;font-size:0.75rem;padding:0.25rem 0.4rem;margin:0.1rem;}
 .new-badge{position:absolute;top:5px;left:5px;background:#ff6600;color:#111;font-size:0.75rem;font-weight:600;padding:2px 5px;border-radius:3px;}
 .tag-type{position:absolute;top:5px;right:5px;background:#333;color:#ff6600;font-size:0.7rem;padding:2px 5px;border-radius:3px;}
 .stars{color:#ffcc00;font-size:0.85rem;text-align:center;margin-bottom:0.5rem;}
@@ -92,11 +92,44 @@ function showFilteredItems(items){
 
     div.appendChild(img);div.appendChild(h3);div.appendChild(meta);div.appendChild(stars);div.appendChild(overview);
 
-    if(item.type==='movie'){const link=document.createElement('a');link.href=item.terabox||'#';link.target='_blank';link.rel='noopener noreferrer';link.textContent='Ver Película';div.appendChild(link);}
-    if(item.type==='series' && item.seasons){
-      try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
-      item.seasons.forEach(season=>{if(!Array.isArray(season.episodes)) return;
-        season.episodes.forEach(ep=>{const link=document.createElement('a');link.href=ep.terabox||'#';link.target='_blank';link.rel='noopener noreferrer';link.className='small-link';link.title=ep.title||'';link.textContent=`S${season.season}E${ep.episode}`+(ep.title?` · ${ep.title}`:'');div.appendChild(link);});});
+    // Botones de temporada para series
+    if(item.type==='series'){
+      if(item.season_links){
+        try{item.season_links=JSON.parse(item.season_links);}catch(e){item.season_links=[];}
+        item.season_links.forEach(s=>{
+          const btn=document.createElement('a');
+          btn.href=s.link||'#';
+          btn.target='_blank';
+          btn.rel='noopener noreferrer';
+          btn.textContent=`Temporada ${s.season}`;
+          btn.style.display='block';
+          btn.style.textAlign='center';
+          btn.style.marginBottom='0.3rem';
+          btn.style.background='#ff6600';
+          btn.style.color='#111';
+          btn.style.borderRadius='5px';
+          btn.style.padding='0.3rem';
+          div.appendChild(btn);
+        });
+      }
+      // Mostrar capítulos como referencia (sin links individuales)
+      if(item.seasons){
+        try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
+        item.seasons.forEach(season=>{
+          if(!Array.isArray(season.episodes)) return;
+          season.episodes.forEach(ep=>{
+            const span=document.createElement('span');
+            span.className='small-link';
+            span.textContent=`S${season.season}E${ep.episode}`+(ep.title?` · ${ep.title}`:'');
+            div.appendChild(span);
+          });
+        });
+      }
+    }
+
+    // Botón película
+    if(item.type==='movie' && item.terabox){
+      const link=document.createElement('a');link.href=item.terabox;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Ver Película';div.appendChild(link);
     }
 
     gallery.appendChild(div);
@@ -123,12 +156,13 @@ searchInput.addEventListener('input',()=>{
 
 todayBtn.addEventListener('click',()=>{const today=new Date().toISOString().split('T')[0];const filtered=catalogo.filter(item=>item.added===today);showFilteredItems(filtered);});
 
-// Cambiamos fetch a Google Sheets mediante Sheet.best
+// Cargar catálogo desde Google Sheets via Sheet.best
 fetch('https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501')
 .then(r=>r.json())
 .then(data=>{
   catalogo=data.map(item=>{
     if(item.seasons) try{item.seasons=JSON.parse(item.seasons);}catch(e){item.seasons=[];}
+    if(item.season_links) try{item.season_links=JSON.parse(item.season_links);}catch(e){item.season_links=[];}
     return item;
   });
   showItems('movies');
