@@ -17,6 +17,7 @@
   .item img { width: 100%; height: 300px; object-fit: cover; display:block; }
   .item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
   .item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
+  .item p.overview { font-size: 0.85rem; color: #ddd; padding: 0 0.5rem; margin-bottom: 0.5rem; }
   .item a { display: inline-block; margin: 0.4rem 0.3rem 0.8rem 0.3rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
   .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
   .hidden { display: none; }
@@ -76,9 +77,30 @@ function showItems(filter) {
     meta.className = 'meta';
     meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
 
+    // Sinopsis resumida
+    const overview = document.createElement('p');
+    overview.className = 'overview';
+    if (item.overview) {
+      const words = item.overview.split(' ');
+      if (words.length > 25) {
+        overview.textContent = words.slice(0,25).join(' ') + '... ';
+        const more = document.createElement('span');
+        more.textContent = 'Leer más';
+        more.style.color = '#ff6600';
+        more.style.cursor = 'pointer';
+        more.addEventListener('click', () => {
+          overview.textContent = item.overview;
+        });
+        overview.appendChild(more);
+      } else {
+        overview.textContent = item.overview;
+      }
+    }
+
     div.appendChild(img);
     div.appendChild(h3);
     div.appendChild(meta);
+    div.appendChild(overview);
 
     if (item.type === 'movie') {
       const link = document.createElement('a');
