@@ -41,7 +41,7 @@ let currentView = 'movies';
 
 async function loadData() {
   try {
-    const resp = await fetch('catalogo.json');
+fetch('./catalogo.json')  // ✅ relativa a la misma carpeta
     data = await resp.json();
     showMovies();
   } catch (e) {
