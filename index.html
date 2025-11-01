@@ -66,7 +66,7 @@ const gallery = document.getElementById('gallery');
 const searchInput = document.getElementById('searchInput');
 let catalogo = [];
 
-// Función para convertir fecha DD-MM-YYYY a formato válido
+// Función para convertir fecha DD-MM-YYYY a Date
 function parseFecha(fechaStr) {
   if (!fechaStr) return null;
   const partes = fechaStr.split("-");
@@ -82,7 +82,6 @@ function showItems(filter, query = '') {
   gallery.innerHTML = '';
   const hoy = new Date();
 
-  // Normalizar búsqueda (quita acentos, minúsculas)
   const normalize = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   let items = catalogo.filter(i => {
@@ -92,7 +91,7 @@ function showItems(filter, query = '') {
       const fecha = parseFecha(i.updated || i.added);
       if (!fecha) return false;
       const diasDiff = (hoy - fecha) / (1000*60*60*24);
-      return diasDiff <= 15; // últimos 15 días
+      return diasDiff <= 15;
     }
     return true;
   });
@@ -111,7 +110,6 @@ function showItems(filter, query = '') {
     return;
   }
 
-  // Ordenar por fecha de actualización
   items.sort((a, b) => {
     const fa = parseFecha(a.updated || a.added);
     const fb = parseFecha(b.updated || b.added);
@@ -127,20 +125,19 @@ function showItems(filter, query = '') {
     img.alt = item.title || 'Sin título';
 
     const h3 = document.createElement('h3');
-    h3.textContent = item.title || 'Sin título';
+    h3.textContent = (item.Idioma ? `[${item.Idioma}] ` : '') + (item.title || 'Sin título');
 
     const meta = document.createElement('div');
     meta.className = 'meta';
     meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
 
-    const resumen = document.createElement('div');
-    resumen.style.fontSize = '0.85rem';
-    resumen.style.color = '#ccc';
-    resumen.style.margin = '0.5rem';
+    const resumenDiv = document.createElement('div');
+    resumenDiv.style.fontSize = '0.85rem';
+    resumenDiv.style.color = '#ccc';
+    resumenDiv.style.margin = '0.5rem';
     const texto = (item.overview || '').trim();
-    resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
+    resumenDiv.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
 
-    // Mostrar "Nuevo" si actualizado hace <3 días
     const fUpd = parseFecha(item.updated || item.added);
     if (fUpd && ((hoy - fUpd) / (1000*60*60*24)) <= 3) {
       const badge = document.createElement('div');
@@ -152,7 +149,7 @@ function showItems(filter, query = '') {
     div.appendChild(img);
     div.appendChild(h3);
     div.appendChild(meta);
-    div.appendChild(resumen);
+    div.appendChild(resumenDiv);
 
     if (item.type === 'movie' && item.terabox) {
       const link = document.createElement('a');
