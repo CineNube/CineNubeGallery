@@ -11,8 +11,10 @@
   nav { text-align: center; margin: 1rem 0; }
   nav button { margin: 0 0.4rem; padding: 0.5rem 1.2rem; cursor: pointer; background: #333; color: #eee; border: none; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
   nav button.active, nav button:hover { background: #ff6600; color: #111; }
+
   .search-container { text-align: center; margin: 1.5rem 0; }
   .search-container input { width: 80%; max-width: 400px; padding: 0.6rem; border-radius: 6px; border: none; outline: none; font-size: 1rem; }
+
   section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
   .item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; }
   .item:hover { transform: scale(1.03); }
@@ -23,7 +25,18 @@
   .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
   .hidden { display: none; }
   .message { text-align: center; color: #888; padding: 2rem; width:100%; }
-  .badge-new { position: absolute; top: 8px; left: 8px; background: #2ecc71; color: #111; font-weight: bold; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; }
+
+  .badge-new {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #2ecc71;
+    color: #111;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+  }
 </style>
 </head>
 <body>
@@ -47,11 +60,13 @@
 </section>
 
 <script>
+// URL de tu hoja en Sheet.best
 const SHEET_URL = "https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501";
 const gallery = document.getElementById('gallery');
 const searchInput = document.getElementById('searchInput');
 let catalogo = [];
 
+// Convertir fecha DD-MM-YYYY a Date
 function parseFecha(fechaStr) {
   if (!fechaStr) return null;
   const partes = fechaStr.split("-");
@@ -62,6 +77,7 @@ function parseFecha(fechaStr) {
   return new Date(fechaStr);
 }
 
+// Mostrar ítems según filtro o búsqueda
 function showItems(filter, query = '') {
   gallery.innerHTML = '';
   const hoy = new Date();
@@ -73,7 +89,8 @@ function showItems(filter, query = '') {
     if (filter === 'recent') {
       const fecha = parseFecha(i.updated || i.added);
       if (!fecha) return false;
-      return ((hoy - fecha) / (1000*60*60*24)) <= 15;
+      const diasDiff = (hoy - fecha) / (1000*60*60*24);
+      return diasDiff <= 15;
     }
     return true;
   });
@@ -107,21 +124,20 @@ function showItems(filter, query = '') {
     img.alt = item.title || 'Sin título';
 
     const h3 = document.createElement('h3');
-    const idioma = item.Idioma ? `[${item.Idioma}] ` : '';
-    h3.textContent = idioma + (item.title || 'Sin título');
+    h3.textContent = item.title || 'Sin título';
 
     const meta = document.createElement('div');
     meta.className = 'meta';
     meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
 
-    const resumenDiv = document.createElement('div');
-    resumenDiv.style.fontSize = '0.85rem';
-    resumenDiv.style.color = '#ccc';
-    resumenDiv.style.margin = '0.5rem';
+    const resumen = document.createElement('div');
+    resumen.style.fontSize = '0.85rem';
+    resumen.style.color = '#ccc';
+    resumen.style.margin = '0.5rem';
     const texto = (item.overview || '').trim();
-    resumenDiv.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
+    resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
 
-    // Badge nuevo
+    // Badge nuevo si actualizado <3 días
     const fUpd = parseFecha(item.updated || item.added);
     if (fUpd && ((hoy - fUpd) / (1000*60*60*24)) <= 3) {
       const badge = document.createElement('div');
@@ -133,7 +149,7 @@ function showItems(filter, query = '') {
     div.appendChild(img);
     div.appendChild(h3);
     div.appendChild(meta);
-    div.appendChild(resumenDiv);
+    div.appendChild(resumen);
 
     // Películas
     if (item.type === 'movie' && item.terabox) {
@@ -145,39 +161,33 @@ function showItems(filter, query = '') {
     }
 
     // Series
-if (item.type === 'series' && item.season_links) {
-  try {
-    const seasons = JSON.parse(item.season_links);
-    seasons.forEach(s => {
-      if (s.episodes && s.episodes.length) {
-        s.episodes.forEach(ep => {
-          if (ep.link) {
-            const btn = document.createElement('a');
-            btn.href = ep.link;
-            btn.target = '_blank';
-            btn.className = 'small-link';
-            btn.textContent = `T${s.season}E${ep.episode}`;
-            div.appendChild(btn);
-          }
-        });
-      } else if (s.link) { // fallback: solo link por temporada
-        const btn = document.createElement('a');
-        btn.href = s.link;
-        btn.target = '_blank';
-        btn.className = 'small-link';
-        btn.textContent = `Temporada ${s.season}`;
-        div.appendChild(btn);
+    if (item.type === 'series' && item.season_links) {
+      try {
+        // Parse seguro, eliminando espacios extra
+        const cleanStr = item.season_links.trim();
+        const seasons = JSON.parse(cleanStr);
+        if (Array.isArray(seasons)) {
+          seasons.forEach(s => {
+            if (s.link) {
+              const btn = document.createElement('a');
+              btn.href = s.link;
+              btn.target = '_blank';
+              btn.className = 'small-link';
+              btn.textContent = `Temporada ${s.season}`;
+              div.appendChild(btn);
+            }
+          });
+        }
+      } catch(e) {
+        console.error("Error parseando season_links:", e);
       }
-    });
-  } catch(e) { console.error("Error parseando season_links", e); }
-}
-
+    }
 
     gallery.appendChild(div);
   });
 }
 
-// Cargar catálogo desde Sheet.best
+// Cargar catálogo
 fetch(SHEET_URL)
   .then(res => res.json())
   .then(data => {
@@ -190,9 +200,10 @@ fetch(SHEET_URL)
   });
 
 // Filtros
-document.querySelectorAll('nav button').forEach(btn => {
+const buttons = document.querySelectorAll('nav button');
+buttons.forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    buttons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     showItems(btn.dataset.filter, searchInput.value);
   });
