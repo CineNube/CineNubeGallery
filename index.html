@@ -16,16 +16,36 @@
   .search-container input { width: 80%; max-width: 400px; padding: 0.6rem; border-radius: 6px; border: none; outline: none; font-size: 1rem; }
 
   section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
-  .item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; }
+  .item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; cursor:pointer;}
   .item:hover { transform: scale(1.03); }
+
   .item img { width: 100%; height: 300px; object-fit: cover; display: block; border-radius: 10px 10px 0 0; }
   .item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
   .item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
-  .item a { display: inline-block; margin: 0.3rem 0.2rem 0.8rem 0.2rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
+  .item .overview { font-size: 0.85rem; color: #ccc; margin: 0.5rem; }
+  .item .overview.collapsed { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor:pointer; }
+  .item a, .item button { display: inline-block; margin: 0.3rem 0.2rem 0.8rem 0.2rem; padding: 0.45rem 0.7rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; border: none; cursor: pointer; }
   .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
   .hidden { display: none; }
   .message { text-align: center; color: #888; padding: 2rem; width:100%; }
+
   .badge-new { position: absolute; top: 8px; left: 8px; background: #2ecc71; color: #111; font-weight: bold; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; }
+  .badge-rating { position: absolute; top: 8px; right: 8px; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; font-weight:bold; }
+  .badge-rating.high { background: #2ecc71; color: #111; }
+  .badge-rating.medium { background: #f39c12; color: #111; }
+  .badge-rating.low { background: #e74c3c; color: #fff; }
+
+  /* Carrusel de recientes */
+  #recentCarousel { display:flex; overflow-x:auto; padding:1rem; margin-bottom:1rem; }
+  #recentCarousel .item { flex:0 0 auto; width:180px; margin-right:1rem; }
+
+  /* Modal de donación */
+  .modal-backdrop { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999; }
+  .modal { background:#111; padding:1.2rem; border-radius:8px; max-width:520px; width:95%; color:#eee; box-shadow:0 6px 30px rgba(0,0,0,0.7); }
+  .modal h3 { margin:0 0 0.5rem 0; color:#ffb86b; }
+  .modal p { margin:0.3rem 0 1rem 0; color:#ddd; }
+  .modal .actions { text-align:right; margin-top:1rem; }
+  .modal .actions button { margin-left:0.5rem; }
 </style>
 </head>
 <body>
@@ -44,70 +64,267 @@
   <input type="text" id="searchInput" placeholder="Buscar título, año o palabra clave...">
 </div>
 
+<section id="recentCarousel" class="hidden"></section>
 <section id="gallery">
   <p class="message">Cargando catálogo...</p>
 </section>
 
+<!-- Modal de donación / confirmación -->
+<div id="donateModal" class="hidden" aria-hidden="true">
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">Donar para desbloquear</h3>
+      <p id="modalText">Para ver el enlace, haz una donación (cantidad libre) en PayPal y luego pulsa "He donado".</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <a id="paypalLink" href="https://paypal.me/CineNubes" target="_blank" rel="noopener" style="background:#0070ba;color:#fff;padding:0.5rem 0.8rem;border-radius:6px;text-decoration:none;font-weight:700;">Ir a PayPal</a>
+        <button id="confirmPaid" style="background:#2ecc71;">He donado (confirmar)</button>
+        <button id="cancelModal" style="background:#aaa;color:#111;">Cancelar</button>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <small style="color:#bbb;">Sugerencia: dona lo que quieras, 0.10 € es válido si quieres probar.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+/* ========== CONFIG ========== */
 const SHEET_URL = "https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501";
 const TMDB_API_KEY = "73ec36a1669f06f8684c4d104861d52b";
+const PAYPAL_ME = "https://paypal.me/CineNubes"; // link a tu paypal
+/* ============================ */
+
 const gallery = document.getElementById('gallery');
+const recentCarousel = document.getElementById('recentCarousel');
 const searchInput = document.getElementById('searchInput');
 let catalogo = [];
 
-// Mensajes de donación aleatorios
-const mensajesPaypal = [
-  "🍿 ¡Ey! ¿Te gustó esto? Apoya el proyecto con un cafecito ☕️: https://paypal.me/CineNubes",
-  "🎬 Si disfrutas el contenido, considera invitarnos un café: https://paypal.me/CineNubes",
-  "🌟 Tu apoyo hace posible que sigamos compartiendo estrenos ❤️ https://paypal.me/CineNubes",
-  "💫 ¿Te encanta descubrir pelis nuevas? Un pequeño aporte ayuda mucho 👉 https://paypal.me/CineNubes",
-  "📽️ Mantén activo CineNube con tu granito de arena 💖 https://paypal.me/CineNubes",
-  "🔥 ¿Te gustó esta recomendación? Invítanos un café ☕️ y seguimos compartiendo: https://paypal.me/CineNubes"
-];
+// modal elements
+const donateModal = document.getElementById('donateModal');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const paypalLink = document.getElementById('paypalLink');
+const confirmPaid = document.getElementById('confirmPaid');
+const cancelModal = document.getElementById('cancelModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalText = document.getElementById('modalText');
 
+paypalLink.href = PAYPAL_ME;
+
+// util: parse fecha dd-mm-yyyy o ISO
 function parseFecha(fechaStr) {
   if (!fechaStr) return null;
+  if (typeof fechaStr !== 'string') return null;
   const partes = fechaStr.split("-");
-  if (partes.length === 3) {
-    const [dia, mes, año] = partes.map(p => parseInt(p, 10));
-    return new Date(año, mes - 1, dia);
+  if (partes.length === 3 && partes[0].length<=2) {
+    const [d,m,y] = partes.map(p=>parseInt(p,10));
+    if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y,m-1,d);
   }
-  return new Date(fechaStr);
+  const dt = new Date(fechaStr);
+  return isNaN(dt.getTime()) ? null : dt;
 }
 
-// Trae información TMDB dinámica (poster y overview último episodio)
+// crea key segura para localStorage por item (usa TMDB_ID si existe, si no title)
+function storageKeyFor(item, suffix='') {
+  const base = item.TMDB_ID ? String(item.TMDB_ID) : (item.id || item.title || 'item');
+  const safe = base.toString().replace(/[^a-zA-Z0-9_\-]/g,'_');
+  return `cinenube_unlocked_${safe}${suffix}`;
+}
+
+// desbloquea y abre link
+function unlockAndOpen(key, url) {
+  try {
+    localStorage.setItem(key, '1');
+  } catch(e){ /* ignore storage issues */ }
+  if(url) window.open(url, '_blank');
+}
+
+// mostrar modal para donar y luego confirmar desbloqueo
+function showDonateModal({title, hint, onConfirm}) {
+  modalTitle.textContent = `Donar para desbloquear: ${title}`;
+  modalText.textContent = hint || 'Para ver el enlace, haz una donación (cantidad libre) en PayPal y luego pulsa "He donado".';
+  paypalLink.href = PAYPAL_ME;
+  donateModal.classList.remove('hidden');
+  donateModal.setAttribute('aria-hidden','false');
+
+  // limpiar handlers previos:
+  confirmPaid.onclick = () => {
+    donateModal.classList.add('hidden');
+    donateModal.setAttribute('aria-hidden','true');
+    if (typeof onConfirm === 'function') onConfirm();
+  };
+  cancelModal.onclick = () => {
+    donateModal.classList.add('hidden');
+    donateModal.setAttribute('aria-hidden','true');
+  };
+  modalBackdrop.onclick = (e) => {
+    if (e.target === modalBackdrop) {
+      donateModal.classList.add('hidden');
+      donateModal.setAttribute('aria-hidden','true');
+    }
+  };
+}
+
+// Trae info TMDB opcional (si TMDB_ID existe) y la añade al item
 async function fetchTMDB(item) {
-  if (!item.TMDB_ID) return item;
+  if(!item.TMDB_ID) return item;
+  const key = `tmdb_cache_${item.TMDB_ID}`;
+  try {
+    const raw = localStorage.getItem(key);
+    const now = Date.now();
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed._ts && now - parsed._ts < 24*60*60*1000) {
+        Object.assign(item, parsed.data);
+        return item;
+      }
+    }
+  } catch(e){ /* ignore */ }
+
   try {
     const type = item.type === 'movie' ? 'movie' : 'tv';
     const res = await fetch(`https://api.themoviedb.org/3/${type}/${item.TMDB_ID}?api_key=${TMDB_API_KEY}&language=es-ES`);
-    const data = await res.json();
-
-    if (!data) return item;
-
-    item.overview = data.overview || item.overview;
-    item.rating = data.vote_average || item.rating;
-    item.poster = data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}` : item.poster;
-
-    if (item.type === 'series') {
-      const lastEp = data.last_episode_to_air || null;
-      if (lastEp) {
-        item.last_episode_still = lastEp.still_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${lastEp.still_path}` : item.poster;
-        item.last_episode_overview = lastEp.overview || item.overview;
-        item.last_episode_air_date = lastEp.air_date;
+    if (res.ok) {
+      const data = await res.json();
+      item.overview = item.overview || data.overview || '';
+      item.rating = item.rating || (data.vote_average || '');
+      item.poster = item.poster || (data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}` : item.poster);
+      if (item.type === 'series') {
+        const lastEp = data.last_episode_to_air || null;
+        if (lastEp) {
+          item.last_episode_still = lastEp.still_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${lastEp.still_path}` : item.poster;
+          item.last_episode_overview = lastEp.overview || item.overview;
+          item.last_episode_air_date = lastEp.air_date || item.last_episode_air_date;
+        }
+        if (!item.season_links && data.seasons) {
+          item.season_links = JSON.stringify(data.seasons.map(s=>({season:s.season_number, link:''})));
+        }
       }
-      item.season_links = data.seasons ? JSON.stringify(data.seasons.map(s=>({season:s.season_number, link:''}))) : item.season_links;
+      try { localStorage.setItem(key, JSON.stringify({ _ts: Date.now(), data: item })); } catch(e){}
     }
-  } catch(e) {
-    console.error("Error TMDB:", e);
-  }
+  } catch(e) { console.error('TMDB fetch error', e); }
   return item;
 }
 
-async function showItems(filter, query = '') {
+// crea tarjeta DOM (con paywall simulated)
+function createItemCard(item, isCarousel=false) {
+  const hoy = new Date();
+  const div = document.createElement('div');
+  div.className = 'item';
+
+  // usar poster del último episodio si existe (series) o poster normal
+  const imgUrl = (item.last_episode_still || item.poster) || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
+  const img = document.createElement('img');
+  img.src = imgUrl;
+  img.alt = item.title || 'Sin título';
+  img.loading = 'lazy';
+
+  const h3 = document.createElement('h3');
+  h3.textContent = item.title || 'Sin título';
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
+
+  const resumen = document.createElement('div');
+  resumen.className = 'overview collapsed';
+  const texto = (item.last_episode_overview || item.overview || '').trim();
+  resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
+  resumen.onclick = () => {
+    resumen.classList.toggle('collapsed');
+    resumen.textContent = resumen.classList.contains('collapsed') ? (texto.length>120 ? texto.slice(0,120)+'...' : texto) : texto;
+  };
+
+  // badge nuevo (3 días)
+  let fechaNuevo = parseFecha(item.updated || item.added);
+  if (item.type === 'series' && item.last_episode_air_date) {
+    const epDate = parseFecha(item.last_episode_air_date);
+    if (epDate) fechaNuevo = epDate;
+  }
+  if (fechaNuevo && ((hoy - fechaNuevo) / (1000*60*60*24)) <= 3) {
+    const badge = document.createElement('div');
+    badge.className = 'badge-new';
+    badge.textContent = '🟢 Nuevo';
+    div.appendChild(badge);
+  }
+
+  // badge rating
+  if (item.rating) {
+    const b = document.createElement('div');
+    b.className = 'badge-rating ' + (item.rating >= 7 ? 'high' : (item.rating >= 5 ? 'medium' : 'low'));
+    b.textContent = Number(item.rating).toFixed(1);
+    div.appendChild(b);
+  }
+
+  div.appendChild(img);
+  div.appendChild(h3);
+  div.appendChild(meta);
+  div.appendChild(resumen);
+
+  // función helper: crea botón "Donar y ver" que abre modal + paypal
+  function makeDonateButton(label, unlockKey, targetUrl) {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      // si ya desbloqueado, abrir directamente
+      if (localStorage.getItem(unlockKey)) {
+        if (targetUrl) window.open(targetUrl, '_blank');
+        return;
+      }
+      // mostrar modal: al confirmar ejecuta unlock+open
+      showDonateModal({
+        title: item.title,
+        hint: `Haz una donación (cantidad libre) en PayPal. Pulsa "Ir a PayPal", realiza la donación y luego vuelve aquí y pulsa "He donado".`,
+        onConfirm: () => {
+          unlockAndOpen(unlockKey, targetUrl);
+        }
+      });
+      // abrir PayPal en nueva pestaña para facilitar (el usuario hace la donación allí)
+      window.open(PAYPAL_ME, '_blank');
+    };
+    return btn;
+  }
+
+  // Películas: botón Donar+Ver (o botón directo si ya desbloqueado)
+  if (item.type === 'movie') {
+    const key = storageKeyFor(item,'_movie');
+    if (item.terabox) {
+      const btn = makeDonateButton('Donar y ver', key, item.terabox);
+      div.appendChild(btn);
+    }
+  }
+
+  // Series: para cada temporada crear botón Donar+VerTemporada
+  if (item.type === 'series' && item.season_links) {
+    try {
+      const seasons = JSON.parse(item.season_links);
+      seasons.forEach(s => {
+        const key = storageKeyFor(item,`_S${s.season}`);
+        const label = `Temporada ${s.season}`;
+        if (s.link) {
+          const btn = makeDonateButton(label, key, s.link);
+          btn.className = 'small-link';
+          div.appendChild(btn);
+        } else {
+          // si no hay link, mostrar botón gris
+          const disabled = document.createElement('button');
+          disabled.textContent = label;
+          disabled.disabled = true;
+          disabled.style.background = '#555';
+          div.appendChild(disabled);
+        }
+      });
+    } catch(e) { console.error("Error en season_links", e); }
+  }
+
+  return div;
+}
+
+// mostrar items (usa fetchTMDB para relleno opcional)
+async function showItems(filter, query='') {
   gallery.innerHTML = '';
   const hoy = new Date();
-  const normalize = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const normalize = s => (s||'').toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   let items = catalogo.filter(i => {
     if (filter === 'movies') return i.type === 'movie';
@@ -116,7 +333,7 @@ async function showItems(filter, query = '') {
       const fecha = parseFecha(i.updated || i.added);
       if (!fecha) return false;
       const diasDiff = (hoy - fecha) / (1000*60*60*24);
-      return diasDiff <= 15;
+      return diasDiff <= 1*1; // <-- aquí controlas ventana reciente (1 día actual por petición del usuario)
     }
     return true;
   });
@@ -124,8 +341,8 @@ async function showItems(filter, query = '') {
   if (query) {
     const nq = normalize(query);
     items = items.filter(i =>
-      normalize(i.title || '').includes(nq) ||
-      normalize(i.overview || '').includes(nq) ||
+      normalize(i.title).includes(nq) ||
+      normalize(i.overview).includes(nq) ||
       (i.year && i.year.toString().includes(nq))
     );
   }
@@ -135,96 +352,40 @@ async function showItems(filter, query = '') {
     return;
   }
 
-  items.sort((a, b) => {
+  items.sort((a,b)=> {
     const fa = parseFecha(a.updated || a.added);
     const fb = parseFecha(b.updated || b.added);
-    return fb - fa;
+    return (fb || 0) - (fa || 0);
   });
 
-  for (let item of items) {
-    // Actualiza info de TMDB antes de mostrar
-    await fetchTMDB(item);
-
-    const div = document.createElement('div');
-    div.className = 'item';
-
-    const img = document.createElement('img');
-    img.src = item.last_episode_still || item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
-    img.alt = item.title || 'Sin título';
-
-    const h3 = document.createElement('h3');
-    h3.textContent = item.title || 'Sin título';
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
-
-    const resumen = document.createElement('div');
-    resumen.style.fontSize = '0.85rem';
-    resumen.style.color = '#ccc';
-    resumen.style.margin = '0.5rem';
-    const texto = (item.last_episode_overview || item.overview || '').trim();
-    resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
-
-    // Badge “Nuevo”
-    let fechaNuevo = parseFecha(item.updated || item.added);
-    if (item.type === 'series' && item.last_episode_air_date) {
-      const epDate = parseFecha(item.last_episode_air_date);
-      if (epDate) fechaNuevo = epDate;
+  // recent carousel: mostrar si filtro recent
+  if (filter === 'recent') {
+    recentCarousel.innerHTML = '';
+    recentCarousel.classList.remove('hidden');
+    const top = items.slice(0,5);
+    for (let i=0;i<top.length;i++) {
+      const item = top[i];
+      // no await fetchTMDB here to keep carousel snappy; we allow poster from sheet
+      recentCarousel.appendChild(createItemCard(item, true));
     }
-    if (fechaNuevo && ((hoy - fechaNuevo) / (1000*60*60*24)) <= 3) {
-      const badge = document.createElement('div');
-      badge.className = 'badge-new';
-      badge.textContent = '🟢 Nuevo';
-      div.appendChild(badge);
-    }
+  } else {
+    recentCarousel.classList.add('hidden');
+  }
 
-    div.appendChild(img);
-    div.appendChild(h3);
-    div.appendChild(meta);
-    div.appendChild(resumen);
-
-    if (item.type === 'movie' && item.terabox) {
-      const link = document.createElement('a');
-      link.href = item.terabox;
-      link.target = '_blank';
-      link.textContent = 'Ver Película';
-      div.appendChild(link);
-    }
-
-    if (item.type === 'series' && item.season_links) {
-      try {
-        const seasons = JSON.parse(item.season_links);
-        seasons.forEach(s => {
-          if (s.link) {
-            const btn = document.createElement('a');
-            btn.href = s.link;
-            btn.target = '_blank';
-            btn.className = 'small-link';
-            btn.textContent = `Temporada ${s.season}`;
-            div.appendChild(btn);
-          }
-        });
-      } catch(e) { console.error("Error en season_links", e); }
-    }
-
-    // Mensaje PayPal aleatorio
-    const mensajePay = mensajesPaypal[Math.floor(Math.random()*mensajesPaypal.length)];
-    const p = document.createElement('p');
-    p.style.fontSize = '0.75rem';
-    p.style.color = '#ccc';
-    p.style.margin = '0.3rem';
-    p.textContent = mensajePay;
-    div.appendChild(p);
-
-    gallery.appendChild(div);
+  // mostrar lista completa
+  for (let idx=0; idx<items.length; idx++) {
+    const item = items[idx];
+    // rellenar desde TMDB si tienes TMDB_ID (opcional, no obligatorio)
+    // await fetchTMDB(item); // comentar para evitar esperar si quieres rendimiento
+    gallery.appendChild(createItemCard(item, false));
   }
 }
 
+// cargar catálogo desde sheetbest
 fetch(SHEET_URL)
   .then(res => res.json())
   .then(data => {
-    catalogo = data.filter(row => row.title);
+    catalogo = Array.isArray(data) ? data.filter(row => row && row.title) : [];
     showItems('movies');
   })
   .catch(err => {
@@ -232,6 +393,7 @@ fetch(SHEET_URL)
     console.error(err);
   });
 
+// filtros y búsqueda
 const buttons = document.querySelectorAll('nav button');
 buttons.forEach(btn => {
   btn.addEventListener('click', () => {
@@ -240,11 +402,11 @@ buttons.forEach(btn => {
     showItems(btn.dataset.filter, searchInput.value);
   });
 });
-
 searchInput.addEventListener('input', e => {
   const filter = document.querySelector('nav button.active').dataset.filter;
   showItems(filter, e.target.value);
 });
+
 </script>
 
 </body>
