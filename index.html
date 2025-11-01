@@ -46,6 +46,10 @@
   .modal p { margin:0.3rem 0 1rem 0; color:#ddd; }
   .modal .actions { text-align:right; margin-top:1rem; }
   .modal .actions button { margin-left:0.5rem; }
+
+  /* Destacado item desde hash */
+  .highlighted { outline: 3px solid #ff6600; animation: pulse 1s infinite alternate; }
+  @keyframes pulse { from { box-shadow: 0 0 5px #ff6600; } to { box-shadow: 0 0 15px #ff6600; } }
 </style>
 </head>
 <body>
@@ -91,7 +95,7 @@
 /* ========== CONFIG ========== */
 const SHEET_URL = "https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501";
 const TMDB_API_KEY = "73ec36a1669f06f8684c4d104861d52b";
-const PAYPAL_ME = "https://paypal.me/CineNubes"; // link a tu paypal
+const PAYPAL_ME = "https://paypal.me/CineNubes";
 /* ============================ */
 
 const gallery = document.getElementById('gallery');
@@ -110,7 +114,6 @@ const modalText = document.getElementById('modalText');
 
 paypalLink.href = PAYPAL_ME;
 
-// util: parse fecha dd-mm-yyyy o ISO
 function parseFecha(fechaStr) {
   if (!fechaStr) return null;
   if (typeof fechaStr !== 'string') return null;
@@ -123,22 +126,17 @@ function parseFecha(fechaStr) {
   return isNaN(dt.getTime()) ? null : dt;
 }
 
-// crea key segura para localStorage por item (usa TMDB_ID si existe, si no title)
 function storageKeyFor(item, suffix='') {
   const base = item.TMDB_ID ? String(item.TMDB_ID) : (item.id || item.title || 'item');
   const safe = base.toString().replace(/[^a-zA-Z0-9_\-]/g,'_');
   return `cinenube_unlocked_${safe}${suffix}`;
 }
 
-// desbloquea y abre link
 function unlockAndOpen(key, url) {
-  try {
-    localStorage.setItem(key, '1');
-  } catch(e){ /* ignore storage issues */ }
+  try { localStorage.setItem(key, '1'); } catch(e){ }
   if(url) window.open(url, '_blank');
 }
 
-// mostrar modal para donar y luego confirmar desbloqueo
 function showDonateModal({title, hint, onConfirm}) {
   modalTitle.textContent = `Donar para desbloquear: ${title}`;
   modalText.textContent = hint || 'Para ver el enlace, haz una donación (cantidad libre) en PayPal y luego pulsa "He donado".';
@@ -146,7 +144,6 @@ function showDonateModal({title, hint, onConfirm}) {
   donateModal.classList.remove('hidden');
   donateModal.setAttribute('aria-hidden','false');
 
-  // limpiar handlers previos:
   confirmPaid.onclick = () => {
     donateModal.classList.add('hidden');
     donateModal.setAttribute('aria-hidden','true');
@@ -164,54 +161,13 @@ function showDonateModal({title, hint, onConfirm}) {
   };
 }
 
-// Trae info TMDB opcional (si TMDB_ID existe) y la añade al item
-async function fetchTMDB(item) {
-  if(!item.TMDB_ID) return item;
-  const key = `tmdb_cache_${item.TMDB_ID}`;
-  try {
-    const raw = localStorage.getItem(key);
-    const now = Date.now();
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed._ts && now - parsed._ts < 24*60*60*1000) {
-        Object.assign(item, parsed.data);
-        return item;
-      }
-    }
-  } catch(e){ /* ignore */ }
-
-  try {
-    const type = item.type === 'movie' ? 'movie' : 'tv';
-    const res = await fetch(`https://api.themoviedb.org/3/${type}/${item.TMDB_ID}?api_key=${TMDB_API_KEY}&language=es-ES`);
-    if (res.ok) {
-      const data = await res.json();
-      item.overview = item.overview || data.overview || '';
-      item.rating = item.rating || (data.vote_average || '');
-      item.poster = item.poster || (data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}` : item.poster);
-      if (item.type === 'series') {
-        const lastEp = data.last_episode_to_air || null;
-        if (lastEp) {
-          item.last_episode_still = lastEp.still_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${lastEp.still_path}` : item.poster;
-          item.last_episode_overview = lastEp.overview || item.overview;
-          item.last_episode_air_date = lastEp.air_date || item.last_episode_air_date;
-        }
-        if (!item.season_links && data.seasons) {
-          item.season_links = JSON.stringify(data.seasons.map(s=>({season:s.season_number, link:''})));
-        }
-      }
-      try { localStorage.setItem(key, JSON.stringify({ _ts: Date.now(), data: item })); } catch(e){}
-    }
-  } catch(e) { console.error('TMDB fetch error', e); }
-  return item;
-}
-
-// crea tarjeta DOM (con paywall simulated)
+// crea tarjeta DOM (con paywall)
 function createItemCard(item, isCarousel=false) {
   const hoy = new Date();
   const div = document.createElement('div');
   div.className = 'item';
+  div.dataset.tmdbId = item.TMDB_ID || '';
 
-  // usar poster del último episodio si existe (series) o poster normal
   const imgUrl = (item.last_episode_still || item.poster) || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
   const img = document.createElement('img');
   img.src = imgUrl;
@@ -234,7 +190,6 @@ function createItemCard(item, isCarousel=false) {
     resumen.textContent = resumen.classList.contains('collapsed') ? (texto.length>120 ? texto.slice(0,120)+'...' : texto) : texto;
   };
 
-  // badge nuevo (3 días)
   let fechaNuevo = parseFecha(item.updated || item.added);
   if (item.type === 'series' && item.last_episode_air_date) {
     const epDate = parseFecha(item.last_episode_air_date);
@@ -247,7 +202,6 @@ function createItemCard(item, isCarousel=false) {
     div.appendChild(badge);
   }
 
-  // badge rating
   if (item.rating) {
     const b = document.createElement('div');
     b.className = 'badge-rating ' + (item.rating >= 7 ? 'high' : (item.rating >= 5 ? 'medium' : 'low'));
@@ -260,18 +214,15 @@ function createItemCard(item, isCarousel=false) {
   div.appendChild(meta);
   div.appendChild(resumen);
 
-  // función helper: crea botón "Donar y ver" que abre modal + paypal
   function makeDonateButton(label, unlockKey, targetUrl) {
     const btn = document.createElement('button');
     btn.textContent = label;
     btn.onclick = (e) => {
       e.stopPropagation();
-      // si ya desbloqueado, abrir directamente
       if (localStorage.getItem(unlockKey)) {
         if (targetUrl) window.open(targetUrl, '_blank');
         return;
       }
-      // mostrar modal: al confirmar ejecuta unlock+open
       showDonateModal({
         title: item.title,
         hint: `Haz una donación (cantidad libre) en PayPal. Pulsa "Ir a PayPal", realiza la donación y luego vuelve aquí y pulsa "He donado".`,
@@ -279,13 +230,11 @@ function createItemCard(item, isCarousel=false) {
           unlockAndOpen(unlockKey, targetUrl);
         }
       });
-      // abrir PayPal en nueva pestaña para facilitar (el usuario hace la donación allí)
       window.open(PAYPAL_ME, '_blank');
     };
     return btn;
   }
 
-  // Películas: botón Donar+Ver (o botón directo si ya desbloqueado)
   if (item.type === 'movie') {
     const key = storageKeyFor(item,'_movie');
     if (item.terabox) {
@@ -294,7 +243,6 @@ function createItemCard(item, isCarousel=false) {
     }
   }
 
-  // Series: para cada temporada crear botón Donar+VerTemporada
   if (item.type === 'series' && item.season_links) {
     try {
       const seasons = JSON.parse(item.season_links);
@@ -306,7 +254,6 @@ function createItemCard(item, isCarousel=false) {
           btn.className = 'small-link';
           div.appendChild(btn);
         } else {
-          // si no hay link, mostrar botón gris
           const disabled = document.createElement('button');
           disabled.textContent = label;
           disabled.disabled = true;
@@ -320,7 +267,7 @@ function createItemCard(item, isCarousel=false) {
   return div;
 }
 
-// mostrar items (usa fetchTMDB para relleno opcional)
+// mostrar items
 async function showItems(filter, query='') {
   gallery.innerHTML = '';
   const hoy = new Date();
@@ -333,7 +280,7 @@ async function showItems(filter, query='') {
       const fecha = parseFecha(i.updated || i.added);
       if (!fecha) return false;
       const diasDiff = (hoy - fecha) / (1000*60*60*24);
-      return diasDiff <= 1*1; // <-- aquí controlas ventana reciente (1 día actual por petición del usuario)
+      return diasDiff <= 1*1;
     }
     return true;
   });
@@ -353,61 +300,70 @@ async function showItems(filter, query='') {
   }
 
   items.sort((a,b)=> {
-    const fa = parseFecha(a.updated || a.added);
-    const fb = parseFecha(b.updated || b.added);
-    return (fb || 0) - (fa || 0);
+    const fa = parseFecha(a.updated || a.added) || new Date(0);
+    const fb = parseFecha(b.updated || b.added) || new Date(0);
+    return fb - fa;
   });
 
-  // recent carousel: mostrar si filtro recent
-  if (filter === 'recent') {
-    recentCarousel.innerHTML = '';
-    recentCarousel.classList.remove('hidden');
-    const top = items.slice(0,5);
-    for (let i=0;i<top.length;i++) {
-      const item = top[i];
-      // no await fetchTMDB here to keep carousel snappy; we allow poster from sheet
-      recentCarousel.appendChild(createItemCard(item, true));
-    }
-  } else {
-    recentCarousel.classList.add('hidden');
-  }
+  items.forEach(item => {
+    const card = createItemCard(item);
+    gallery.appendChild(card);
+  });
 
-  // mostrar lista completa
-  for (let idx=0; idx<items.length; idx++) {
-    const item = items[idx];
-    // rellenar desde TMDB si tienes TMDB_ID (opcional, no obligatorio)
-    // await fetchTMDB(item); // comentar para evitar esperar si quieres rendimiento
-    gallery.appendChild(createItemCard(item, false));
+  // scroll automático si hay hash
+  const hashId = window.location.hash.slice(1);
+  if (hashId) {
+    const target = Array.from(gallery.children).find(c=>c.dataset.tmdbId===hashId);
+    if (target) {
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+      target.classList.add('highlighted');
+      setTimeout(()=> target.classList.remove('highlighted'), 5000);
+    }
   }
 }
 
-// cargar catálogo desde sheetbest
-fetch(SHEET_URL)
-  .then(res => res.json())
-  .then(data => {
-    catalogo = Array.isArray(data) ? data.filter(row => row && row.title) : [];
-    showItems('movies');
-  })
-  .catch(err => {
-    gallery.innerHTML = '<p class="message" style="color:tomato;">❌ Error cargando datos.</p>';
-    console.error(err);
-  });
-
-// filtros y búsqueda
-const buttons = document.querySelectorAll('nav button');
-buttons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    buttons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    showItems(btn.dataset.filter, searchInput.value);
+/* ========== EVENTOS ========== */
+document.querySelectorAll('nav button').forEach(b => {
+  b.addEventListener('click', e => {
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    showItems(b.dataset.filter, searchInput.value);
   });
 });
+
 searchInput.addEventListener('input', e => {
-  const filter = document.querySelector('nav button.active').dataset.filter;
-  showItems(filter, e.target.value);
+  const active = document.querySelector('nav button.active').dataset.filter;
+  showItems(active, e.target.value);
 });
 
-</script>
+/* ========== CARGA DE DATOS ========== */
+async function cargarCatalogo() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    catalogo = data.map(row => ({
+      TMDB_ID: row.TMDB_ID,
+      title: row.Título,
+      overview: row.Descripción,
+      last_episode_overview: row.DescripciónCap,
+      last_episode_still: row.ImagenCap,
+      poster: row.Imagen,
+      year: row.Año,
+      type: row.Tipo,
+      updated: row.Actualizado,
+      added: row.Agregado,
+      rating: parseFloat(row.Rating) || 0,
+      terabox: row.Terabox,
+      season_links: row.Temporadas || ''
+    }));
+    showItems('movies');
+  } catch(e) {
+    console.error(e);
+    gallery.innerHTML = '<p class="message">Error al cargar catálogo. Intenta recargar.</p>';
+  }
+}
 
+cargarCatalogo();
+</script>
 </body>
 </html>
