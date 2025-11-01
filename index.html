@@ -5,27 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CineNube</title>
 <style>
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #0e0e0e; color: #eee; margin: 0; padding: 0; min-height:100vh; }
-header { text-align: center; padding: 2rem; background: #1c1c1c; }
-h1 { margin: 0; font-size: 2.3rem; color: #ff6600; }
-nav { text-align: center; margin: 1rem 0; }
-nav button { margin: 0 0.4rem; padding: 0.5rem 1.2rem; cursor: pointer; background: #333; color: #eee; border: none; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
-nav button.active, nav button:hover { background: #ff6600; color: #111; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0e0e0e; color: #eee; margin: 0; padding: 0; min-height:100vh; }
+  header { text-align: center; padding: 2rem; background: #1c1c1c; }
+  h1 { margin: 0; font-size: 2.3rem; color: #ff6600; }
+  nav { text-align: center; margin: 1rem 0; }
+  nav button { margin: 0 0.4rem; padding: 0.5rem 1.2rem; cursor: pointer; background: #333; color: #eee; border: none; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
+  nav button.active, nav button:hover { background: #ff6600; color: #111; }
 
-.search-container { text-align: center; margin: 1.5rem 0; }
-.search-container input { width: 80%; max-width: 400px; padding: 0.6rem; border-radius: 6px; border: none; outline: none; font-size: 1rem; }
+  .search-container { text-align: center; margin: 1.5rem 0; }
+  .search-container input { width: 80%; max-width: 400px; padding: 0.6rem; border-radius: 6px; border: none; outline: none; font-size: 1rem; }
 
-section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
-.item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; }
-.item:hover { transform: scale(1.03); }
-.item img { width: 100%; height: 300px; object-fit: cover; display: block; border-radius: 10px 10px 0 0; }
-.item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
-.item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
-.item a { display: inline-block; margin: 0.3rem 0.2rem 0.8rem 0.2rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
-.small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
-.hidden { display: none; }
-.message { text-align: center; color: #888; padding: 2rem; width:100%; }
-.badge-new { position: absolute; top: 8px; left: 8px; background: #2ecc71; color: #111; font-weight: bold; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; }
+  section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
+  .item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; }
+  .item:hover { transform: scale(1.03); }
+  .item img { width: 100%; height: 300px; object-fit: cover; display: block; border-radius: 10px 10px 0 0; }
+  .item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
+  .item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
+  .item a { display: inline-block; margin: 0.3rem 0.2rem 0.8rem 0.2rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
+  .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
+  .hidden { display: none; }
+  .message { text-align: center; color: #888; padding: 2rem; width:100%; }
+  .badge-new { position: absolute; top: 8px; left: 8px; background: #2ecc71; color: #111; font-weight: bold; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; }
 </style>
 </head>
 <body>
@@ -55,7 +55,7 @@ const gallery = document.getElementById('gallery');
 const searchInput = document.getElementById('searchInput');
 let catalogo = [];
 
-// Mensajes PayPal aleatorios
+// Mensajes de donación aleatorios
 const mensajesPaypal = [
   "🍿 ¡Ey! ¿Te gustó esto? Apoya el proyecto con un cafecito ☕️: https://paypal.me/CineNubes",
   "🎬 Si disfrutas el contenido, considera invitarnos un café: https://paypal.me/CineNubes",
@@ -75,23 +75,14 @@ function parseFecha(fechaStr) {
   return new Date(fechaStr);
 }
 
+// Trae información TMDB dinámica (poster y overview último episodio)
 async function fetchTMDB(item) {
-  const cacheKey = `tmdb_${item.TMDB_ID}`;
-  const cacheStr = localStorage.getItem(cacheKey);
-  const now = Date.now();
-
-  if (cacheStr) {
-    const cache = JSON.parse(cacheStr);
-    if (now - cache.timestamp < 24*60*60*1000) {
-      Object.assign(item, cache.data);
-      return item;
-    }
-  }
-
+  if (!item.TMDB_ID) return item;
   try {
     const type = item.type === 'movie' ? 'movie' : 'tv';
     const res = await fetch(`https://api.themoviedb.org/3/${type}/${item.TMDB_ID}?api_key=${TMDB_API_KEY}&language=es-ES`);
     const data = await res.json();
+
     if (!data) return item;
 
     item.overview = data.overview || item.overview;
@@ -99,7 +90,7 @@ async function fetchTMDB(item) {
     item.poster = data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}` : item.poster;
 
     if (item.type === 'series') {
-      const lastEp = data.last_episode_to_air;
+      const lastEp = data.last_episode_to_air || null;
       if (lastEp) {
         item.last_episode_still = lastEp.still_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${lastEp.still_path}` : item.poster;
         item.last_episode_overview = lastEp.overview || item.overview;
@@ -107,10 +98,9 @@ async function fetchTMDB(item) {
       }
       item.season_links = data.seasons ? JSON.stringify(data.seasons.map(s=>({season:s.season_number, link:''}))) : item.season_links;
     }
-
-    localStorage.setItem(cacheKey, JSON.stringify({timestamp: now, data: item}));
-  } catch(e) { console.error("Error TMDB:", e); }
-
+  } catch(e) {
+    console.error("Error TMDB:", e);
+  }
   return item;
 }
 
@@ -151,7 +141,8 @@ async function showItems(filter, query = '') {
     return fb - fa;
   });
 
-  for (const item of items) {
+  for (let item of items) {
+    // Actualiza info de TMDB antes de mostrar
     await fetchTMDB(item);
 
     const div = document.createElement('div');
@@ -175,8 +166,13 @@ async function showItems(filter, query = '') {
     const texto = (item.last_episode_overview || item.overview || '').trim();
     resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
 
-    const fUpd = parseFecha(item.updated || item.added || item.last_episode_air_date);
-    if (fUpd && ((hoy - fUpd) / (1000*60*60*24)) <= 3) {
+    // Badge “Nuevo”
+    let fechaNuevo = parseFecha(item.updated || item.added);
+    if (item.type === 'series' && item.last_episode_air_date) {
+      const epDate = parseFecha(item.last_episode_air_date);
+      if (epDate) fechaNuevo = epDate;
+    }
+    if (fechaNuevo && ((hoy - fechaNuevo) / (1000*60*60*24)) <= 3) {
       const badge = document.createElement('div');
       badge.className = 'badge-new';
       badge.textContent = '🟢 Nuevo';
@@ -212,14 +208,14 @@ async function showItems(filter, query = '') {
       } catch(e) { console.error("Error en season_links", e); }
     }
 
-    // Mensaje PayPal aleatorio por publicación
-    const idx = Math.floor(Math.random() * mensajesPaypal.length);
-    const donacion = document.createElement('div');
-    donacion.style.fontSize = '0.8rem';
-    donacion.style.margin = '0.5rem';
-    donacion.style.color = '#ff6600';
-    donacion.textContent = mensajesPaypal[idx];
-    div.appendChild(donacion);
+    // Mensaje PayPal aleatorio
+    const mensajePay = mensajesPaypal[Math.floor(Math.random()*mensajesPaypal.length)];
+    const p = document.createElement('p');
+    p.style.fontSize = '0.75rem';
+    p.style.color = '#ccc';
+    p.style.margin = '0.3rem';
+    p.textContent = mensajePay;
+    div.appendChild(p);
 
     gallery.appendChild(div);
   }
