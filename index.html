@@ -60,13 +60,11 @@
 </section>
 
 <script>
-// URL de tu hoja en Sheet.best
 const SHEET_URL = "https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501";
 const gallery = document.getElementById('gallery');
 const searchInput = document.getElementById('searchInput');
 let catalogo = [];
 
-// Convertir fecha DD-MM-YYYY a Date
 function parseFecha(fechaStr) {
   if (!fechaStr) return null;
   const partes = fechaStr.split("-");
@@ -77,7 +75,6 @@ function parseFecha(fechaStr) {
   return new Date(fechaStr);
 }
 
-// Mostrar ítems según filtro o búsqueda
 function showItems(filter, query = '') {
   gallery.innerHTML = '';
   const hoy = new Date();
@@ -137,7 +134,6 @@ function showItems(filter, query = '') {
     const texto = (item.overview || '').trim();
     resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
 
-    // Badge nuevo si actualizado <3 días
     const fUpd = parseFecha(item.updated || item.added);
     if (fUpd && ((hoy - fUpd) / (1000*60*60*24)) <= 3) {
       const badge = document.createElement('div');
@@ -151,7 +147,6 @@ function showItems(filter, query = '') {
     div.appendChild(meta);
     div.appendChild(resumen);
 
-    // Películas
     if (item.type === 'movie' && item.terabox) {
       const link = document.createElement('a');
       link.href = item.terabox;
@@ -160,27 +155,21 @@ function showItems(filter, query = '') {
       div.appendChild(link);
     }
 
-    // Series
     if (item.type === 'series' && item.season_links) {
       try {
-        // Parse seguro, eliminando espacios extra
-        const cleanStr = item.season_links.trim();
-        const seasons = JSON.parse(cleanStr);
-        if (Array.isArray(seasons)) {
-          seasons.forEach(s => {
-            if (s.link) {
-              const btn = document.createElement('a');
-              btn.href = s.link;
-              btn.target = '_blank';
-              btn.className = 'small-link';
-              btn.textContent = `Temporada ${s.season}`;
-              div.appendChild(btn);
-            }
-          });
-        }
-      } catch(e) {
-        console.error("Error parseando season_links:", e);
-      }
+        // Acepta comillas simples o dobles en la hoja
+        const seasons = JSON.parse(item.season_links.replace(/'/g,'"'));
+        seasons.forEach(s => {
+          if (s.link) {
+            const btn = document.createElement('a');
+            btn.href = s.link;
+            btn.target = '_blank';
+            btn.className = 'small-link';
+            btn.textContent = `Temporada ${s.season}`;
+            div.appendChild(btn);
+          }
+        });
+      } catch(e) { console.error("Error en season_links", e); }
     }
 
     gallery.appendChild(div);
