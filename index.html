@@ -145,21 +145,33 @@ function showItems(filter, query = '') {
     }
 
     // Series
-    if (item.type === 'series' && item.season_links) {
-      try {
-        const seasons = JSON.parse(item.season_links);
-        seasons.forEach(s => {
-          if (s.link) {
+if (item.type === 'series' && item.season_links) {
+  try {
+    const seasons = JSON.parse(item.season_links);
+    seasons.forEach(s => {
+      if (s.episodes && s.episodes.length) {
+        s.episodes.forEach(ep => {
+          if (ep.link) {
             const btn = document.createElement('a');
-            btn.href = s.link;
+            btn.href = ep.link;
             btn.target = '_blank';
             btn.className = 'small-link';
-            btn.textContent = `Temporada ${s.season}`;
+            btn.textContent = `T${s.season}E${ep.episode}`;
             div.appendChild(btn);
           }
         });
-      } catch(e) { console.error("Error parseando season_links", e); }
-    }
+      } else if (s.link) { // fallback: solo link por temporada
+        const btn = document.createElement('a');
+        btn.href = s.link;
+        btn.target = '_blank';
+        btn.className = 'small-link';
+        btn.textContent = `Temporada ${s.season}`;
+        div.appendChild(btn);
+      }
+    });
+  } catch(e) { console.error("Error parseando season_links", e); }
+}
+
 
     gallery.appendChild(div);
   });
