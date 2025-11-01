@@ -5,40 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CineNube</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0e0e0e; color: #eee; margin: 0; padding: 0; min-height:100vh; }
-  header { text-align: center; padding: 2rem; background: #1c1c1c; }
-  h1 { margin: 0; font-size: 2.3rem; color: #ff6600; }
-  nav { text-align: center; margin: 1rem 0; }
-  nav button { margin: 0 0.4rem; padding: 0.5rem 1.2rem; cursor: pointer; background: #333; color: #eee; border: none; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
-  nav button.active, nav button:hover { background: #ff6600; color: #111; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0e0e0e; color: #eee; margin: 0; padding: 0; min-height:100vh; }
+header { text-align: center; padding: 2rem; background: #1c1c1c; }
+h1 { margin: 0; font-size: 2.3rem; color: #ff6600; }
+nav { text-align: center; margin: 1rem 0; }
+nav button { margin: 0 0.4rem; padding: 0.5rem 1.2rem; cursor: pointer; background: #333; color: #eee; border: none; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
+nav button.active, nav button:hover { background: #ff6600; color: #111; }
 
-  .search-container { text-align: center; margin: 1.5rem 0; }
-  .search-container input { width: 80%; max-width: 400px; padding: 0.6rem; border-radius: 6px; border: none; outline: none; font-size: 1rem; }
+.search-container { text-align: center; margin: 1.5rem 0; }
+.search-container input { width: 80%; max-width: 400px; padding: 0.6rem; border-radius: 6px; border: none; outline: none; font-size: 1rem; }
 
-  section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
-  .item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; cursor:pointer;}
-  .item:hover { transform: scale(1.03); }
-
-  .item img { width: 100%; height: 300px; object-fit: cover; display: block; border-radius: 10px 10px 0 0; }
-
-  .item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
-  .item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
-  .item .overview { font-size: 0.85rem; color: #ccc; margin: 0.5rem; }
-  .item .overview.collapsed { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor:pointer; }
-  .item a { display: inline-block; margin: 0.3rem 0.2rem 0.8rem 0.2rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
-  .small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
-  .hidden { display: none; }
-  .message { text-align: center; color: #888; padding: 2rem; width:100%; }
-
-  .badge-new { position: absolute; top: 8px; left: 8px; background: #2ecc71; color: #111; font-weight: bold; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; }
-  .badge-rating { position: absolute; top: 8px; right: 8px; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; font-weight:bold; }
-  .badge-rating.high { background: #2ecc71; color: #111; }
-  .badge-rating.medium { background: #f39c12; color: #111; }
-  .badge-rating.low { background: #e74c3c; color: #fff; }
-
-  /* Carrusel de recientes */
-  #recentCarousel { display:flex; overflow-x:auto; padding:1rem; margin-bottom:1rem; }
-  #recentCarousel .item { flex:0 0 auto; width:180px; margin-right:1rem; }
+section { display: flex; flex-wrap: wrap; justify-content: center; padding: 1rem; min-height: 60vh; }
+.item { background: #1b1b1b; border-radius: 10px; margin: 1rem; width: 200px; text-align: center; box-shadow: 0 0 10px #000; transition: transform 0.2s; overflow: hidden; position: relative; }
+.item:hover { transform: scale(1.03); }
+.item img { width: 100%; height: 300px; object-fit: cover; display: block; border-radius: 10px 10px 0 0; }
+.item h3 { margin: 0.5rem 0; font-size: 1.05rem; padding: 0 0.5rem; }
+.item .meta { font-size: 0.85rem; color: #bbb; margin-bottom: 0.5rem; }
+.item a { display: inline-block; margin: 0.3rem 0.2rem 0.8rem 0.2rem; padding: 0.4rem 0.6rem; background: #ff6600; color: #111; text-decoration: none; border-radius: 5px; font-weight: 600; }
+.small-link { background: #444; color: #eee; padding: 0.25rem 0.4rem; border-radius: 4px; font-size:0.85rem;}
+.hidden { display: none; }
+.message { text-align: center; color: #888; padding: 2rem; width:100%; }
+.badge-new { position: absolute; top: 8px; left: 8px; background: #2ecc71; color: #111; font-weight: bold; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem; }
 </style>
 </head>
 <body>
@@ -57,31 +44,27 @@
   <input type="text" id="searchInput" placeholder="Buscar título, año o palabra clave...">
 </div>
 
-<section id="recentCarousel" class="hidden"></section>
 <section id="gallery">
   <p class="message">Cargando catálogo...</p>
 </section>
 
 <script>
 const SHEET_URL = "https://api.sheetbest.com/sheets/4b4d9aed-b6a1-414d-a2d4-5c7605b85501";
+const TMDB_API_KEY = "73ec36a1669f06f8684c4d104861d52b";
 const gallery = document.getElementById('gallery');
-const recentCarousel = document.getElementById('recentCarousel');
 const searchInput = document.getElementById('searchInput');
 let catalogo = [];
 
-// PAYPAL mensajes diarios aleatorios
-const mensajes = [
-  "🍿 ¡Ey! ¿Te gustó esto? Apoya el proyecto con un cafecito ☕️ y seguiremos subiendo más películas y series: https://paypal.me/CineNubes",
-  "🎬 Si disfrutas el contenido, considera invitarnos un café ☕️ para mantener viva la magia del cine: https://paypal.me/CineNubes",
-  "🌟 Tu apoyo hace posible que sigamos compartiendo estrenos. ¡Gracias! ❤️ https://paypal.me/CineNubes",
-  "💫 ¿Te encanta descubrir pelis nuevas? Un pequeño aporte ayuda muchísimo 👉 https://paypal.me/CineNubes",
+// Mensajes PayPal aleatorios
+const mensajesPaypal = [
+  "🍿 ¡Ey! ¿Te gustó esto? Apoya el proyecto con un cafecito ☕️: https://paypal.me/CineNubes",
+  "🎬 Si disfrutas el contenido, considera invitarnos un café: https://paypal.me/CineNubes",
+  "🌟 Tu apoyo hace posible que sigamos compartiendo estrenos ❤️ https://paypal.me/CineNubes",
+  "💫 ¿Te encanta descubrir pelis nuevas? Un pequeño aporte ayuda mucho 👉 https://paypal.me/CineNubes",
   "📽️ Mantén activo CineNube con tu granito de arena 💖 https://paypal.me/CineNubes",
-  "🍰 Gracias por disfrutar de nuestro contenido. ¡Puedes apoyarnos aquí! ➡️ https://paypal.me/CineNubes"
+  "🔥 ¿Te gustó esta recomendación? Invítanos un café ☕️ y seguimos compartiendo: https://paypal.me/CineNubes"
 ];
-const dia = new Date().getDate();
-const mensajeDonacion = mensajes[Math.floor(Math.random()*mensajes.length)];
 
-// Función para parsear fechas
 function parseFecha(fechaStr) {
   if (!fechaStr) return null;
   const partes = fechaStr.split("-");
@@ -92,159 +75,179 @@ function parseFecha(fechaStr) {
   return new Date(fechaStr);
 }
 
-// Función principal para mostrar items
-function showItems(filter, query='') {
+async function fetchTMDB(item) {
+  const cacheKey = `tmdb_${item.TMDB_ID}`;
+  const cacheStr = localStorage.getItem(cacheKey);
+  const now = Date.now();
+
+  if (cacheStr) {
+    const cache = JSON.parse(cacheStr);
+    if (now - cache.timestamp < 24*60*60*1000) {
+      Object.assign(item, cache.data);
+      return item;
+    }
+  }
+
+  try {
+    const type = item.type === 'movie' ? 'movie' : 'tv';
+    const res = await fetch(`https://api.themoviedb.org/3/${type}/${item.TMDB_ID}?api_key=${TMDB_API_KEY}&language=es-ES`);
+    const data = await res.json();
+    if (!data) return item;
+
+    item.overview = data.overview || item.overview;
+    item.rating = data.vote_average || item.rating;
+    item.poster = data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}` : item.poster;
+
+    if (item.type === 'series') {
+      const lastEp = data.last_episode_to_air;
+      if (lastEp) {
+        item.last_episode_still = lastEp.still_path ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${lastEp.still_path}` : item.poster;
+        item.last_episode_overview = lastEp.overview || item.overview;
+        item.last_episode_air_date = lastEp.air_date;
+      }
+      item.season_links = data.seasons ? JSON.stringify(data.seasons.map(s=>({season:s.season_number, link:''}))) : item.season_links;
+    }
+
+    localStorage.setItem(cacheKey, JSON.stringify({timestamp: now, data: item}));
+  } catch(e) { console.error("Error TMDB:", e); }
+
+  return item;
+}
+
+async function showItems(filter, query = '') {
   gallery.innerHTML = '';
   const hoy = new Date();
   const normalize = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   let items = catalogo.filter(i => {
-    if(filter==='movies') return i.type==='movie';
-    if(filter==='series') return i.type==='series';
-    if(filter==='recent'){
-      const fecha = parseFecha(i.updated||i.added);
-      if(!fecha) return false;
-      const diasDiff = (hoy-fecha)/(1000*60*60*24);
-      return diasDiff<=15;
+    if (filter === 'movies') return i.type === 'movie';
+    if (filter === 'series') return i.type === 'series';
+    if (filter === 'recent') {
+      const fecha = parseFecha(i.updated || i.added);
+      if (!fecha) return false;
+      const diasDiff = (hoy - fecha) / (1000*60*60*24);
+      return diasDiff <= 15;
     }
     return true;
   });
 
-  if(query){
+  if (query) {
     const nq = normalize(query);
     items = items.filter(i =>
-      normalize(i.title||'').includes(nq) ||
-      normalize(i.overview||'').includes(nq) ||
+      normalize(i.title || '').includes(nq) ||
+      normalize(i.overview || '').includes(nq) ||
       (i.year && i.year.toString().includes(nq))
     );
   }
 
-  if(!items.length){
-    gallery.innerHTML='<p class="message">No se encontró contenido.</p>';
+  if (!items.length) {
+    gallery.innerHTML = '<p class="message">No se encontró contenido.</p>';
     return;
   }
 
-  items.sort((a,b)=>{
-    const fa = parseFecha(a.updated||a.added);
-    const fb = parseFecha(b.updated||b.added);
-    return fb-fa;
+  items.sort((a, b) => {
+    const fa = parseFecha(a.updated || a.added);
+    const fb = parseFecha(b.updated || b.added);
+    return fb - fa;
   });
 
-  // Mostrar carrusel de recientes si filtro es recent
-  if(filter==='recent'){
-    recentCarousel.innerHTML='';
-    recentCarousel.classList.remove('hidden');
-    items.slice(0,5).forEach(item=>recentCarousel.appendChild(createItemCard(item,true)));
-  } else {
-    recentCarousel.classList.add('hidden');
-  }
+  for (const item of items) {
+    await fetchTMDB(item);
 
-  items.forEach(item=>gallery.appendChild(createItemCard(item,false)));
+    const div = document.createElement('div');
+    div.className = 'item';
+
+    const img = document.createElement('img');
+    img.src = item.last_episode_still || item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
+    img.alt = item.title || 'Sin título';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = item.title || 'Sin título';
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = (item.year ? item.year + ' · ' : '') + (item.type === 'movie' ? 'Película' : 'Serie');
+
+    const resumen = document.createElement('div');
+    resumen.style.fontSize = '0.85rem';
+    resumen.style.color = '#ccc';
+    resumen.style.margin = '0.5rem';
+    const texto = (item.last_episode_overview || item.overview || '').trim();
+    resumen.textContent = texto.length > 120 ? texto.slice(0,120) + '...' : texto;
+
+    const fUpd = parseFecha(item.updated || item.added || item.last_episode_air_date);
+    if (fUpd && ((hoy - fUpd) / (1000*60*60*24)) <= 3) {
+      const badge = document.createElement('div');
+      badge.className = 'badge-new';
+      badge.textContent = '🟢 Nuevo';
+      div.appendChild(badge);
+    }
+
+    div.appendChild(img);
+    div.appendChild(h3);
+    div.appendChild(meta);
+    div.appendChild(resumen);
+
+    if (item.type === 'movie' && item.terabox) {
+      const link = document.createElement('a');
+      link.href = item.terabox;
+      link.target = '_blank';
+      link.textContent = 'Ver Película';
+      div.appendChild(link);
+    }
+
+    if (item.type === 'series' && item.season_links) {
+      try {
+        const seasons = JSON.parse(item.season_links);
+        seasons.forEach(s => {
+          if (s.link) {
+            const btn = document.createElement('a');
+            btn.href = s.link;
+            btn.target = '_blank';
+            btn.className = 'small-link';
+            btn.textContent = `Temporada ${s.season}`;
+            div.appendChild(btn);
+          }
+        });
+      } catch(e) { console.error("Error en season_links", e); }
+    }
+
+    // Mensaje PayPal aleatorio por publicación
+    const idx = Math.floor(Math.random() * mensajesPaypal.length);
+    const donacion = document.createElement('div');
+    donacion.style.fontSize = '0.8rem';
+    donacion.style.margin = '0.5rem';
+    donacion.style.color = '#ff6600';
+    donacion.textContent = mensajesPaypal[idx];
+    div.appendChild(donacion);
+
+    gallery.appendChild(div);
+  }
 }
 
-// Crear tarjeta de item
-function createItemCard(item,isCarousel=false){
-  const hoy = new Date();
-  const div = document.createElement('div');
-  div.className='item';
-
-  const img = document.createElement('img');
-  img.src = item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
-  img.alt = item.title||'Sin título';
-  img.loading='lazy';
-
-  const h3 = document.createElement('h3');
-  h3.textContent=item.title||'Sin título';
-
-  const meta=document.createElement('div');
-  meta.className='meta';
-  meta.textContent=(item.year?item.year+' · ':'')+(item.type==='movie'?'Película':'Serie');
-
-  const resumen=document.createElement('div');
-  resumen.className='overview collapsed';
-  const texto=(item.overview||'').trim();
-  resumen.textContent=texto.length>120 ? texto.slice(0,120)+'...' : texto;
-  resumen.onclick=()=>{ resumen.classList.toggle('collapsed'); resumen.textContent=resumen.classList.contains('collapsed') ? texto.slice(0,120)+'...' : texto; }
-
-  // Badge nuevo
-  const fUpd = parseFecha(item.updated||item.added);
-  if(fUpd && ((hoy-fUpd)/(1000*60*60*24))<=3){
-    const badge=document.createElement('div');
-    badge.className='badge-new';
-    badge.textContent='🟢 Nuevo';
-    div.appendChild(badge);
-  }
-
-  // Badge rating
-  if(item.rating){
-    const badge=document.createElement('div');
-    badge.className='badge-rating '+(item.rating>=7?'high':item.rating>=5?'medium':'low');
-    badge.textContent=item.rating.toFixed(1);
-    div.appendChild(badge);
-  }
-
-  div.appendChild(img);
-  div.appendChild(h3);
-  div.appendChild(meta);
-  div.appendChild(resumen);
-
-  // Películas
-  if(item.type==='movie' && item.terabox){
-    const link=document.createElement('a');
-    link.href=item.terabox; link.target='_blank'; link.textContent='Ver Película';
-    div.appendChild(link);
-  }
-
-  // Series
-  if(item.type==='series' && item.season_links){
-    try{
-      const seasons=JSON.parse(item.season_links);
-      seasons.forEach(s=>{
-        if(s.link){
-          const btn=document.createElement('a');
-          btn.href=s.link; btn.target='_blank'; btn.className='small-link';
-          btn.textContent=`Temporada ${s.season}`;
-          div.appendChild(btn);
-        }
-      });
-    }catch(e){ console.error("Error en season_links",e);}
-  }
-
-  // Mensaje Paypal
-  if(!isCarousel){
-    const p=document.createElement('div');
-    p.style.fontSize='0.85rem'; p.style.color='#f5a623'; p.style.margin='0.5rem';
-    p.textContent=mensajeDonacion;
-    div.appendChild(p);
-  }
-
-  return div;
-}
-
-// Fetch de la hoja
 fetch(SHEET_URL)
-.then(res=>res.json())
-.then(data=>{
-  catalogo=data.filter(row=>row.title);
-  showItems('movies');
-})
-.catch(err=>{
-  gallery.innerHTML='<p class="message" style="color:tomato;">❌ Error cargando datos.</p>';
-  console.error(err);
-});
+  .then(res => res.json())
+  .then(data => {
+    catalogo = data.filter(row => row.title);
+    showItems('movies');
+  })
+  .catch(err => {
+    gallery.innerHTML = '<p class="message" style="color:tomato;">❌ Error cargando datos.</p>';
+    console.error(err);
+  });
 
-const buttons=document.querySelectorAll('nav button');
-buttons.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    buttons.forEach(b=>b.classList.remove('active'));
+const buttons = document.querySelectorAll('nav button');
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    buttons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     showItems(btn.dataset.filter, searchInput.value);
   });
 });
 
-searchInput.addEventListener('input',e=>{
-  const filter=document.querySelector('nav button.active').dataset.filter;
-  showItems(filter,e.target.value);
+searchInput.addEventListener('input', e => {
+  const filter = document.querySelector('nav button.active').dataset.filter;
+  showItems(filter, e.target.value);
 });
 </script>
 
