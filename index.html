@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineNube Gallery</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 2rem;
+      background: #222;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+    nav {
+      text-align: center;
+      margin: 1rem 0;
+    }
+    nav button {
+      margin: 0 0.5rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background: #444;
+      color: #eee;
+      border: none;
+      border-radius: 5px;
+    }
+    nav button.active {
+      background: #ff6600;
+    }
+    section {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .item {
+      background: #222;
+      border-radius: 8px;
+      margin: 1rem;
+      width: 200px;
+      text-align: center;
+      box-shadow: 0 0 10px #000;
+      transition: transform 0.2s;
+    }
+    .item:hover {
+      transform: scale(1.05);
+    }
+    .item img {
+      width: 100%;
+      border-radius: 8px 8px 0 0;
+    }
+    .item h3 {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+    .item a {
+      display: inline-block;
+      margin: 0.5rem 0 1rem 0;
+      padding: 0.5rem;
+      background: #ff6600;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CineNube Gallery</h1>
+  </header>
+
+  <nav>
+    <button data-filter="movies" class="active">Películas</button>
+    <button data-filter="series">Series</button>
+    <button data-filter="recent">Reciente Agregado</button>
+  </nav>
+
+  <section id="gallery"></section>
+
+  <script>
+    const gallery = document.getElementById('gallery');
+    let catalog = [];
+
+    // Cargar catálogo
+    fetch("catalogo.json")
+      .then(response => response.json())
+      .then(data => {
+        catalog = data; // ✅ corregido (antes ponías catalogo)
+        showItems('movies');
+      })
+      .catch(err => {
+        gallery.innerHTML = '<p style="color:red;">❌ Error cargando el catálogo</p>';
+        console.error(err);
+      });
+
+    // Botones
+    const buttons = document.querySelectorAll('nav button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        showItems(btn.dataset.filter);
+      });
+    });
+
+    // Mostrar items
+    function showItems(filter) {
+      gallery.innerHTML = '';
+      let items = [];
+
+      if (filter === 'movies') {
+        items = catalog.filter(i => i.type === 'movie');
+      } else if (filter === 'series') {
+        items = catalog.filter(i => i.type === 'series');
+      } else if (filter === 'recent') {
+        items = catalog.slice(-5).reverse();
+      }
+
+      if (items.length === 0) {
+        gallery.innerHTML = '<p style="color:#888;">No hay contenido disponible.</p>';
+        return;
+      }
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item';
+
+        const img = document.createElement('img');
+        img.src = item.poster || 'https://via.placeholder.com/200x300?text=Sin+Imagen';
+        img.alt = item.title;
+
+        const h3 = document.createElement('h3');
+        h3.textContent = item.title;
+
+        div.appendChild(img);
+        div.appendChild(h3);
+
+        if (item.type === 'movie') {
+          const link = document.createElement('a');
+          link.href = item.terabox;
+          link.target = '_blank';
+          link.textContent = 'Ver Película';
+          div.appendChild(link);
+        }
+
+        if (item.type === 'series' && Array.isArray(item.seasons)) {
+          item.seasons.forEach(season => {
+            season.episodes.forEach(ep => {
+              const link = document.createElement('a');
+              link.href = ep.terabox;
+              link.target = '_blank';
+              link.textContent = `S${season.season}E${ep.episode}`;
+              div.appendChild(link);
+            });
+          });
+        }
+
+        gallery.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
