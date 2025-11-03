@@ -1,6 +1,27 @@
 {
-  "source": "catalogo.json",
-  "last_update": "2025-11-03",
-  "autoRefresh": true,
-  "enableLogging": true
+  "last_updated": "2025-11-03T00:00:00Z",
+  "updates": [
+    {
+      "type": "movie",
+      "title": "Película Nueva",
+      "poster": "https://via.placeholder.com/200x300?text=Nueva",
+      "terabox": "https://terabox.com/nueva"
+    },
+    {
+      "type": "series",
+      "title": "Serie Nueva",
+      "poster": "https://via.placeholder.com/200x300?text=Nueva+Serie",
+      "seasons": [
+        {
+          "season": 1,
+          "episodes": [
+            {
+              "episode": 1,
+              "terabox": "https://terabox.com/nueva/s1e1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
