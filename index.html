@@ -72,6 +72,9 @@
       text-decoration: none;
       border-radius: 5px;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -89,13 +92,16 @@
 
   <script>
     const gallery = document.getElementById('gallery');
-    let catalog = [];
+    let catalogo = [];
 
-    // Cargar catálogo
-    fetch("catalogo.json")
+    // URL absoluta a tu GitHub Pages
+    const CATALOG_URL = "https://cinenube.github.io/CineNubeGallery/catalogo.json";
+
+    // Carga el catalogo.json desde GitHub Pages
+    fetch(CATALOG_URL)
       .then(response => response.json())
       .then(data => {
-        catalog = data; // ✅ corregido (antes ponías catalogo)
+        catalogo = data;
         showItems('movies');
       })
       .catch(err => {
@@ -103,7 +109,7 @@
         console.error(err);
       });
 
-    // Botones
+    // Filtrado
     const buttons = document.querySelectorAll('nav button');
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -113,17 +119,18 @@
       });
     });
 
-    // Mostrar items
+    // Mostrar items según filtro
     function showItems(filter) {
       gallery.innerHTML = '';
       let items = [];
 
       if (filter === 'movies') {
-        items = catalog.filter(i => i.type === 'movie');
+        items = catalogo.filter(i => i.type === 'movie');
       } else if (filter === 'series') {
-        items = catalog.filter(i => i.type === 'series');
+        items = catalogo.filter(i => i.type === 'series');
       } else if (filter === 'recent') {
-        items = catalog.slice(-5).reverse();
+        // mostrar últimos 5 agregados
+        items = catalogo.slice(-5).reverse();
       }
 
       if (items.length === 0) {
@@ -145,7 +152,8 @@
         div.appendChild(img);
         div.appendChild(h3);
 
-        if (item.type === 'movie') {
+        // Película simple
+        if (item.type === 'movie' && item.terabox) {
           const link = document.createElement('a');
           link.href = item.terabox;
           link.target = '_blank';
@@ -153,6 +161,7 @@
           div.appendChild(link);
         }
 
+        // Series con temporadas y episodios
         if (item.type === 'series' && Array.isArray(item.seasons)) {
           item.seasons.forEach(season => {
             season.episodes.forEach(ep => {
