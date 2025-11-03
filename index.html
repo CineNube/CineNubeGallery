@@ -3,16 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineNube</title>
+  <title>CineNube Gallery</title>
   <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0e0e0e; color: #fff; margin: 0; padding: 0; }
-    header { background: #1c1c1c; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; color: #00aaff; }
-    #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 20px; }
-    .item { background: #1a1a1a; border-radius: 10px; overflow: hidden; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-    .item img { width: 100%; height: 250px; object-fit: cover; }
-    .item h3 { font-size: 16px; margin: 10px 0; color: #00aaff; }
-    .item a { display: block; background: #00aaff; color: #fff; text-decoration: none; padding: 10px; border-radius: 0 0 10px 10px; }
-    .item a:hover { background: #0077cc; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0e0e0e;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1c1c1c;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #00aaff;
+    }
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    .item {
+      background: #1a1a1a;
+      border-radius: 10px;
+      overflow: hidden;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    .item:hover {
+      transform: scale(1.05);
+    }
+    .item img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+    }
+    .item h3 {
+      font-size: 16px;
+      margin: 10px 0;
+      color: #00aaff;
+    }
+    .item a {
+      display: block;
+      background: #00aaff;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 0 0 10px 10px;
+    }
+    .item a:hover {
+      background: #0077cc;
+    }
   </style>
 </head>
 <body>
@@ -41,6 +86,7 @@
         });
       } catch (error) {
         console.error('Error al cargar la galería:', error);
+        document.getElementById('gallery').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
       }
     }
 
