@@ -1,27 +1,22 @@
 {
-  "last_updated": "2025-11-03T00:00:00Z",
-  "updates": [
-    {
-      "type": "movie",
-      "title": "Película Nueva",
-      "poster": "https://via.placeholder.com/200x300?text=Nueva",
-      "terabox": "https://terabox.com/nueva"
-    },
-    {
-      "type": "series",
-      "title": "Serie Nueva",
-      "poster": "https://via.placeholder.com/200x300?text=Nueva+Serie",
-      "seasons": [
-        {
-          "season": 1,
-          "episodes": [
-            {
-              "episode": 1,
-              "terabox": "https://terabox.com/nueva/s1e1"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  "sheetName": "Hoja 1",
+  "checkColumn": "Enviar",
+  "statusColumn": "Enviado",
+  "tmdbColumn": "TMDB_ID",
+  "typeColumn": "type",
+  "titleColumn": "title",
+  "posterColumn": "poster",
+  "overviewColumn": "overview",
+  "ratingColumn": "rating",
+  "seasonLinksColumn": "season_links",
+  "teraboxColumn": "terabox",
+  "languageColumn": "Idioma",
+  "githubRepository": "CineNube/CineNubeGallery",
+  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
+  "telegram": {
+    "channel": "@estrenos_online_25",
+    "topic_series": 3,
+    "topic_movies": 2
+  },
+  "notes": "Archivo de configuración para procesos automáticos. Ajusta sheetName si cambias el nombre de la hoja."
 }
