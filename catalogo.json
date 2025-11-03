@@ -1,28 +1,48 @@
-[
-  {
-    "type": "movie",
-    "title": "Película Ejemplo",
-    "poster": "https://via.placeholder.com/200x300?text=Película",
-    "terabox": "https://terabox.com/pelicula"
-  },
-  {
-    "type": "series",
-    "title": "Serie Ejemplo",
-    "poster": "https://via.placeholder.com/200x300?text=Serie",
-    "seasons": [
-      {
-        "season": 1,
-        "episodes": [
-          {
-            "episode": 1,
-            "terabox": "https://terabox.com/serie/s1e1"
-          },
-          {
-            "episode": 2,
-            "terabox": "https://terabox.com/serie/s1e2"
-          }
-        ]
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo | CineNube</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; }
+    header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#00aaff; font-weight:bold; }
+    #catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); padding:20px; }
+    .item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; }
+    .item img { width:100%; height:260px; object-fit:cover; }
+    .item h3 { margin:10px; font-size:17px; }
+    .item p { font-size:14px; color:#ccc; padding:0 10px; }
+    .item a { display:block; background:#00aaff; padding:10px; color:white; text-decoration:none; border-radius:0 0 10px 10px; }
+    .item a:hover { background:#0077cc; }
+  </style>
+</head>
+<body>
+  <header>Catálogo CineNube</header>
+  <div id="catalog"></div>
+
+  <script>
+    const SHEET_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+    async function loadCatalog() {
+      try {
+        const response = await fetch(SHEET_URL);
+        const data = await response.json();
+        const catalog = document.getElementById('catalog');
+        catalog.innerHTML = '';
+        data.forEach(item => {
+          catalog.innerHTML += `
+            <div class="item">
+              <img src="${item.imagen}" alt="${item.titulo}">
+              <h3>${item.titulo}</h3>
+              <p>${item.descripcion || 'Sin descripción disponible'}</p>
+              <a href="${item.enlace}" target="_blank">Ver / Descargar</a>
+            </div>`;
+        });
+      } catch (e) {
+        console.error('Error cargando el catálogo:', e);
       }
-    ]
-  }
-]
+    }
+    loadCatalog();
+  </script>
+</body>
+</html>
