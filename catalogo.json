@@ -1,26 +1,26 @@
 [
   {
-    "title": "Interstellar",
     "type": "movie",
-    "poster": "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg",
-    "terabox": "https://www.terabox.com/interstellar"
+    "title": "Película Ejemplo",
+    "poster": "https://via.placeholder.com/200x300?text=Película",
+    "terabox": "https://terabox.com/pelicula"
   },
   {
-    "title": "The Batman",
-    "type": "movie",
-    "poster": "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
-    "terabox": "https://www.terabox.com/thebatman"
-  },
-  {
-    "title": "Breaking Bad",
     "type": "series",
-    "poster": "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+    "title": "Serie Ejemplo",
+    "poster": "https://via.placeholder.com/200x300?text=Serie",
     "seasons": [
       {
         "season": 1,
         "episodes": [
-          { "episode": 1, "terabox": "https://www.terabox.com/bb-s1e1" },
-          { "episode": 2, "terabox": "https://www.terabox.com/bb-s1e2" }
+          {
+            "episode": 1,
+            "terabox": "https://terabox.com/serie/s1e1"
+          },
+          {
+            "episode": 2,
+            "terabox": "https://terabox.com/serie/s1e2"
+          }
         ]
       }
     ]
