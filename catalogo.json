@@ -8,9 +8,10 @@
     body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; }
     header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#00aaff; font-weight:bold; }
     #catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); padding:20px; }
-    .item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; }
+    .item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; transition:transform 0.2s; }
+    .item:hover { transform:scale(1.05); }
     .item img { width:100%; height:260px; object-fit:cover; }
-    .item h3 { margin:10px; font-size:17px; }
+    .item h3 { margin:10px; font-size:17px; color:#00aaff; }
     .item p { font-size:14px; color:#ccc; padding:0 10px; }
     .item a { display:block; background:#00aaff; padding:10px; color:white; text-decoration:none; border-radius:0 0 10px 10px; }
     .item a:hover { background:#0077cc; }
@@ -40,6 +41,7 @@
         });
       } catch (e) {
         console.error('Error cargando el catálogo:', e);
+        document.getElementById('catalog').innerHTML = '<p style="text-align:center;color:#ccc;">No se pudo cargar el catálogo.</p>';
       }
     }
     loadCatalog();
