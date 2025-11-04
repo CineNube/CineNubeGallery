@@ -87,20 +87,36 @@
         gallery.innerHTML = '';
 
         data.forEach(item => {
-          // Buscar enlace según si es serie o película
           let enlace = '';
+          let tipo = '🎬 Ver contenido'; // texto por defecto
 
-          if (item.terabox) {
+          // Intentar detectar tipo y extraer el enlace
+          if (item.terabox && item.terabox.includes('https')) {
             try {
               const parsed = JSON.parse(item.terabox);
-              if (Array.isArray(parsed) && parsed.length > 0) enlace = parsed[0].link;
-            } catch (e) {}
-          } else if (item.season_links) {
+              if (Array.isArray(parsed) && parsed[0]?.link) {
+                enlace = parsed[0].link;
+                tipo = '🎥 Ver película';
+              }
+            } catch (e) {
+              // Si el campo está mal formateado, intentar extraer el https con regex
+              const match = item.terabox.match(/https?:\/\/[^\s"]+/);
+              if (match) enlace = match[0];
+              tipo = '🎥 Ver película';
+            }
+          } else if (item.season_links && item.season_links.includes('https')) {
             try {
               const parsed = JSON.parse(item.season_links);
-              if (Array.isArray(parsed) && parsed.length > 0) enlace = parsed[0].link;
-            } catch (e) {}
-          } else if (item.enlace) {
+              if (Array.isArray(parsed) && parsed[0]?.link) {
+                enlace = parsed[0].link;
+                tipo = '📺 Ver temporada';
+              }
+            } catch (e) {
+              const match = item.season_links.match(/https?:\/\/[^\s"]+/);
+              if (match) enlace = match[0];
+              tipo = '📺 Ver temporada';
+            }
+          } else if (item.enlace && item.enlace.includes('https')) {
             enlace = item.enlace;
           }
 
@@ -110,7 +126,7 @@
             <img src="${item.imagen}" alt="${item.titulo}">
             <h3>${item.titulo}</h3>
             <p>${item.descripcion || ''}</p>
-            <a href="${enlace || '#'}" class="btn" target="_blank">🎬 Ver contenido</a>
+            <a href="${enlace || '#'}" class="btn" target="_blank">${tipo}</a>
           `;
           gallery.appendChild(div);
         });
