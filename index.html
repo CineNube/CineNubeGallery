@@ -11,37 +11,42 @@
       color: #fff;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
     header {
       background: #1c1c1c;
       padding: 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: bold;
       color: #00aaff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      letter-spacing: 1px;
     }
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
       gap: 15px;
       padding: 20px;
     }
     .item {
       background: #1a1a1a;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
       text-align: center;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      transition: transform 0.2s;
+      transition: transform 0.25s, box-shadow 0.25s;
       position: relative;
     }
     .item:hover {
       transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0,170,255,0.6);
     }
     .item img {
       width: 100%;
-      height: 280px;
+      height: 290px;
       object-fit: cover;
+      border-bottom: 3px solid #00aaff;
     }
     .tag {
       position: absolute;
@@ -56,16 +61,24 @@
       box-shadow: 0 0 5px rgba(0,0,0,0.4);
     }
     .item h3 {
-      font-size: 16px;
+      font-size: 17px;
       margin: 10px 0 5px;
       color: #00aaff;
     }
     .item p {
       font-size: 13px;
       color: #ccc;
-      padding: 0 10px 10px;
+      padding: 0 10px;
       text-align: justify;
-      height: 65px;
+      height: 60px;
+      overflow: hidden;
+    }
+    .hashtags {
+      font-size: 12px;
+      color: #00ccff;
+      margin: 5px 0 10px;
+      padding: 0 10px;
+      height: 36px;
       overflow: hidden;
     }
     .btn {
@@ -74,7 +87,7 @@
       color: #fff;
       text-decoration: none;
       padding: 10px;
-      border-radius: 0 0 10px 10px;
+      border-radius: 0 0 12px 12px;
       font-weight: bold;
       transition: background 0.3s;
     }
@@ -98,16 +111,39 @@
         gallery.innerHTML = '';
 
         data.forEach(item => {
-          const tipoIcon = item.tipo === 'serie' ? '📺 Serie' : '🎥 Película';
-          const btnText = item.tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
+          const tipo = item.tipo?.toLowerCase() || 'pelicula';
+          const tipoTexto = tipo === 'serie' ? '📺 Serie' : '🎥 Película';
+          const btnText = tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
+          let link = '';
+
+          // Enlace correcto (prioriza terabox si existe)
+          if (item.terabox && item.terabox.includes('http')) {
+            link = item.terabox;
+          } else if (item.season_links) {
+            try {
+              const seasons = JSON.parse(item.season_links);
+              link = seasons[0]?.link || '#';
+            } catch {
+              link = '#';
+            }
+          }
+
+          // Convertir géneros en hashtags
+          let hashtags = '';
+          if (item.generos) {
+            const generos = item.generos.split(',').map(g => g.trim());
+            hashtags = generos.map(g => '#' + g.replace(/\s+/g, '')).join(' ');
+          }
+
           const div = document.createElement('div');
           div.className = 'item';
           div.innerHTML = `
-            <span class="tag">${tipoIcon}</span>
+            <span class="tag">${tipoTexto}</span>
             <img src="${item.imagen}" alt="${item.titulo}">
             <h3>${item.titulo}</h3>
             <p>${item.descripcion || ''}</p>
-            <a href="${item.enlace}" target="_blank" class="btn">${btnText}</a>
+            <div class="hashtags">${hashtags}</div>
+            <a href="${link}" target="_blank" class="btn">${btnText}</a>
           `;
           gallery.appendChild(div);
         });
