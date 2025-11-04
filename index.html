@@ -7,58 +7,84 @@
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0e0e0e;
+      background: #0b0b0b;
       color: #fff;
       margin: 0;
       padding: 0;
+      transition: background 0.3s;
     }
     header {
-      background: #1c1c1c;
+      background: #111;
       padding: 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: bold;
       color: #00aaff;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #1a1a1a;
+      padding: 10px 0;
+      gap: 20px;
+      border-bottom: 1px solid #222;
+    }
+    nav button {
+      background: transparent;
+      border: none;
+      color: #ccc;
+      font-size: 16px;
+      cursor: pointer;
+      transition: color 0.3s, transform 0.2s;
+    }
+    nav button:hover, nav button.active {
+      color: #00aaff;
+      transform: scale(1.1);
     }
     #gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
+      gap: 18px;
       padding: 20px;
+      max-width: 1400px;
+      margin: auto;
     }
     .item {
-      background: #1a1a1a;
-      border-radius: 10px;
+      background: #161616;
+      border-radius: 12px;
       overflow: hidden;
-      text-align: center;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      transition: transform 0.2s;
+      transition: transform 0.3s, box-shadow 0.3s;
       position: relative;
     }
     .item:hover {
       transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0,170,255,0.4);
     }
     .item img {
       width: 100%;
-      height: 280px;
+      height: 300px;
       object-fit: cover;
+      transition: opacity 0.3s;
     }
     .tag {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: #00aaff;
+      background: rgba(0,170,255,0.9);
       color: #fff;
       padding: 4px 8px;
       border-radius: 6px;
       font-size: 12px;
       font-weight: bold;
-      box-shadow: 0 0 5px rgba(0,0,0,0.4);
     }
     .item h3 {
       font-size: 16px;
       margin: 10px 0 5px;
       color: #00aaff;
+      text-align: center;
     }
     .item p {
       font-size: 13px;
@@ -77,6 +103,7 @@
       border-radius: 0 0 10px 10px;
       font-weight: bold;
       transition: background 0.3s;
+      text-align: center;
     }
     .btn:hover {
       background: #0077cc;
@@ -85,38 +112,89 @@
 </head>
 <body>
   <header>🎬 CineNube Gallery</header>
+
+  <nav>
+    <button id="btn-recientes" class="active">🕓 Recientes</button>
+    <button id="btn-peliculas">🎥 Películas</button>
+    <button id="btn-series">📺 Series</button>
+  </nav>
+
   <div id="gallery"></div>
 
   <script>
     const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+    let allData = [];
 
     async function loadGallery() {
       try {
         const res = await fetch(SHEET_URL);
         const data = await res.json();
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = '';
-
-        data.forEach(item => {
-          const tipoIcon = item.tipo === 'serie' ? '📺 Serie' : '🎥 Película';
-          const btnText = item.tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.innerHTML = `
-            <span class="tag">${tipoIcon}</span>
-            <img src="${item.imagen}" alt="${item.titulo}">
-            <h3>${item.titulo}</h3>
-            <p>${item.descripcion || ''}</p>
-            <a href="${item.enlace}" target="_blank" class="btn">${btnText}</a>
-          `;
-          gallery.appendChild(div);
-        });
+        allData = data;
+        showGallery('recientes');
       } catch (err) {
         console.error(err);
         document.getElementById('gallery').innerHTML =
           '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
       }
     }
+
+    function showGallery(type) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      const now = new Date();
+      let filtered = [];
+
+      if (type === 'peliculas') {
+        filtered = allData.filter(i => i.type?.toLowerCase() === 'pelicula');
+      } else if (type === 'series') {
+        filtered = allData.filter(i => i.type?.toLowerCase() === 'serie');
+      } else {
+        // Recientes: últimas 24 horas
+        filtered = allData.filter(i => {
+          if (!i.updated) return false;
+          const diff = (now - new Date(i.updated)) / (1000 * 60 * 60);
+          return diff <= 24;
+        });
+      }
+
+      filtered.forEach(item => {
+        const tipoIcon = item.type?.toLowerCase() === 'serie' ? '📺 Serie' : '🎥 Película';
+        const btnText = item.type?.toLowerCase() === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
+        
+        // Elegir enlace correcto
+        let enlace = '#';
+        if (item.type?.toLowerCase() === 'serie') {
+          try {
+            const seasons = JSON.parse(item.season_links || '[]');
+            if (seasons.length > 0) enlace = seasons[0].link;
+          } catch { enlace = '#'; }
+        } else {
+          try {
+            const terabox = JSON.parse(item.terabox || '[]');
+            if (terabox.length > 0) enlace = terabox[0].link;
+          } catch { enlace = '#'; }
+        }
+
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <span class="tag">${tipoIcon}</span>
+          <img src="${item.imagen}" alt="${item.titulo}">
+          <h3>${item.titulo}</h3>
+          <p>${item.descripcion || ''}</p>
+          <a href="${enlace}" target="_blank" class="btn">${btnText}</a>
+        `;
+        gallery.appendChild(div);
+      });
+
+      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+      document.getElementById("btn-" + type).classList.add("active");
+    }
+
+    document.getElementById("btn-recientes").addEventListener("click", () => showGallery("recientes"));
+    document.getElementById("btn-peliculas").addEventListener("click", () => showGallery("peliculas"));
+    document.getElementById("btn-series").addEventListener("click", () => showGallery("series"));
 
     loadGallery();
   </script>
