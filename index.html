@@ -22,7 +22,7 @@
     }
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 15px;
       padding: 20px;
     }
@@ -40,9 +40,20 @@
     }
     .item img {
       width: 100%;
-      height: 270px;
+      height: 280px;
       object-fit: cover;
-      border-bottom: 1px solid #333;
+    }
+    .tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #00aaff;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 0 5px rgba(0,0,0,0.4);
     }
     .item h3 {
       font-size: 16px;
@@ -54,7 +65,7 @@
       color: #ccc;
       padding: 0 10px 10px;
       text-align: justify;
-      height: 60px;
+      height: 65px;
       overflow: hidden;
     }
     .btn {
@@ -77,62 +88,33 @@
   <div id="gallery"></div>
 
   <script>
-    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyap-w5ikiRdad73LZ9rKng13d0nDE1ESzsZXLH8xyV5mWmuUMz0FNs0fG4CHa_4cWrFA/exec';
+    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 
     async function loadGallery() {
       try {
-        const response = await fetch(SHEET_URL);
-        const data = await response.json();
+        const res = await fetch(SHEET_URL);
+        const data = await res.json();
         const gallery = document.getElementById('gallery');
         gallery.innerHTML = '';
 
         data.forEach(item => {
-          let enlace = '';
-          let tipo = '🎬 Ver contenido'; // texto por defecto
-
-          // Intentar detectar tipo y extraer el enlace
-          if (item.terabox && item.terabox.includes('https')) {
-            try {
-              const parsed = JSON.parse(item.terabox);
-              if (Array.isArray(parsed) && parsed[0]?.link) {
-                enlace = parsed[0].link;
-                tipo = '🎥 Ver película';
-              }
-            } catch (e) {
-              // Si el campo está mal formateado, intentar extraer el https con regex
-              const match = item.terabox.match(/https?:\/\/[^\s"]+/);
-              if (match) enlace = match[0];
-              tipo = '🎥 Ver película';
-            }
-          } else if (item.season_links && item.season_links.includes('https')) {
-            try {
-              const parsed = JSON.parse(item.season_links);
-              if (Array.isArray(parsed) && parsed[0]?.link) {
-                enlace = parsed[0].link;
-                tipo = '📺 Ver temporada';
-              }
-            } catch (e) {
-              const match = item.season_links.match(/https?:\/\/[^\s"]+/);
-              if (match) enlace = match[0];
-              tipo = '📺 Ver temporada';
-            }
-          } else if (item.enlace && item.enlace.includes('https')) {
-            enlace = item.enlace;
-          }
-
+          const tipoIcon = item.tipo === 'serie' ? '📺 Serie' : '🎥 Película';
+          const btnText = item.tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
           const div = document.createElement('div');
           div.className = 'item';
           div.innerHTML = `
+            <span class="tag">${tipoIcon}</span>
             <img src="${item.imagen}" alt="${item.titulo}">
             <h3>${item.titulo}</h3>
             <p>${item.descripcion || ''}</p>
-            <a href="${enlace || '#'}" class="btn" target="_blank">${tipo}</a>
+            <a href="${item.enlace}" target="_blank" class="btn">${btnText}</a>
           `;
           gallery.appendChild(div);
         });
-      } catch (error) {
-        console.error('Error al cargar la galería:', error);
-        document.getElementById('gallery').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('gallery').innerHTML =
+          '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
       }
     }
 
