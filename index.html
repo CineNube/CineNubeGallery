@@ -48,17 +48,55 @@
 </div>
 
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+/*
+Robust index:
+- Detecta cualquier nombre de campo parecido a published_at (case-insensitive, con/ sin guiones/espacios).
+- Usa published_at como prioridad; fallback updated/created.
+*/
+
+const SHEET_URL = 'TU_URL_WEBAPP_AQUI'; // <-- sustituye por tu URL web app
 const SHOW_DEBUG = true;
 let allData = [];
 
-function parseDatePrefer(obj) {
-  var cands = [obj.published_at, obj.publishedAt, obj.published, obj.updated, obj.updated_at, obj.updatedAt, obj.created, obj.created_at, obj.date];
-  for (var i=0;i<cands.length;i++){
-    if (!cands[i]) continue;
-    var t = Date.parse(cands[i]);
-    if (!isNaN(t)) return t;
+// Busca en 'raw' cualquier clave que al normalizar equivalga a published_at/updated/created
+function findDateKey(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  var keys = Object.keys(raw);
+  // funciones de normalización: quitar _, -, espacios y todo a minúsculas
+  function norm(k){ return String(k).replace(/[\s_\-]/g,'').toLowerCase(); }
+  var map = {};
+  keys.forEach(k => map[norm(k)] = k); // map[normKey] => actualKey
+  // prioridades (normalizadas)
+  var wanted = ['publishedat','published_at','published','publishedat','published-at','published at','publishedat'];
+  var fallbacks = ['updated','updatedat','updated_at','created','createdat','date','fecha'];
+  // check published variants
+  for (var i=0;i<wanted.length;i++){
+    var w = wanted[i].replace(/[\s_\-]/g,'').toLowerCase();
+    if (map[w]) return map[w];
   }
+  // fallback to updated/created
+  for (var j=0;j<fallbacks.length;j++){
+    var f = fallbacks[j].replace(/[\s_\-]/g,'').toLowerCase();
+    if (map[f]) return map[f];
+  }
+  // none found
+  return null;
+}
+
+function parseDateValue(raw, key) {
+  if (!raw || !key) return null;
+  var v = raw[key];
+  if (!v) return null;
+  // if number (epoch ms or seconds)
+  if (typeof v === 'number') {
+    if (v > 1000000000000) return v; // ms
+    if (v > 1000000000) return v * 1000; // secs -> ms
+  }
+  // try Date.parse
+  var t = Date.parse(String(v));
+  if (!isNaN(t)) return t;
+  // try ISO-like with possible milliseconds separator differences
+  try { var d = new Date(String(v)); if (!isNaN(d.getTime())) return d.getTime(); } catch(e){}
   return null;
 }
 
@@ -71,10 +109,13 @@ function normalizeItem(raw){
   it.rating = raw.rating || raw.vote_average || '';
   it.year = raw.year || '';
   it.generos = raw.generos || raw.genres || '';
-  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv' || s==='series' || s==='serie') return 'series'; if(s==='movie' || s==='pelicula' || s==='película' || s==='film') return 'movie'; return s; })(raw.type || raw.tipo);
+  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(['tv','series','serie'].indexOf(s)!==-1) return 'series'; if(['movie','pelicula','película','film'].indexOf(s)!==-1) return 'movie'; return s; })(raw.type || raw.tipo);
   it.terabox = raw.terabox || raw.link || raw.enlace || '';
   it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
-  it.published_ts = parseDatePrefer(raw);
+  // detect date key robustly
+  var dateKey = findDateKey(raw);
+  it.dateKey = dateKey; // for debug
+  it.published_ts = dateKey ? parseDateValue(raw, dateKey) : null;
   it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
   return it;
 }
@@ -83,20 +124,37 @@ async function loadGallery(){
   try {
     const res = await fetch(SHEET_URL);
     const data = await res.json();
-    if(!Array.isArray(data)) {
-      document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del Web App (no es array).</div>';
-      console.error('Respuesta WebApp:', data);
-      return;
+    if (!Array.isArray(data)) {
+      // Some deployments returned object with {todos, recientes} — handle both
+      if (data.todos && Array.isArray(data.todos)) {
+        // prefer 'todos'
+        allData = data.todos.map(normalizeItem);
+      } else {
+        document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del Web App (no es array).</div>';
+        console.error('Respuesta WebApp:', data);
+        return;
+      }
+    } else {
+      allData = data.map(normalizeItem);
     }
-    allData = data.map(normalizeItem);
+
+    // sort newest first; nulls go to end
     allData.sort(function(a,b){ var ta = a.published_ts || 0; var tb = b.published_ts || 0; return tb - ta; });
-    if(SHOW_DEBUG){
+
+    if (SHOW_DEBUG) {
       document.getElementById('dbgCount').textContent = allData.length;
       var ts = allData.map(x=>x.published_ts).filter(Boolean);
-      if(ts.length){ document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString(); document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString(); }
+      if (ts.length) {
+        document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString();
+        document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString();
+      } else {
+        document.getElementById('dbgMax').textContent = '—';
+        document.getElementById('dbgMin').textContent = '—';
+      }
       document.getElementById('debugBox').style.display = 'block';
-      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 30):', allData.slice(0,30)); alert('Abre la consola para ver detalles.'); };
+      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 50):', allData.slice(0,50)); alert('Abre la consola para ver detalles.'); };
     }
+
     renderGallery(allData);
   } catch (err) {
     console.error(err);
@@ -104,28 +162,14 @@ async function loadGallery(){
   }
 }
 
-function makeHashtags(g){
-  if(!g) return '';
-  if(typeof g === 'string') return g.split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' ');
-  if(Array.isArray(g)) return g.map(s=>'#'+String(s).trim().replace(/\s+/g,'')).join(' ');
-  return '';
-}
+function makeHashtags(g){ if(!g) return ''; if(typeof g==='string') return g.split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' '); if(Array.isArray(g)) return g.map(s=>'#'+String(s).trim().replace(/\s+/g,'')).join(' '); return ''; }
 
 function getFirstLink(it){
   if(it.terabox){
-    try{
-      var p = JSON.parse(it.terabox);
-      if(Array.isArray(p) && p[0] && p[0].link) return p[0].link;
-    }catch(e){
-      var m = (it.terabox||'').match(/https?:\/\/[^\s"']+/);
-      if(m) return m[0];
-    }
+    try{ var p = JSON.parse(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){ var m=(it.terabox||'').match(/https?:\/\/[^\s"']+/); if(m) return m[0]; }
   }
   if(it.season_links){
-    try{
-      var s = (typeof it.season_links === 'string') ? JSON.parse(it.season_links) : it.season_links;
-      if(Array.isArray(s) && s[0] && s[0].link) return s[0].link;
-    }catch(e){}
+    try{ var s = (typeof it.season_links === 'string') ? JSON.parse(it.season_links) : it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
   }
   return '#';
 }
@@ -133,8 +177,7 @@ function getFirstLink(it){
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function renderGallery(list){
-  var g = document.getElementById('gallery');
-  g.innerHTML = '';
+  var g = document.getElementById('gallery'); g.innerHTML = '';
   if(!list || list.length===0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
   var now = Date.now();
   list.forEach(function(it){
@@ -148,8 +191,7 @@ function renderGallery(list){
     var link = getFirstLink(it);
     var isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
 
-    var div = document.createElement('div');
-    div.className = 'item';
+    var div = document.createElement('div'); div.className = 'item';
     div.innerHTML = ''
       + '<div class="thumb"><img src="' + (poster ? encodeURI(poster) : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>') + '" alt="' + escapeHtml(title) + '"></div>'
       + '<div style="position:relative;padding:8px 12px;flex:1;display:flex;flex-direction:column">'
@@ -167,8 +209,7 @@ function renderGallery(list){
 
 // NAV
 document.getElementById('nav').addEventListener('click', function(e){
-  var btn = e.target.closest('button[data-filter]');
-  if(!btn) return;
+  var btn = e.target.closest('button[data-filter]'); if(!btn) return;
   var filter = btn.getAttribute('data-filter');
   document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
