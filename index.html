@@ -7,47 +7,61 @@
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0e0e0e;
+      background: #0b0b0b;
       color: #fff;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
     }
+
     header {
-      background: #1c1c1c;
-      padding: 20px;
+      background: #111;
       text-align: center;
-      font-size: 26px;
-      font-weight: bold;
+      padding: 25px 10px;
+      font-size: 28px;
       color: #00aaff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
       letter-spacing: 1px;
     }
+
+    section {
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin: 15px 0;
+      color: #00ccff;
+      text-shadow: 0 0 8px rgba(0,170,255,0.4);
+    }
+
     #gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
       gap: 15px;
-      padding: 20px;
     }
+
     .item {
       background: #1a1a1a;
       border-radius: 12px;
       overflow: hidden;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      box-shadow: 0 0 8px rgba(0,0,0,0.5);
       transition: transform 0.25s, box-shadow 0.25s;
       position: relative;
     }
+
     .item:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(0,170,255,0.6);
+      box-shadow: 0 0 18px rgba(0,170,255,0.7);
     }
+
     .item img {
       width: 100%;
       height: 290px;
       object-fit: cover;
       border-bottom: 3px solid #00aaff;
     }
+
     .tag {
       position: absolute;
       top: 10px;
@@ -60,11 +74,14 @@
       font-weight: bold;
       box-shadow: 0 0 5px rgba(0,0,0,0.4);
     }
+
     .item h3 {
       font-size: 17px;
       margin: 10px 0 5px;
       color: #00aaff;
+      text-align: center;
     }
+
     .item p {
       font-size: 13px;
       color: #ccc;
@@ -73,6 +90,7 @@
       height: 60px;
       overflow: hidden;
     }
+
     .hashtags {
       font-size: 12px;
       color: #00ccff;
@@ -81,6 +99,7 @@
       height: 36px;
       overflow: hidden;
     }
+
     .btn {
       display: block;
       background: #00aaff;
@@ -90,15 +109,49 @@
       border-radius: 0 0 12px 12px;
       font-weight: bold;
       transition: background 0.3s;
+      text-align: center;
     }
+
     .btn:hover {
       background: #0077cc;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 14px;
+      background: #111;
+      border-top: 1px solid #222;
+    }
+
+    footer a {
+      color: #00aaff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <header>🎬 CineNube Gallery</header>
-  <div id="gallery"></div>
+
+  <section>
+    <h2>🔥 Recientes</h2>
+    <div id="recientes" class="gallery"></div>
+
+    <h2>🎥 Películas</h2>
+    <div id="peliculas" class="gallery"></div>
+
+    <h2>📺 Series</h2>
+    <div id="series" class="gallery"></div>
+  </section>
+
+  <footer>
+    🌐 Ver más en <a href="https://cinenube.github.io/CineNubeGallery" target="_blank">CineNube</a>
+  </footer>
 
   <script>
     const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
@@ -107,28 +160,34 @@
       try {
         const res = await fetch(SHEET_URL);
         const data = await res.json();
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = '';
+
+        // Ordenar por fecha más reciente primero
+        data.sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
+
+        const recientes = document.getElementById('recientes');
+        const peliculas = document.getElementById('peliculas');
+        const series = document.getElementById('series');
+
+        recientes.innerHTML = '';
+        peliculas.innerHTML = '';
+        series.innerHTML = '';
 
         data.forEach(item => {
           const tipo = item.tipo?.toLowerCase() || 'pelicula';
           const tipoTexto = tipo === 'serie' ? '📺 Serie' : '🎥 Película';
           const btnText = tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
-          let link = '';
 
-          // Enlace correcto (prioriza terabox si existe)
+          let link = '#';
           if (item.terabox && item.terabox.includes('http')) {
             link = item.terabox;
           } else if (item.season_links) {
             try {
               const seasons = JSON.parse(item.season_links);
               link = seasons[0]?.link || '#';
-            } catch {
-              link = '#';
-            }
+            } catch {}
           }
 
-          // Convertir géneros en hashtags
+          // Hashtags desde géneros
           let hashtags = '';
           if (item.generos) {
             const generos = item.generos.split(',').map(g => g.trim());
@@ -145,11 +204,18 @@
             <div class="hashtags">${hashtags}</div>
             <a href="${link}" target="_blank" class="btn">${btnText}</a>
           `;
-          gallery.appendChild(div);
+
+          // Distribuir por tipo y también agregar a "Recientes"
+          recientes.appendChild(div.cloneNode(true));
+          if (tipo === 'serie') {
+            series.appendChild(div);
+          } else {
+            peliculas.appendChild(div);
+          }
         });
       } catch (err) {
         console.error(err);
-        document.getElementById('gallery').innerHTML =
+        document.querySelector('section').innerHTML =
           '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
       }
     }
