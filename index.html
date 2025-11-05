@@ -16,10 +16,9 @@
   .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,170,255,.08)}
   .thumb{height:300px;overflow:hidden}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid #00aaff}
-  .content{padding:10px 12px;display:flex;flex-direction:column;flex:1}
-  .title{color:#00aaff;font-size:16px;margin:6px 0 4px;height:40px;overflow:hidden}
-  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px}
-  .meta{font-size:12px;color:#99e6ff;margin-bottom:8px}
+  .title{color:#00aaff;font-size:16px;margin:6px 12px 4px;height:40px;overflow:hidden}
+  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin:0 12px 8px}
+  .meta{font-size:12px;color:#99e6ff;margin:0 12px 8px}
   .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
   .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
   .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
@@ -49,35 +48,21 @@
 </div>
 
 <script>
-/*
-  index.html robusto:
-  - Usa published_at como prioridad; luego updated/updated_at como fallback.
-  - Ordena por fecha (más reciente arriba).
-  - Recientes: items con published_at dentro de 24h (o fallback).
-  - Muestra debug box: activa SHOW_DEBUG = true para ver.
-*/
-
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 const SHOW_DEBUG = true;
 let allData = [];
 
 function parseDatePrefer(obj) {
-  // Prioridad: published_at -> publishedAt -> updated -> updated_at -> created -> date
-  var candidates = [
-    obj.published_at, obj.publishedAt, obj.published, obj.publishedAt,
-    obj.updated, obj.updated_at, obj.updatedAt,
-    obj.created, obj.created_at, obj.date
-  ];
-  for (var i=0;i<candidates.length;i++){
-    if (!candidates[i]) continue;
-    var t = Date.parse(candidates[i]);
+  var cands = [obj.published_at, obj.publishedAt, obj.published, obj.updated, obj.updated_at, obj.updatedAt, obj.created, obj.created_at, obj.date];
+  for (var i=0;i<cands.length;i++){
+    if (!cands[i]) continue;
+    var t = Date.parse(cands[i]);
     if (!isNaN(t)) return t;
   }
   return null;
 }
 
 function normalizeItem(raw){
-  // crea un objeto normalizado que el frontend usará
   var it = {};
   it.raw = raw;
   it.title = raw.title || raw.titulo || raw.name || '';
@@ -89,8 +74,7 @@ function normalizeItem(raw){
   it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv' || s==='series' || s==='serie') return 'series'; if(s==='movie' || s==='pelicula' || s==='película' || s==='film') return 'movie'; return s; })(raw.type || raw.tipo);
   it.terabox = raw.terabox || raw.link || raw.enlace || '';
   it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
-  it.published_ts = parseDatePrefer(raw); // may be null
-  // ISO for debug
+  it.published_ts = parseDatePrefer(raw);
   it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
   return it;
 }
@@ -105,13 +89,8 @@ async function loadGallery(){
       return;
     }
     allData = data.map(normalizeItem);
-    // Items sin fecha (published_ts null) colocarlos al final: sort por published_ts desc (null -> 0)
-    allData.sort(function(a,b){
-      var ta = a.published_ts || 0;
-      var tb = b.published_ts || 0;
-      return tb - ta;
-    });
-    if(SHOW_DEBUG) {
+    allData.sort(function(a,b){ var ta = a.published_ts || 0; var tb = b.published_ts || 0; return tb - ta; });
+    if(SHOW_DEBUG){
       document.getElementById('dbgCount').textContent = allData.length;
       var ts = allData.map(x=>x.published_ts).filter(Boolean);
       if(ts.length){ document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString(); document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString(); }
@@ -151,6 +130,8 @@ function getFirstLink(it){
   return '#';
 }
 
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function renderGallery(list){
   var g = document.getElementById('gallery');
   g.innerHTML = '';
@@ -169,25 +150,22 @@ function renderGallery(list){
 
     var div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = `
-      <div class="thumb"><img src="${poster ? encodeURI(poster) : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>'}" alt="${escapeHtml(title)}"></div>
-      <div style="position:relative;padding:8px 12px;flex:1;display:flex;flex-direction:column">
-        <div class="title">${escapeHtml(title)}</div>
-        <div class="overview">${escapeHtml(overview)}</div>
-        <div class="meta">${it.rating ? '⭐ '+escapeHtml(it.rating)+' ' : ''}${it.year ? '• '+escapeHtml(it.year) : ''}</div>
-        <div class="hashtags">${escapeHtml(hashtags)}</div>
-        <a class="btn" href="${escapeHtml(link)}" target="_blank">${escapeHtml(btnText)}</a>
-      </div>
-      <span class="tag">${escapeHtml(tipoTexto)}</span>
-      ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
-    `;
+    div.innerHTML = ''
+      + '<div class="thumb"><img src="' + (poster ? encodeURI(poster) : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>') + '" alt="' + escapeHtml(title) + '"></div>'
+      + '<div style="position:relative;padding:8px 12px;flex:1;display:flex;flex-direction:column">'
+      + '<div class="title">' + escapeHtml(title) + '</div>'
+      + '<div class="overview">' + escapeHtml(overview) + '</div>'
+      + '<div class="meta">' + (it.rating ? '⭐ ' + escapeHtml(it.rating) + ' ' : '') + (it.year ? '• ' + escapeHtml(it.year) : '') + '</div>'
+      + '<div class="hashtags">' + escapeHtml(hashtags) + '</div>'
+      + '<a class="btn" href="' + escapeHtml(link) + '" target="_blank">' + escapeHtml(btnText) + '</a>'
+      + '</div>'
+      + '<span class="tag">' + escapeHtml(tipoTexto) + '</span>'
+      + (isNew ? '<span class="new">🆕 Nuevo</span>' : '');
     g.appendChild(div);
   });
 }
 
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// NAV filters
+// NAV
 document.getElementById('nav').addEventListener('click', function(e){
   var btn = e.target.closest('button[data-filter]');
   if(!btn) return;
