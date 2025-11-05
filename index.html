@@ -1,232 +1,110 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>CineNube Gallery</title>
-<style>
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
-  header{background:#1c1c1c;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
-  nav{display:flex;justify-content:center;gap:14px;background:#141414;padding:10px 8px;font-weight:700;flex-wrap:wrap}
-  nav button{background:none;border:1px solid transparent;color:#fff;cursor:pointer;font-size:15px;padding:6px 10px;border-radius:6px;transition:all .18s}
-  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:#00aaff}
-  nav button:hover{color:#00aaff}
-  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:18px}
-  .item{background:#141414;border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 0 10px rgba(0,0,0,0.6);transition:transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;height:460px}
-  .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,170,255,.08)}
-  .thumb{height:300px;overflow:hidden}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid #00aaff}
-  .title{color:#00aaff;font-size:16px;margin:6px 12px 4px;height:40px;overflow:hidden}
-  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin:0 12px 8px}
-  .meta{font-size:12px;color:#99e6ff;margin:0 12px 8px}
-  .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
-  .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
-  .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
-  .hashtags{font-size:12px;color:#00ccff;padding:0 12px;height:28px;overflow:hidden;margin-top:6px}
-  .empty{padding:40px;text-align:center;color:#aaa}
-  #debugBox{position:fixed;right:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:9999;max-width:320px}
-  #debugBox b{color:#00aaff}
-  @media(max-width:700px){.item{height:420px}.thumb{height:260px}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineNube</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0e0e0e; color: #fff; margin: 0; padding: 0; }
+    header { text-align: center; padding: 20px; font-size: 24px; font-weight: bold; background:#1a1a1a; }
+    .menu { display: flex; justify-content: center; gap: 10px; margin: 20px; }
+    .menu button { padding: 10px 20px; border: none; cursor: pointer; background: #333; color: white; border-radius: 5px; }
+    .menu button:hover { background: #555; }
+    .contenedor { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 20px; }
+    .item { background: #1f1f1f; padding: 10px; border-radius: 8px; text-align: center; }
+    .item img { width: 100%; border-radius: 5px; }
+    .titulo { font-weight: bold; margin: 10px 0; }
+    .badge { background: #e63946; padding: 3px 7px; font-size: 12px; border-radius: 5px; margin-top:5px; display:inline-block; }
+    h2 { margin-left: 20px; margin-top: 30px; }
+  </style>
 </head>
 <body>
+
 <header>🎬 CineNube Gallery</header>
-<nav id="nav">
-  <button data-filter="all" class="active">🔁 Todos</button>
-  <button data-filter="recientes">🔥 Recientes (24h)</button>
-  <button data-filter="movie">🎥 Películas</button>
-  <button data-filter="series">📺 Series</button>
-</nav>
 
-<div id="gallery"></div>
-
-<div id="debugBox" style="display:none">
-  <div>Items: <b id="dbgCount">0</b></div>
-  <div>Más nuevo: <b id="dbgMax">—</b></div>
-  <div>Más antiguo: <b id="dbgMin">—</b></div>
-  <div style="margin-top:6px"><button id="dbgShow" style="cursor:pointer;padding:6px;border-radius:6px;border:none;background:#00aaff;color:#fff">Ver consola</button></div>
+<div class="menu">
+  <button onclick="mostrarTodo()">📁 Todo</button>
+  <button onclick="filtrar('movie')">🎥 Películas</button>
+  <button onclick="filtrar('series')">📺 Series</button>
+  <button onclick="mostrarRecientes()">🔥 Recientes (24h)</button>
 </div>
 
+<h2 id="titulo-seccion">📁 Todo</h2>
+<div id="contenedor" class="contenedor"></div>
+
 <script>
-/*
-Robust index:
-- Detecta cualquier nombre de campo parecido a published_at (case-insensitive, con/ sin guiones/espacios).
-- Usa published_at como prioridad; fallback updated/created.
-*/
+// URL del JSON generado por tu Apps Script:
+const DATA_URL = "https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec";
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec'; // <-- sustituye por tu URL web app
-const SHOW_DEBUG = true;
-let allData = [];
+let datos = []; // Aquí se guardan todos los elementos
 
-// Busca en 'raw' cualquier clave que al normalizar equivalga a published_at/updated/created
-function findDateKey(raw) {
-  if (!raw || typeof raw !== 'object') return null;
-  var keys = Object.keys(raw);
-  // funciones de normalización: quitar _, -, espacios y todo a minúsculas
-  function norm(k){ return String(k).replace(/[\s_\-]/g,'').toLowerCase(); }
-  var map = {};
-  keys.forEach(k => map[norm(k)] = k); // map[normKey] => actualKey
-  // prioridades (normalizadas)
-  var wanted = ['publishedat','published_at','published','publishedat','published-at','published at','publishedat'];
-  var fallbacks = ['updated','updatedat','updated_at','created','createdat','date','fecha'];
-  // check published variants
-  for (var i=0;i<wanted.length;i++){
-    var w = wanted[i].replace(/[\s_\-]/g,'').toLowerCase();
-    if (map[w]) return map[w];
-  }
-  // fallback to updated/created
-  for (var j=0;j<fallbacks.length;j++){
-    var f = fallbacks[j].replace(/[\s_\-]/g,'').toLowerCase();
-    if (map[f]) return map[f];
-  }
-  // none found
-  return null;
-}
-
-function parseDateValue(raw, key) {
-  if (!raw || !key) return null;
-  var v = raw[key];
-  if (!v) return null;
-  // if number (epoch ms or seconds)
-  if (typeof v === 'number') {
-    if (v > 1000000000000) return v; // ms
-    if (v > 1000000000) return v * 1000; // secs -> ms
-  }
-  // try Date.parse
-  var t = Date.parse(String(v));
-  if (!isNaN(t)) return t;
-  // try ISO-like with possible milliseconds separator differences
-  try { var d = new Date(String(v)); if (!isNaN(d.getTime())) return d.getTime(); } catch(e){}
-  return null;
-}
-
-function normalizeItem(raw){
-  var it = {};
-  it.raw = raw;
-  it.title = raw.title || raw.titulo || raw.name || '';
-  it.poster = raw.poster || raw.imagen || raw.poster_path || '';
-  it.overview = raw.overview || raw.descripcion || raw.description || '';
-  it.rating = raw.rating || raw.vote_average || '';
-  it.year = raw.year || '';
-  it.generos = raw.generos || raw.genres || '';
-  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(['tv','series','serie'].indexOf(s)!==-1) return 'series'; if(['movie','pelicula','película','film'].indexOf(s)!==-1) return 'movie'; return s; })(raw.type || raw.tipo);
-  it.terabox = raw.terabox || raw.link || raw.enlace || '';
-  it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
-  // detect date key robustly
-  var dateKey = findDateKey(raw);
-  it.dateKey = dateKey; // for debug
-  it.published_ts = dateKey ? parseDateValue(raw, dateKey) : null;
-  it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
-  return it;
-}
-
-async function loadGallery(){
+// 1. Cargar datos al iniciar
+window.onload = async function() {
   try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    if (!Array.isArray(data)) {
-      // Some deployments returned object with {todos, recientes} — handle both
-      if (data.todos && Array.isArray(data.todos)) {
-        // prefer 'todos'
-        allData = data.todos.map(normalizeItem);
-      } else {
-        document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del Web App (no es array).</div>';
-        console.error('Respuesta WebApp:', data);
-        return;
-      }
-    } else {
-      allData = data.map(normalizeItem);
-    }
-
-    // sort newest first; nulls go to end
-    allData.sort(function(a,b){ var ta = a.published_ts || 0; var tb = b.published_ts || 0; return tb - ta; });
-
-    if (SHOW_DEBUG) {
-      document.getElementById('dbgCount').textContent = allData.length;
-      var ts = allData.map(x=>x.published_ts).filter(Boolean);
-      if (ts.length) {
-        document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString();
-        document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString();
-      } else {
-        document.getElementById('dbgMax').textContent = '—';
-        document.getElementById('dbgMin').textContent = '—';
-      }
-      document.getElementById('debugBox').style.display = 'block';
-      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 50):', allData.slice(0,50)); alert('Abre la consola para ver detalles.'); };
-    }
-
-    renderGallery(allData);
-  } catch (err) {
-    console.error(err);
-    document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
+    const res = await fetch(DATA_URL);
+    datos = await res.json();
+    mostrarTodo();
+  } catch (e) {
+    console.error("Error cargando datos:", e);
   }
+};
+
+// 2. Mostrar todos
+function mostrarTodo() {
+  document.getElementById('titulo-seccion').textContent = "📁 Todo";
+  renderizar(datos);
 }
 
-function makeHashtags(g){ if(!g) return ''; if(typeof g==='string') return g.split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' '); if(Array.isArray(g)) return g.map(s=>'#'+String(s).trim().replace(/\s+/g,'')).join(' '); return ''; }
-
-function getFirstLink(it){
-  if(it.terabox){
-    try{ var p = JSON.parse(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){ var m=(it.terabox||'').match(/https?:\/\/[^\s"']+/); if(m) return m[0]; }
-  }
-  if(it.season_links){
-    try{ var s = (typeof it.season_links === 'string') ? JSON.parse(it.season_links) : it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
-  }
-  return '#';
+// 3. Filtrar por tipo (movie o series)
+function filtrar(tipo) {
+  document.getElementById('titulo-seccion').textContent = tipo === 'movie' ? "🎥 Películas" : "📺 Series";
+  renderizar(datos.filter(el => el.type === tipo));
 }
 
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// 4. Mostrar recientes 24h usando published_at
+function mostrarRecientes() {
+  document.getElementById('titulo-seccion').textContent = "🔥 Recientes (últimas 24h)";
+  const ahora = new Date();
+  const filtrado = datos.filter(el => {
+    if (!el.published_at) return false;
+    const fecha = new Date(el.published_at);
+    const diffHoras = (ahora - fecha) / (1000 * 60 * 60);
+    return diffHoras <= 24;
+  });
+  renderizar(filtrado);
+}
 
-function renderGallery(list){
-  var g = document.getElementById('gallery'); g.innerHTML = '';
-  if(!list || list.length===0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
-  var now = Date.now();
-  list.forEach(function(it){
-    var tipo = it.type === 'series' ? 'series' : 'movie';
-    var tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
-    var btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
-    var poster = it.poster || '';
-    var title = it.title || '';
-    var overview = it.overview || '';
-    var hashtags = makeHashtags(it.generos);
-    var link = getFirstLink(it);
-    var isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
+// 5. Renderizar ítems en pantalla
+function renderizar(lista) {
+  const cont = document.getElementById('contenedor');
+  cont.innerHTML = "";
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = "<p>No hay contenido para mostrar.</p>";
+    return;
+  }
 
-    var div = document.createElement('div'); div.className = 'item';
-    div.innerHTML = ''
-      + '<div class="thumb"><img src="' + (poster ? encodeURI(poster) : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>') + '" alt="' + escapeHtml(title) + '"></div>'
-      + '<div style="position:relative;padding:8px 12px;flex:1;display:flex;flex-direction:column">'
-      + '<div class="title">' + escapeHtml(title) + '</div>'
-      + '<div class="overview">' + escapeHtml(overview) + '</div>'
-      + '<div class="meta">' + (it.rating ? '⭐ ' + escapeHtml(it.rating) + ' ' : '') + (it.year ? '• ' + escapeHtml(it.year) : '') + '</div>'
-      + '<div class="hashtags">' + escapeHtml(hashtags) + '</div>'
-      + '<a class="btn" href="' + escapeHtml(link) + '" target="_blank">' + escapeHtml(btnText) + '</a>'
-      + '</div>'
-      + '<span class="tag">' + escapeHtml(tipoTexto) + '</span>'
-      + (isNew ? '<span class="new">🆕 Nuevo</span>' : '');
-    g.appendChild(div);
+  lista.sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0));
+
+  lista.forEach(item => {
+    const div = document.createElement('div');
+    div.className = "item";
+    div.innerHTML = `
+      <img src="${item.poster || ''}" alt="${item.title}">
+      <div class="titulo">${item.title || ''}</div>
+      <div>⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
+      ${item.published_at && esReciente(item.published_at) ? <div class="badge">Nuevo</div> : ""}
+    `;
+    cont.appendChild(div);
   });
 }
 
-// NAV
-document.getElementById('nav').addEventListener('click', function(e){
-  var btn = e.target.closest('button[data-filter]'); if(!btn) return;
-  var filter = btn.getAttribute('data-filter');
-  document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-
-  if(filter === 'all') {
-    renderGallery(allData);
-  } else if(filter === 'recientes') {
-    var items = allData.filter(function(i){ return i.published_ts && ((Date.now() - i.published_ts) <= (1000*60*60*24)); });
-    renderGallery(items);
-  } else if(filter === 'movie' || filter === 'series') {
-    renderGallery(allData.filter(function(i){ return i.type === filter; }));
-  } else {
-    renderGallery(allData.filter(function(i){ return (i.type || '').toLowerCase() === filter; }));
-  }
-});
-
-loadGallery();
+// 6. Saber si es de las últimas 24h
+function esReciente(fecha) {
+  const ahora = new Date();
+  const diffHoras = (ahora - new Date(fecha)) / (1000 * 60 * 60);
+  return diffHoras <= 24;
+}
 </script>
+
 </body>
 </html>
