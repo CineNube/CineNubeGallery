@@ -1,106 +1,278 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CineNube Gallery</title>
 <style>
   body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
-  header{background:#1c1c1c;padding:20px;text-align:center;font-size:26px;font-weight:bold;color:#00aaff;box-shadow:0 0 10px rgba(0,0,0,0.5)}
-  nav{display:flex;justify-content:center;gap:20px;background:#141414;padding:12px 0;font-weight:bold}
-  nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;transition:color .3s}
+  header{background:#1c1c1c;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+  nav{display:flex;justify-content:center;gap:14px;background:#141414;padding:10px 8px;font-weight:700;flex-wrap:wrap}
+  nav button{background:none;border:1px solid transparent;color:#fff;cursor:pointer;font-size:15px;padding:6px 10px;border-radius:6px;transition:all .18s}
+  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:#00aaff}
   nav button:hover{color:#00aaff}
-  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px}
-  .item{background:#1a1a1a;border-radius:12px;overflow:hidden;text-align:center;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:transform .25s,box-shadow .25s;position:relative}
-  .item:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(0,170,255,.6)}
-  .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #00aaff}
-  @media(max-width:768px){.item img{height:260px}}
-  .tag{position:absolute;top:10px;left:10px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
-  .new{position:absolute;top:10px;right:10px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;animation:pulse 1.5s infinite}
-  @keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
-  .item h3{font-size:17px;margin:10px 0 5px;color:#00aaff}
-  .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
-  .hashtags{font-size:12px;color:#00ccff;margin:5px 0 10px;padding:0 10px;height:36px;overflow:hidden}
-  .btn{display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:bold;transition:background .3s}
-  .btn:hover{background:#0077cc}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:18px}
+  .item{background:#141414;border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 0 10px rgba(0,0,0,0.6);transition:transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;height:460px}
+  .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,170,255,.08)}
+  .thumb{height:300px;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid #00aaff}
+  .content{padding:10px 12px;display:flex;flex-direction:column;flex:1}
+  .title{color:#00aaff;font-size:16px;margin:6px 0 4px;height:40px;overflow:hidden}
+  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px}
+  .meta{font-size:12px;color:#99e6ff;margin-bottom:8px}
+  .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
+  .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .hashtags{font-size:12px;color:#00ccff;padding:0 12px;height:28px;overflow:hidden;margin-top:6px}
+  .empty{padding:40px;text-align:center;color:#aaa}
+  #debugBox{position:fixed;right:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:9999;max-width:320px}
+  #debugBox b{color:#00aaff}
+  @media(max-width:700px){.item{height:420px}.thumb{height:260px}}
 </style>
 </head>
 <body>
 <header>🎬 CineNube Gallery</header>
-<nav>
-  <button onclick="filterContent('recientes')">🔥 Recientes</button>
-  <button onclick="filterContent('pelicula')">🎥 Películas</button>
-  <button onclick="filterContent('serie')">📺 Series</button>
+<nav id="nav">
+  <button data-filter="all" class="active">🔁 Todos</button>
+  <button data-filter="recientes">🔥 Recientes (24h)</button>
+  <button data-filter="movie">🎥 Películas</button>
+  <button data-filter="series">📺 Series</button>
 </nav>
+
 <div id="gallery"></div>
+
+<!-- Panel pequeño para depuración rápida -->
+<div id="debugBox" style="display:none">
+  <div>Items: <b id="dbgCount">0</b></div>
+  <div>Más nuevo: <b id="dbgMax">—</b></div>
+  <div>Más antiguo: <b id="dbgMin">—</b></div>
+  <div style="margin-top:6px"><button id="dbgShow" style="cursor:pointer;padding:6px;border-radius:6px;border:none;background:#00aaff;color:#fff">Ver consola</button></div>
+</div>
+
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-let allData=[];
+/*
+  index.html robusto para trabajar con el Apps Script.
+  - Soporta varios nombres de campos (title/titulo, poster/imagen, overview/descripcion, type/tipo, updated/updated_at)
+  - Ordena por fecha (más nuevo arriba). Items sin fecha válida van al final.
+  - "Recientes" muestra items con updated dentro de las últimas 24 horas.
+  - Muestra debugBox para verificar rangos de fechas.
+*/
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData = [];
+
+// UTIL: normaliza tipo a 'movie' o 'series'
+function normalizeType(t){
+  if(!t) return 'movie';
+  const s = String(t).trim().toLowerCase();
+  if(['tv','series','serie','tv_series'].includes(s)) return 'series';
+  if(['movie','pelicula','película','film'].includes(s)) return 'movie';
+  return s;
+}
+
+// UTIL: intenta parsear fecha y devuelve timestamp (ms) o null
+function parseTimestamp(v){
+  if(!v && v !== 0) return null;
+  // si ya es número
+  if(typeof v === 'number') return isFinite(v) ? v : null;
+  // si es string que parece número
+  if(/^\d+$/.test(String(v).trim())) return parseInt(v,10);
+  // intentar Date.parse()
+  const d = Date.parse(String(v));
+  if(!isNaN(d)) return d;
+  // intentar formatos comunes (por si vienen '2025-11-05T...Z' etc)
+  try {
+    const dd = new Date(String(v));
+    if(!isNaN(dd.getTime())) return dd.getTime();
+  } catch(e){}
+  return null;
+}
+
+// UTIL: escape html simple
+function esc(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 async function loadGallery(){
- try{
-  const res=await fetch(SHEET_URL);
-  const data=await res.json();
-  allData=data.sort((a,b)=>new Date(b.updated)-new Date(a.updated)); // Ordenar por más nuevo
-  renderGallery(allData);
- }catch(e){
-  document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
- }
+  try{
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    if(!Array.isArray(data)){
+      console.error('La respuesta del WebApp no es un array:', data);
+      document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta del servidor inesperada. Revisa la URL del Web App.</div>';
+      return;
+    }
+
+    // Normalizar campos por cada item
+    allData = data.map(raw => {
+      const item = {};
+      // títulos posibles
+      item.title = raw.title || raw.titulo || raw.name || raw.Nombre || '';
+      // poster: poster, imagen, poster_path
+      item.poster = raw.poster || raw.imagen || raw.poster_path || '';
+      // overview/descripcion
+      item.overview = raw.overview || raw.descripcion || raw.description || '';
+      // rating
+      item.rating = raw.rating || raw.vote_average || raw.score || '';
+      // year
+      item.year = raw.year || raw.release_date || raw.first_air_date || '';
+      // generos
+      item.generos = raw.generos || raw.genres || '';
+      // terabox/links
+      item.terabox = raw.terabox || raw.link || raw.enlace || '';
+      item.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
+      // tipo
+      item.type = normalizeType(raw.type || raw.tipo || raw.category || '');
+      // campo updated: varios nombres posibles
+      item.updatedRaw = raw.updated || raw.updated_at || raw.updatedAt || raw.date || raw.updatedDate || raw.updated_iso || '';
+      item.updatedTs = parseTimestamp(item.updatedRaw);
+      // fallback: si no hay updated, si recibimos created/added, etc
+      if(!item.updatedTs){
+        const alt = raw.added || raw.created || raw.created_at || raw.fecha || raw.fecha_actualizacion || '';
+        item.updatedTs = parseTimestamp(alt);
+      }
+      // si sigue sin timestamp, tratar de generar a partir del contenido (p.ej. TMDB fetch guardó updated ISO) o dejar null
+      if(!item.updatedTs && item.updatedRaw){
+        const p = parseTimestamp(item.updatedRaw);
+        if(p) item.updatedTs = p;
+      }
+      // guardar representación ISO para mostrar/debug
+      item.updatedISO = item.updatedTs ? new Date(item.updatedTs).toISOString() : null;
+
+      // mantener también campos originales por compatibilidad
+      item._raw = raw;
+      return item;
+    });
+
+    // Orden: por timestamp descendente; items sin timestamp van al final (orden estable)
+    allData.sort((a,b) => {
+      const ta = a.updatedTs || 0;
+      const tb = b.updatedTs || 0;
+      // mayor timestamp primero
+      return tb - ta;
+    });
+
+    // logs para que veas en consola
+    console.info('Cargados items:', allData.length);
+    const tsAll = allData.map(i => i.updatedTs).filter(Boolean);
+    if(tsAll.length){
+      const max = new Date(Math.max(...tsAll)).toISOString();
+      const min = new Date(Math.min(...tsAll)).toISOString();
+      console.info('Rango fechas:', min, '→', max);
+      showDebugBox(allData.length, min, max);
+    } else {
+      showDebugBox(allData.length, '—', '—');
+    }
+
+    // render inicial: todos
+    renderGallery(allData);
+  }catch(err){
+    console.error('Error cargando datos:', err);
+    document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Abre la consola para más info.</div>';
+    showDebugBox(0,'—','—');
+  }
 }
 
-function renderGallery(items){
- const g=document.getElementById('gallery');
- g.innerHTML='';
- const now=Date.now();
+function showDebugBox(count, minISO, maxISO){
+  try{
+    const box = document.getElementById('debugBox');
+    document.getElementById('dbgCount').textContent = count;
+    document.getElementById('dbgMax').textContent = maxISO || '—';
+    document.getElementById('dbgMin').textContent = minISO || '—';
+    box.style.display = 'block';
+    document.getElementById('dbgShow').onclick = ()=>{ console.log('Items (primeros 20):', allData.slice(0,20)); alert('Abre la consola del navegador para ver detalles.'); };
+  }catch(e){}
+}
 
- items.forEach(item=>{
-  const tipo=(item.tipo||'pelicula').toLowerCase();
-  const tipoTexto=tipo==='serie'?'📺 Serie':'🎥 Película';
-  const btnText=tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
+function makeHashtags(g){
+  if(!g) return '';
+  if(typeof g === 'string') return g.split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' ');
+  if(Array.isArray(g)) return g.map(s=>'#'+String(s).trim().replace(/\s+/g,'')).join(' ');
+  return '';
+}
 
-  // Enlace correcto
-  let link='#';
-  if(item.terabox && item.terabox.includes('http')) link=item.terabox;
-  else if(item.season_links){
+function getFirstLink(item){
+  // intenta terabox (puede ser string con url o JSON)
+  if(item.terabox){
     try{
-      const s=JSON.parse(item.season_links);
-      link=s[0]?.link||'#';
-    }catch{}
+      const p = JSON.parse(item.terabox);
+      if(Array.isArray(p) && p[0] && p[0].link) return p[0].link;
+    }catch(e){
+      const m = String(item.terabox).match(/https?:\/\/[^\s"']+/);
+      if(m) return m[0];
+    }
   }
-
-  // Hashtags
-  let hashtags='';
-  if(item.generos){
-    const gArr=item.generos.split(',').map(g=>g.trim());
-    hashtags=gArr.map(g=>'#'+g.replace(/\s+/g,'')).join(' ');
+  // season_links si existe
+  if(item.season_links){
+    try{
+      const s = typeof item.season_links === 'string' ? JSON.parse(item.season_links) : item.season_links;
+      if(Array.isArray(s) && s[0] && s[0].link) return s[0].link;
+    }catch(e){}
   }
-
-  // Solo nuevos (menos de 24h)
-  const isNew=(now-new Date(item.updated).getTime())<=24*3600*1000;
-
-  const div=document.createElement('div');
-  div.className='item';
-  div.innerHTML=`
-   <span class="tag">${tipoTexto}</span>
-   ${isNew?'<span class="new">🆕 Nuevo</span>':''}
-   <img src="${item.imagen}" loading="lazy" alt="${item.titulo}">
-   <h3>${item.titulo}</h3>
-   <p>${item.descripcion||''}</p>
-   <div class="hashtags">${hashtags}</div>
-   <a href="${link}" target="_blank" class="btn">${btnText}</a>`;
-  g.appendChild(div);
- });
+  return '#';
 }
 
-function filterContent(t){
- if(t==='recientes'){
-   const recientes=allData.filter(x=>(Date.now()-new Date(x.updated).getTime())<=24*3600*1000);
-   renderGallery(recientes);
- }else{
-   renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===t));
- }
+function renderGallery(list){
+  const g = document.getElementById('gallery');
+  g.innerHTML = '';
+  if(!list || list.length === 0){
+    g.innerHTML = '<div class="empty">No hay resultados</div>';
+    return;
+  }
+  const now = Date.now();
+  list.forEach(item=>{
+    const tipo = item.type === 'series' ? 'series' : 'movie';
+    const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
+    const btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
+    const poster = item.poster || item._raw.poster || item._raw.imagen || '';
+    const title = item.title || item._raw.title || '';
+    const overview = item.overview || item._raw.overview || item._raw.descripcion || '';
+    const hashtags = makeHashtags(item.generos || item._raw.generos || item._raw.genres);
+    const link = getFirstLink(item);
+    const isNew = item.updatedTs ? ((now - item.updatedTs) <= (1000*60*60*24)) : false;
+
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="thumb"><img src="${esc(poster) || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>'}" alt="${esc(title)}"></div>
+      <div style="position:relative;padding:8px 12px;flex:1;display:flex;flex-direction:column">
+        <div class="title">${esc(title)}</div>
+        <div class="overview">${esc(overview)}</div>
+        <div class="meta">${item.rating ? '⭐ '+esc(item.rating)+' ' : ''}${item.year ? '• '+esc(item.year) : ''}</div>
+        <div class="hashtags">${esc(hashtags)}</div>
+        <a class="btn" href="${esc(link)}" target="_blank">${esc(btnText)}</a>
+      </div>
+      <span class="tag">${esc(tipoTexto)}</span>
+      ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
+    `;
+    g.appendChild(div);
+  });
 }
 
+// FILTROS: nav
+document.getElementById('nav').addEventListener('click', function(e){
+  const btn = e.target.closest('button[data-filter]');
+  if(!btn) return;
+  const filter = btn.getAttribute('data-filter');
+  // visual
+  document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if(filter === 'all'){
+    renderGallery(allData);
+  } else if(filter === 'recientes'){
+    const items = allData.filter(i => i.updatedTs && (Date.now() - i.updatedTs) <= (1000*60*60*24));
+    renderGallery(items);
+  } else if(filter === 'movie' || filter === 'series'){
+    renderGallery(allData.filter(i => i.type === filter));
+  } else {
+    // filtro por texto en type u otro campo
+    renderGallery(allData.filter(i => ((i.type||'')===filter)));
+  }
+});
+
+// carga inicial
 loadGallery();
 </script>
 </body>
