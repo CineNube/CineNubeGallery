@@ -5,124 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>🎬 CineNube Gallery</title>
 <style>
-  body {
-    font-family:'Segoe UI',Arial,sans-serif;
-    background:#0e0e0e;
-    color:#fff;
-    margin:0;
-    padding:0;
-    overflow-x:hidden;
-  }
-  header {
-    background:#1c1c1c;
-    padding:20px;
-    text-align:center;
-    font-size:26px;
-    font-weight:bold;
-    color:#00aaff;
-    box-shadow:0 0 10px rgba(0,0,0,0.5);
-  }
-  nav {
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    background:#141414;
-    padding:12px 0;
-    font-weight:bold;
-  }
-  nav button {
-    background:none;
-    border:none;
-    color:#fff;
-    cursor:pointer;
-    font-size:16px;
-    transition:color .3s;
-  }
-  nav button:hover {
-    color:#00aaff;
-  }
-  #gallery {
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:15px;
-    padding:20px;
-  }
-  .item {
-    background:#1a1a1a;
-    border-radius:12px;
-    overflow:hidden;
-    text-align:center;
-    box-shadow:0 0 10px rgba(0,0,0,0.5);
-    transition:transform .25s,box-shadow .25s;
-    position:relative;
-  }
-  .item:hover {
-    transform:scale(1.05);
-    box-shadow:0 0 20px rgba(0,170,255,.6);
-  }
-  .item img {
-    width:100%;
-    height:320px;
-    object-fit:cover;
-    border-bottom:3px solid #00aaff;
-  }
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
+  header{background:#1c1c1c;padding:20px;text-align:center;font-size:26px;font-weight:bold;color:#00aaff;box-shadow:0 0 10px rgba(0,0,0,0.5)}
+  nav{display:flex;justify-content:center;gap:20px;background:#141414;padding:12px 0;font-weight:bold}
+  nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;transition:color .3s}
+  nav button:hover{color:#00aaff}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px}
+  .item{background:#1a1a1a;border-radius:12px;overflow:hidden;text-align:center;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:transform .25s,box-shadow .25s;position:relative}
+  .item:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(0,170,255,.6)}
+  .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #00aaff}
   @media(max-width:768px){.item img{height:260px}}
-  .tag {
-    position:absolute;
-    top:10px;
-    left:10px;
-    background:#00aaff;
-    color:#fff;
-    padding:4px 8px;
-    border-radius:6px;
-    font-size:12px;
-    font-weight:bold;
-  }
-  .new {
-    position:absolute;
-    top:10px;
-    right:10px;
-    background:#ff2d55;
-    color:#fff;
-    padding:4px 8px;
-    border-radius:6px;
-    font-size:12px;
-    font-weight:bold;
-    animation:pulse 1.5s infinite;
-  }
+  .tag{position:absolute;top:10px;left:10px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
+  .new{position:absolute;top:10px;right:10px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;animation:pulse 1.5s infinite}
   @keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
-  .item h3 {
-    font-size:17px;
-    margin:10px 0 5px;
-    color:#00aaff;
-  }
-  .item p {
-    font-size:13px;
-    color:#ccc;
-    padding:0 10px;
-    text-align:justify;
-    height:60px;
-    overflow:hidden;
-  }
-  .hashtags {
-    font-size:12px;
-    color:#00ccff;
-    margin:5px 0 10px;
-    padding:0 10px;
-    height:36px;
-    overflow:hidden;
-  }
-  .btn {
-    display:block;
-    background:#00aaff;
-    color:#fff;
-    text-decoration:none;
-    padding:10px;
-    border-radius:0 0 12px 12px;
-    font-weight:bold;
-    transition:background .3s;
-  }
-  .btn:hover {background:#0077cc;}
+  .item h3{font-size:17px;margin:10px 0 5px;color:#00aaff}
+  .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
+  .hashtags{font-size:12px;color:#00ccff;margin:5px 0 10px;padding:0 10px;height:36px;overflow:hidden}
+  .btn{display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:bold;transition:background .3s}
+  .btn:hover{background:#0077cc}
 </style>
 </head>
 <body>
@@ -133,63 +33,47 @@
   <button onclick="filterContent('serie')">📺 Series</button>
 </nav>
 <div id="gallery"></div>
-
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-let allData = [];
+const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData=[];
 
-async function loadGallery() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    // Ordenar por fecha actualizada (más reciente primero)
-    allData = data.sort((a,b)=>new Date(b.updated)-new Date(a.updated));
+async function loadGallery(){
+  try{
+    const res=await fetch(SHEET_URL);
+    const data=await res.json();
+    // Ordenar por published_at (lo más nuevo primero)
+    allData=data.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
     renderGallery(allData);
-  } catch(e) {
-    document.getElementById('gallery').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
+  }catch(e){
+    document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
     console.error(e);
   }
 }
 
 function renderGallery(items){
-  const g = document.getElementById('gallery');
-  g.innerHTML = '';
-  const now = Date.now();
-
-  items.forEach(item => {
-    const tipo = (item.tipo || 'pelicula').toLowerCase();
-    const tipoTexto = tipo === 'serie' ? '📺 Serie' : '🎥 Película';
-    const btnText = tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
-
-    // Manejo de enlaces
-    let link = '#';
-    if(item.terabox && item.terabox.includes('http')) link = item.terabox;
-    else if(item.season_links) {
-      try {
-        const s = JSON.parse(item.season_links);
-        link = s[0]?.link || '#';
-      } catch {}
+  const g=document.getElementById('gallery');g.innerHTML='';
+  const now=Date.now();
+  items.forEach(item=>{
+    const tipo=(item.tipo||'pelicula').toLowerCase();
+    const tipoTexto=tipo==='serie'?'📺 Serie':'🎥 Película';
+    const btnText=tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
+    let link='#';
+    if(item.terabox && item.terabox.includes('http')) link=item.terabox;
+    else if(item.season_links){
+      try{const s=JSON.parse(item.season_links);link=s[0]?.link||'#';}catch{}
     }
-
-    // Hashtags
-    let hashtags = '';
-    if(item.generos){
-      const gArr = item.generos.split(',').map(g=>g.trim());
-      hashtags = gArr.map(g => '#' + g.replace(/\s+/g,'')).join(' ');
-    }
-
-    // Determinar si es reciente (<2 días)
-    const isNew = (now - new Date(item.updated).getTime())/(1000*3600*24) <= 2;
-
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.dataset.type = tipo; // para filtros
-    div.innerHTML = `
+    let hashtags='';
+    if(item.generos){hashtags=item.generos.split(',').map(g=>'#'+g.trim().replace(/\s+/g,'')).join(' ');}
+    const isNew=(now-new Date(item.published_at).getTime())/(1000*3600*24)<=2;
+    const div=document.createElement('div');
+    div.className='item';
+    div.dataset.type=tipo;
+    div.innerHTML=`
       <span class="tag">${tipoTexto}</span>
       ${isNew?'<span class="new">🆕 Nuevo</span>':''}
       <img src="${item.imagen}" loading="lazy" alt="${item.titulo}">
       <h3>${item.titulo}</h3>
-      <p>${item.descripcion || ''}</p>
+      <p>${item.descripcion||''}</p>
       <div class="hashtags">${hashtags}</div>
       <a href="${link}" target="_blank" class="btn">${btnText}</a>
     `;
@@ -198,11 +82,11 @@ function renderGallery(items){
 }
 
 function filterContent(type){
-  const now = Date.now();
+  const now=Date.now();
   if(type==='recientes'){
-    const recientes = allData.filter(x=>(now-new Date(x.updated))/86400000 <= 2);
+    const recientes=allData.filter(x=>(now-new Date(x.published_at))/86400000 <=2);
     renderGallery(recientes);
-  } else {
+  }else{
     renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===type));
   }
 }
