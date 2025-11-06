@@ -140,7 +140,7 @@
       data.forEach(item => {
         const card = document.createElement('div');
         card.classList.add('card');
-        card.dataset.type = (item.type || 'movie').toLowerCase();
+        card.dataset.type = (item.type || item.tipo || 'movie').toLowerCase();
 
         card.innerHTML = `
           <img src="${item.poster}" alt="${item.title}" class="poster">
