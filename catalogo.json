@@ -6,19 +6,19 @@
   <title>Catálogo | CineNube</title>
   <style>
     body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; }
-    header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#00aaff; font-weight:bold; }
+    header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#ff4444; font-weight:bold; }
     #catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); padding:20px; }
     .item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; transition:transform 0.2s; }
     .item:hover { transform:scale(1.05); }
     .item img { width:100%; height:260px; object-fit:cover; }
-    .item h3 { margin:10px; font-size:17px; color:#00aaff; }
+    .item h3 { margin:10px; font-size:17px; color:#ff4444; }
     .item p { font-size:14px; color:#ccc; padding:0 10px; }
-    .item a { display:block; background:#00aaff; padding:10px; color:white; text-decoration:none; border-radius:0 0 10px 10px; }
-    .item a:hover { background:#0077cc; }
+    .item a { display:block; background:#ff4444; padding:10px; color:white; text-decoration:none; border-radius:0 0 10px 10px; }
+    .item a:hover { background:#ff6666; }
   </style>
 </head>
 <body>
-  <header>Catálogo CineNube</header>
+  <header>🎬 Catálogo CineNube</header>
   <div id="catalog"></div>
 
   <script>
@@ -27,16 +27,22 @@
     async function loadCatalog() {
       try {
         const response = await fetch(SHEET_URL);
-        const data = await response.json();
+        let data = await response.json();
+
+        // 🔁 Ordenar por fecha de publicación (más nuevos primero)
+        data = data.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
         const catalog = document.getElementById('catalog');
         catalog.innerHTML = '';
+
         data.forEach(item => {
+          const enlace = item.terabox && item.terabox.startsWith('http') ? item.terabox : '#';
           catalog.innerHTML += `
             <div class="item">
-              <img src="${item.imagen}" alt="${item.titulo}">
-              <h3>${item.titulo}</h3>
-              <p>${item.descripcion || 'Sin descripción disponible'}</p>
-              <a href="${item.enlace}" target="_blank">Ver / Descargar</a>
+              <img src="${item.poster}" alt="${item.title}">
+              <h3>${item.title}</h3>
+              <p>${item.overview ? item.overview.substring(0, 120) + '...' : 'Sin descripción disponible'}</p>
+              <a href="${enlace}" target="_blank">Ver / Descargar</a>
             </div>`;
         });
       } catch (e) {
@@ -44,6 +50,7 @@
         document.getElementById('catalog').innerHTML = '<p style="text-align:center;color:#ccc;">No se pudo cargar el catálogo.</p>';
       }
     }
+
     loadCatalog();
   </script>
 </body>
