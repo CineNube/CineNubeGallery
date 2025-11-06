@@ -41,8 +41,12 @@ async function loadGallery(){
   try{
     const res=await fetch(SHEET_URL);
     const data=await res.json();
-    // Ordenar por published_at (lo más nuevo primero)
-    allData=data.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+    // Ordenar por published_at parseando correctamente
+    allData = data.sort((a,b)=>{
+      const dateA = new Date(a.published_at);
+      const dateB = new Date(b.published_at);
+      return dateB - dateA; // lo más reciente primero
+    });
     renderGallery(allData);
   }catch(e){
     document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
