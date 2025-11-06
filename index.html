@@ -48,8 +48,11 @@ async function loadCatalog() {
   try {
     const res = await fetch(sheetURL);
     const data = await res.json();
-    allData = data.filter(x => x.type && x.title)
+
+    // Filtrar solo movies y series y ordenar por published_at más reciente
+    allData = data.filter(x => x.type && (x.type.toLowerCase() === 'movie' || x.type.toLowerCase() === 'series'))
                   .sort((a,b) => new Date(b.published_at) - new Date(a.published_at));
+
     renderCatalog(allData);
   } catch(e) {
     document.getElementById('catalog').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
@@ -60,29 +63,33 @@ async function loadCatalog() {
 function renderCatalog(items) {
   const catalog = document.getElementById('catalog');
   catalog.innerHTML = '';
+
   items.forEach(item => {
     const tipo = (item.type || '').toLowerCase();
     const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
+
+    // Obtener link
     let link = '#';
-    if (item.terabox && item.terabox.includes('http')) link = item.terabox;
-    else if(item.season_links) {
-      try {
-        const s = JSON.parse(item.season_links);
-        if(s[0] && s[0].link) link = s[0].link;
-      } catch{}
+    if(item.terabox && item.terabox.includes('http')) {
+      try { link = JSON.parse(item.terabox)[0]?.link || item.terabox; } catch{} 
+    } else if(item.season_links) {
+      try { link = JSON.parse(item.season_links)[0]?.link || '#'; } catch{} 
     }
+
+    // Hashtags
     let hashtags = '';
     if(item.generos) {
       const arr = item.generos.split(',').map(g => '#' + g.trim().replace(/\s+/g,''));
       hashtags = arr.join(' ');
     }
+
     const card = document.createElement('div');
     card.classList.add('card');
     card.dataset.type = tipo;
     card.innerHTML = `
-      <img src="${item.poster}" alt="${item.title}" class="poster">
+      <img src="${item.poster || ''}" alt="${item.title || 'Sin título'}" class="poster">
       <div class="content">
-        <div class="title">${item.title}</div>
+        <div class="title">${item.title || 'Sin título'}</div>
         <div class="desc">${item.overview || 'Sin descripción'}</div>
         <div class="hashtags">${hashtags}</div>
         <a href="${link}" target="_blank" class="link">Ver / Descargar</a>
