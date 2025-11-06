@@ -1,23 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Catálogo - CineNube Gallery</title>
+<style>
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0e0e0e;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+header {
+  background: #1c1c1c;
+  padding: 20px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+  color: #00aaff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+}
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  background: #141414;
+  padding: 10px 0;
+}
+nav button {
+  background: #00aaff;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+nav button:hover {
+  background: #0077cc;
+}
+#catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+.item {
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: transform 0.25s, box-shadow 0.25s;
+  position: relative;
+}
+.item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0,170,255,0.6);
+}
+.item img {
+  width: 100%;
+  height: 290px;
+  object-fit: cover;
+  border-bottom: 3px solid #00aaff;
+}
+.tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #00aaff;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0,0,0,0.4);
+}
+.item h3 {
+  font-size: 17px;
+  margin: 10px 0 5px;
+  color: #00aaff;
+}
+.item p {
+  font-size: 13px;
+  color: #ccc;
+  padding: 0 10px;
+  text-align: justify;
+  height: 60px;
+  overflow: hidden;
+}
+.hashtags {
+  font-size: 12px;
+  color: #00ccff;
+  margin: 5px 0 10px;
+  padding: 0 10px;
+  height: 36px;
+  overflow: hidden;
+}
+.btn {
+  display: block;
+  background: #00aaff;
+  color: #fff;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 0 0 12px 12px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.btn:hover {
+  background: #0077cc;
+}
+footer {
+  text-align: center;
+  padding: 20px;
+  background: #141414;
+  color: #aaa;
+  font-size: 0.9em;
+}
+</style>
+</head>
+<body>
+<header>📚 Catálogo Completo</header>
+<nav>
+  <button onclick="filterContent('movie')">🎥 Películas</button>
+  <button onclick="filterContent('series')">📺 Series</button>
+  <button onclick="filterContent('all')">🔥 Todo</button>
+</nav>
 
-  data.forEach(item=>{
-    const card=document.createElement('div');
-    card.className='card';
-    card.dataset.type=item.type;
-    card.innerHTML=`
-      <img src="${item.poster}" alt="${item.title}" class="poster">
-      <div class="content">
-        <div class="title">${item.title || 'Sin título'}</div>
-        <div class="desc">${item.overview || 'Sin descripción'}</div>
-        <a href="${item.terabox || '#'}" target="_blank" class="link">Ver / Descargar</a>
-      </div>
+<div id="catalog"></div>
+
+<footer>
+⬅️ Volver al inicio: <a href="index.html" style="color:#00aaff;">CineNube Gallery</a>
+</footer>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData = [];
+
+async function loadCatalog() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+
+    // Filtrar solo películas y series y ordenar por published_at (nuevo primero)
+    allData = data
+      .filter(item => item.type && (item.type.toLowerCase() === 'movie' || item.type.toLowerCase() === 'series'))
+      .sort((a,b) => new Date(b.published_at) - new Date(a.published_at));
+
+    renderCatalog(allData);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('catalog').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
+  }
+}
+
+function renderCatalog(items) {
+  const catalog = document.getElementById('catalog');
+  catalog.innerHTML = '';
+
+  items.forEach(item => {
+    const tipo = item.type.toLowerCase();
+    const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
+    const btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
+    let link = '#';
+
+    try {
+      if(item.terabox && item.terabox.includes('http')) {
+        const parsed = JSON.parse(item.terabox);
+        if(Array.isArray(parsed) && parsed[0] && parsed[0].link) link = parsed[0].link;
+      } else if(item.season_links) {
+        const seasons = JSON.parse(item.season_links);
+        if(Array.isArray(seasons) && seasons[0] && seasons[0].link) link = seasons[0].link;
+      }
+    } catch(e) { link = '#'; }
+
+    const hashtags = item.generos ? item.generos.split(',').map(g=>'#'+g.trim().replace(/\s+/g,'')).join(' ') : '';
+
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.dataset.type = tipo;
+    div.innerHTML = `
+      <span class="tag">${tipoTexto}</span>
+      <img src="${item.poster || item.imagen}" alt="${item.title || item.titulo || 'Sin título'}">
+      <h3>${item.title || item.titulo || 'Sin título'}</h3>
+      <p>${item.overview || item.descripcion || 'Sin descripción'}</p>
+      <div class="hashtags">${hashtags}</div>
+      <a href="${link}" target="_blank" class="btn">${btnText}</a>
     `;
-    catalog.appendChild(card);
+    catalog.appendChild(div);
   });
 }
 
-function filterContent(type){
-  const filtered=allData.filter(x=>x.type===type);
-  displayCatalog(filtered);
+function filterContent(type) {
+  if(type === 'all') renderCatalog(allData);
+  else renderCatalog(allData.filter(item => item.type.toLowerCase() === type));
 }
 
 loadCatalog();
