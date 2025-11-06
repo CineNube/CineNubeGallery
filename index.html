@@ -19,66 +19,70 @@
 <body>
 
 <header>
- <button onclick="filterContent('all')">🕘 Recientes</button>
- <button onclick="filterContent('movie')">🎬 Películas</button>
- <button onclick="filterContent('series')">📺 Series</button>
+ <button onclick="setCategory('all')">🕘 Recientes</button>
+ <button onclick="setCategory('movie')">🎬 Películas</button>
+ <button onclick="setCategory('series')">📺 Series</button>
 </header>
 
-<input type="text" id="search" placeholder="🔍 Buscar... (títulos y descripciones)">
+<input type="text" id="search" placeholder="🔍 Buscar...">
 
 <div class="content-container" id="content"></div>
 
 <script>
 let allItems = [];
+let currentCategory = 'all';
 
 async function loadContent() {
   const response = await fetch('https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json');
   const data = await response.json();
   allItems = data;
 
+  displayItems();
+}
+
+function displayItems() {
   const container = document.getElementById('content');
   container.innerHTML = '';
 
-  data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  const searchValue = normalize(document.getElementById('search').value);
 
-  data.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
+  allItems
+    .filter(item => {
+      const type = (item.type || '').toLowerCase();
+      if(currentCategory !== 'all' && type !== currentCategory) return false;
 
-    let type = (item.type || 'movie').toLowerCase().trim();
-    card.dataset.type = type;
+      if(!searchValue) return true;
 
-    card.innerHTML = `
-      <img src="${item.poster}" alt="${item.title}">
-      <h3>${item.title}</h3>
-      <p>${item.overview || ''}</p>
-      <span class="tag">${type}</span>
-    `;
+      const text = normalize(`${item.title || ''} ${item.overview || ''}`);
+      return text.includes(searchValue);
+    })
+    .sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.type = (item.type || 'movie').toLowerCase();
 
-    container.appendChild(card);
-  });
+      card.innerHTML = `
+        <img src="${item.poster}" alt="${item.title}">
+        <h3>${item.title}</h3>
+        <p>${item.overview || ''}</p>
+        <span class="tag">${item.type}</span>
+      `;
+
+      container.appendChild(card);
+    });
 }
 
-function filterContent(category) {
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(card => {
-    card.style.display = (category === 'all' || card.dataset.type === category) ? 'block' : 'none';
-  });
+function setCategory(category) {
+  currentCategory = category;
+  displayItems();
 }
 
 function normalize(str) {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g,"").toLowerCase();
 }
 
-document.getElementById("search").addEventListener("input", function() {
-  const value = normalize(this.value);
-  const cards = document.querySelectorAll('.card');
-
-  cards.forEach(card => {
-    const text = normalize(card.innerText);
-    card.style.display = text.includes(value) ? 'block' : 'none';
-  });
-});
+document.getElementById('search').addEventListener('input', displayItems);
 
 loadContent();
 </script>
