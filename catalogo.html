@@ -1,121 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Catálogo completo de películas y series - CineNube Gallery">
-<title>📚 Catálogo - CineNube Gallery</title>
-<link rel="icon" href="https://cinenube.github.io/CineNubeGallery/favicon.png" type="image/png">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Catálogo - CineNube Gallery</title>
 <style>
-body { font-family: Arial,sans-serif; background:#0e0e0e; color:#fff; margin:0; padding:0; }
-header { text-align:center; background:#141414; padding:15px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; box-shadow:0 2px 10px rgba(0,0,0,.5);}
-header button { background:#ff4444; color:#fff; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; transition:.3s; }
-header button:hover { background:#ff6666; }
-#search { width:90%; max-width:500px; margin:10px auto; display:block; padding:10px; border-radius:6px; border:none; font-size:16px; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:15px; padding:20px; }
-.card { background:#1c1c1c; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.3); transition:transform .3s; }
-.card:hover { transform:scale(1.03); }
-.poster { width:100%; height:220px; object-fit:cover; }
-.content { padding:10px; }
-.title { font-size:1em; font-weight:bold; color:#ff4444; margin:5px 0; }
-.desc { font-size:0.85em; color:#ccc; margin-top:5px; }
-.link { display:block; background:#ff4444; color:#fff; text-align:center; padding:6px; margin-top:8px; border-radius:5px; font-weight:bold; text-decoration:none; font-size:0.9em; }
-.link:hover { background:#ff6666; }
-footer { text-align:center; padding:20px; background:#141414; color:#aaa; font-size:0.9em; }
-
-@media (max-width:768px) {
-  .poster { height:180px; }
-  .title { font-size:0.95em; }
-  .desc { font-size:0.8em; }
-  .link { font-size:0.85em; padding:5px; }
-}
-@media (max-width:480px) {
-  .poster { height:150px; }
-  .grid { grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); }
-  header { flex-direction:column; }
-}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
+  header{background:#1c1c1c;padding:20px;text-align:center;font-size:26px;font-weight:bold;color:#ff4444;box-shadow:0 0 10px rgba(0,0,0,0.5)}
+  nav{display:flex;justify-content:center;gap:20px;background:#141414;padding:12px 0;font-weight:bold;flex-wrap:wrap}
+  nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;transition:color .3s}
+  nav button:hover{color:#ff4444}
+  #search{width:90%;max-width:400px;margin:10px auto 0;display:block;padding:8px;border-radius:8px;border:none;font-size:16px}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px}
+  .item{background:#1a1a1a;border-radius:12px;overflow:hidden;text-align:center;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:transform .25s,box-shadow .25s;position:relative}
+  .item:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(255,68,68,.6)}
+  .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #ff4444}
+  @media(max-width:768px){.item img{height:260px}}
+  .tag{position:absolute;top:10px;left:10px;background:#ff4444;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
+  .item h3{font-size:17px;margin:10px 0 5px;color:#ff4444}
+  .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
+  .hashtags{font-size:12px;color:#ff66aa;margin:5px 0 10px;padding:0 10px;height:36px;overflow:hidden}
+  .btn{display:block;background:#ff4444;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:bold;transition:background .3s}
+  .btn:hover{background:#cc0000}
 </style>
 </head>
 <body>
-
-<header>
-  <button onclick="setCategory('all')">🔥 Todo</button>
-  <button onclick="setCategory('movie')">🎥 Películas</button>
-  <button onclick="setCategory('series')">📺 Series</button>
-  <button onclick="window.location.href='index.html'">⬅ Volver</button>
-</header>
-
-<input type="text" id="search" placeholder="🔍 Buscar...">
-
-<div id="gallery" class="grid"></div>
-
-<footer>
-  🌐 Volver a <a href="https://cinenube.github.io/CineNubeGallery" target="_blank">CineNube</a>
-</footer>
-
+<header>📚 Catálogo - CineNube Gallery</header>
+<nav>
+  <button onclick="filterContent('all')">🔥 Todo</button>
+  <button onclick="filterContent('pelicula')">🎥 Películas</button>
+  <button onclick="filterContent('serie')">📺 Series</button>
+</nav>
+<input type="text" id="search" placeholder="🔍 Buscar películas o series..." oninput="searchGallery(this.value)">
+<div id="gallery"></div>
 <script>
-const catalogURL = 'https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json';
-let allItems = [];
-let currentCategory = 'all';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData=[];
 
-async function loadCatalog() {
-  try {
-    const res = await fetch(catalogURL);
-    const data = await res.json();
-    allItems = data.reverse(); // recientes primero
-    displayGallery();
-  } catch(e) {
-    console.error("Error al cargar catálogo:", e);
-  }
+async function loadGallery(){
+ try{
+  const res=await fetch(SHEET_URL);
+  const data=await res.json();
+  allData=data.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+  renderGallery(allData);
+ }catch(e){
+  document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
+ }
 }
 
-function extractType(value) {
-  if(!value) return 'movie';
-  const str = String(value).toLowerCase();
-  if(str.includes('series')) return 'series';
-  if(str.includes('movie')) return 'movie';
-  return 'movie';
+function renderGallery(items){
+ const g=document.getElementById('gallery');g.innerHTML='';
+ items.forEach(item=>{
+  const tipo=(item.tipo||'pelicula').toLowerCase();
+  const tipoTexto=tipo==='serie'?'📺 Serie':'🎥 Película';
+  const btnText=tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
+  let link='#';
+  if(item.terabox&&item.terabox.includes('http')) link=item.terabox;
+  else if(item.season_links){try{const s=JSON.parse(item.season_links);link=s[0]?.link||'#';}catch{}}
+  let hashtags='';
+  if(item.generos){const gArr=item.generos.split(',').map(g=>g.trim());hashtags=gArr.map(g=>'#'+g.replace(/\s+/g,'')).join(' ');}
+  const div=document.createElement('div');
+  div.className='item';
+  div.dataset.tipo=tipo;
+  div.dataset.titulo=(item.titulo||'').toLowerCase();
+  div.dataset.descripcion=(item.descripcion||'').toLowerCase();
+  div.innerHTML=`
+   <span class="tag">${tipoTexto}</span>
+   <img src="${item.imagen}" loading="lazy" alt="${item.titulo}">
+   <h3>${item.titulo}</h3>
+   <p>${item.descripcion||''}</p>
+   <div class="hashtags">${hashtags}</div>
+   <a href="${link}" target="_blank" class="btn">${btnText}</a>`;
+  g.appendChild(div);
+ });
 }
 
-function displayGallery() {
-  const gallery = document.getElementById('gallery');
-  gallery.innerHTML = '';
-  const searchValue = normalize(document.getElementById('search').value);
-
-  allItems.filter(item => {
-    const type = extractType(item.type || item.tipo);
-    if(currentCategory !== 'all' && type !== currentCategory) return false;
-    if(!searchValue) return true;
-    const text = normalize(`${item.title || item.titulo || ''} ${item.overview || item.descripcion || ''}`);
-    return text.includes(searchValue);
-  }).forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.type = extractType(item.type || item.tipo);
-    card.innerHTML = `
-      <img src="${item.poster || item.imagen}" alt="${item.title || item.titulo}" class="poster">
-      <div class="content">
-        <div class="title">${item.title || item.titulo}</div>
-        <div class="desc">${item.overview || item.descripcion || 'Sin descripción'}</div>
-        <a href="${item.terabox || item.season_links || '#'}" target="_blank" class="link">Ver / Descargar</a>
-      </div>
-    `;
-    gallery.appendChild(card);
-  });
+function filterContent(t){
+ if(t==='all'){renderGallery(allData);}
+ else{renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===t));}
 }
 
-function setCategory(category) {
-  currentCategory = category;
-  displayGallery();
+function normalize(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+
+function searchGallery(query){
+ const q=normalize(query);
+ const filtered=allData.filter(item=>{
+   const titulo=normalize(item.titulo||'');
+   const desc=normalize(item.descripcion||'');
+   return titulo.includes(q) || desc.includes(q);
+ });
+ renderGallery(filtered);
 }
 
-function normalize(str) {
-  return str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"") : "";
-}
-
-document.getElementById('search').addEventListener('input', displayGallery);
-
-loadCatalog();
+loadGallery();
 </script>
 </body>
 </html>
