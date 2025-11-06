@@ -11,66 +11,83 @@
       color: #fff;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
     header {
       background: #1c1c1c;
       padding: 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: bold;
       color: #00aaff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      letter-spacing: 1px;
     }
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 15px;
       padding: 20px;
     }
     .item {
       background: #1a1a1a;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
-      text-align: left;
+      text-align: center;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative;
     }
     .item:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(0,170,255,0.4);
+      box-shadow: 0 0 20px rgba(0,170,255,0.6);
     }
     .item img {
       width: 100%;
-      height: 280px;
+      height: 290px;
       object-fit: cover;
+      border-bottom: 3px solid #00aaff;
     }
-    .info {
-      padding: 15px;
+    .tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #00aaff;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 0 5px rgba(0,0,0,0.4);
     }
     .item h3 {
-      font-size: 18px;
-      margin: 5px 0;
+      font-size: 17px;
+      margin: 10px 0 5px;
       color: #00aaff;
     }
-    .descripcion {
-      font-size: 14px;
+    .item p {
+      font-size: 13px;
       color: #ccc;
-      margin-bottom: 15px;
-      line-height: 1.4em;
-      max-height: 120px;
+      padding: 0 10px;
+      text-align: justify;
+      height: 60px;
       overflow: hidden;
-      text-overflow: ellipsis;
+    }
+    .hashtags {
+      font-size: 12px;
+      color: #00ccff;
+      margin: 5px 0 10px;
+      padding: 0 10px;
+      height: 36px;
+      overflow: hidden;
     }
     .btn {
       display: block;
       background: #00aaff;
       color: #fff;
       text-decoration: none;
-      text-align: center;
       padding: 10px;
-      border-radius: 0 0 10px 10px;
+      border-radius: 0 0 12px 12px;
       font-weight: bold;
       transition: background 0.3s;
     }
@@ -84,31 +101,56 @@
   <div id="gallery"></div>
 
   <script>
-    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyap-w5ikiRdad73LZ9rKng13d0nDE1ESzsZXLH8xyV5mWmuUMz0FNs0fG4CHa_4cWrFA/exec';
+    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 
     async function loadGallery() {
       try {
-        const response = await fetch(SHEET_URL);
-        const data = await response.json();
+        const res = await fetch(SHEET_URL);
+        const data = await res.json();
         const gallery = document.getElementById('gallery');
         gallery.innerHTML = '';
 
         data.forEach(item => {
+          const tipo = item.tipo?.toLowerCase() || 'pelicula';
+          const tipoTexto = tipo === 'serie' ? '📺 Serie' : '🎥 Película';
+          const btnText = tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
+          let link = '';
+
+          // Enlace correcto (prioriza terabox si existe)
+          if (item.terabox && item.terabox.includes('http')) {
+            link = item.terabox;
+          } else if (item.season_links) {
+            try {
+              const seasons = JSON.parse(item.season_links);
+              link = seasons[0]?.link || '#';
+            } catch {
+              link = '#';
+            }
+          }
+
+          // Convertir géneros en hashtags
+          let hashtags = '';
+          if (item.generos) {
+            const generos = item.generos.split(',').map(g => g.trim());
+            hashtags = generos.map(g => '#' + g.replace(/\s+/g, '')).join(' ');
+          }
+
           const div = document.createElement('div');
           div.className = 'item';
           div.innerHTML = `
+            <span class="tag">${tipoTexto}</span>
             <img src="${item.imagen}" alt="${item.titulo}">
-            <div class="info">
-              <h3>${item.titulo}</h3>
-              <p class="descripcion">${item.descripcion || 'Sin descripción disponible.'}</p>
-            </div>
-            ${item.enlace ? `<a href="${item.enlace}" class="btn" target="_blank">🎬 Ver contenido</a>` : ''}
+            <h3>${item.titulo}</h3>
+            <p>${item.descripcion || ''}</p>
+            <div class="hashtags">${hashtags}</div>
+            <a href="${link}" target="_blank" class="btn">${btnText}</a>
           `;
           gallery.appendChild(div);
         });
-      } catch (error) {
-        console.error('Error al cargar la galería:', error);
-        document.getElementById('gallery').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('gallery').innerHTML =
+          '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
       }
     }
 
