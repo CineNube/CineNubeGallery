@@ -16,8 +16,6 @@ nav button:hover{color:#00aaff}
 .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #00aaff}
 @media(max-width:768px){.item img{height:260px}}
 .tag{position:absolute;top:10px;left:10px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
-.new{position:absolute;top:10px;right:10px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;animation:pulse 1.5s infinite}
-@keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
 .item h3{font-size:17px;margin:10px 0 5px;color:#00aaff}
 .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
 .hashtags{font-size:12px;color:#00ccff;margin:5px 0 10px;padding:0 10px;height:36px;overflow:hidden}
@@ -28,7 +26,6 @@ nav button:hover{color:#00aaff}
 <body>
 <header>🎬 CineNube Gallery</header>
 <nav>
-  <button onclick="filterContent('recientes')">🔥 Recientes</button>
   <button onclick="filterContent('pelicula')">🎥 Películas</button>
   <button onclick="filterContent('serie')">📺 Series</button>
 </nav>
@@ -39,24 +36,23 @@ let allData=[];
 
 async function loadGallery(){
   try{
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    allData = data.map(item => ({...item, published_at_parsed: new Date(item.published_at)}))
-                  .sort((a,b)=>b.published_at_parsed - a.published_at_parsed);
-    renderGallery(allData);
+    const res=await fetch(SHEET_URL);
+    const data=await res.json();
+    allData=data.map(item=>({...item, published_at_parsed:new Date(item.published_at)}))
+                .sort((a,b)=>b.published_at_parsed - a.published_at_parsed);
+    renderGallery('pelicula');
   }catch(e){
     document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
     console.error(e);
   }
 }
 
-function renderGallery(items){
+function renderGallery(type){
   const g=document.getElementById('gallery'); g.innerHTML='';
-  const now=Date.now();
-  items.forEach(item=>{
-    const tipo=(item.type||'pelicula').toLowerCase();
-    const tipoTexto=tipo==='serie'?'📺 Serie':'🎥 Película';
-    const btnText=tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
+  const filtered=allData.filter(x=>(x.type||'').toLowerCase()===type);
+  filtered.forEach(item=>{
+    const tipoTexto=type==='serie'?'📺 Serie':'🎥 Película';
+    const btnText=type==='serie'?'📺 Ver temporada':'🎥 Ver película';
     let link='#';
     if(item.terabox && item.terabox.includes('http')) link=item.terabox;
     else if(item.season_links){
@@ -64,14 +60,10 @@ function renderGallery(items){
     }
     let hashtags='';
     if(item.generos){hashtags=item.generos.split(',').map(g=>'#'+g.trim().replace(/\s+/g,'')).join(' ');}
-    const isNew=(now-item.published_at_parsed.getTime())/(1000*3600*24)<=2;
-
     const div=document.createElement('div');
     div.className='item';
-    div.dataset.type=tipo;
     div.innerHTML=`
       <span class="tag">${tipoTexto}</span>
-      ${isNew?'<span class="new">🆕 Nuevo</span>':''}
       <img src="${item.poster}" loading="lazy" alt="${item.title}">
       <h3>${item.title}</h3>
       <p>${item.overview||''}</p>
@@ -81,15 +73,7 @@ function renderGallery(items){
   });
 }
 
-function filterContent(type){
-  const now=Date.now();
-  if(type==='recientes'){
-    const recientes=allData.filter(x=>(now-x.published_at_parsed.getTime())/86400000<=2);
-    renderGallery(recientes);
-  }else{
-    renderGallery(allData.filter(x=>(x.type||'').toLowerCase()===type));
-  }
-}
+function filterContent(type){ renderGallery(type.toLowerCase()); }
 
 loadGallery();
 </script>
