@@ -106,11 +106,11 @@ async function loadGallery(){
     }
     allData = data.map(normalizeItem);
     // Items sin fecha (published_ts null) colocarlos al final: sort por published_ts desc (null -> 0)
-    allData.sort(function(a,b){
-      var ta = a.published_ts || 0;
-      var tb = b.published_ts || 0;
-      return tb - ta;
-    });
+    allData.sort(function(a, b) {
+  var ta = new Date(a.published_at || a.updated || 0).getTime();
+  var tb = new Date(b.published_at || b.updated || 0).getTime();
+  return tb - ta;
+});
     if(SHOW_DEBUG) {
       document.getElementById('dbgCount').textContent = allData.length;
       var ts = allData.map(x=>x.published_ts).filter(Boolean);
