@@ -39,14 +39,13 @@ let allData=[];
 
 async function loadGallery(){
   try{
-    const res=await fetch(SHEET_URL);
-    const data=await res.json();
-    // Ordenar por published_at parseando correctamente
-    allData = data.sort((a,b)=>{
-      const dateA = new Date(a.published_at);
-      const dateB = new Date(b.published_at);
-      return dateB - dateA; // lo más reciente primero
-    });
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+
+    // Parseamos published_at como Date y ordenamos de más reciente a más antiguo
+    allData = data.map(item => ({...item, published_at_parsed: new Date(item.published_at)}))
+                  .sort((a,b)=>b.published_at_parsed - a.published_at_parsed);
+
     renderGallery(allData);
   }catch(e){
     document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
@@ -55,12 +54,13 @@ async function loadGallery(){
 }
 
 function renderGallery(items){
-  const g=document.getElementById('gallery');g.innerHTML='';
-  const now=Date.now();
+  const g = document.getElementById('gallery'); g.innerHTML='';
+  const now = Date.now();
+
   items.forEach(item=>{
-    const tipo=(item.tipo||'pelicula').toLowerCase();
-    const tipoTexto=tipo==='serie'?'📺 Serie':'🎥 Película';
-    const btnText=tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
+    const tipo = (item.tipo||'pelicula').toLowerCase();
+    const tipoTexto = tipo==='serie'?'📺 Serie':'🎥 Película';
+    const btnText = tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
     let link='#';
     if(item.terabox && item.terabox.includes('http')) link=item.terabox;
     else if(item.season_links){
@@ -68,16 +68,17 @@ function renderGallery(items){
     }
     let hashtags='';
     if(item.generos){hashtags=item.generos.split(',').map(g=>'#'+g.trim().replace(/\s+/g,'')).join(' ');}
-    const isNew=(now-new Date(item.published_at).getTime())/(1000*3600*24)<=2;
-    const div=document.createElement('div');
+    const isNew = (now - item.published_at_parsed.getTime())/(1000*3600*24) <=2;
+
+    const div = document.createElement('div');
     div.className='item';
-    div.dataset.type=tipo;
-    div.innerHTML=`
+    div.dataset.type = tipo;
+    div.innerHTML = `
       <span class="tag">${tipoTexto}</span>
       ${isNew?'<span class="new">🆕 Nuevo</span>':''}
-      <img src="${item.imagen}" loading="lazy" alt="${item.titulo}">
-      <h3>${item.titulo}</h3>
-      <p>${item.descripcion||''}</p>
+      <img src="${item.poster}" loading="lazy" alt="${item.title}">
+      <h3>${item.title}</h3>
+      <p>${item.overview||''}</p>
       <div class="hashtags">${hashtags}</div>
       <a href="${link}" target="_blank" class="btn">${btnText}</a>
     `;
@@ -86,11 +87,11 @@ function renderGallery(items){
 }
 
 function filterContent(type){
-  const now=Date.now();
+  const now = Date.now();
   if(type==='recientes'){
-    const recientes=allData.filter(x=>(now-new Date(x.published_at))/86400000 <=2);
+    const recientes = allData.filter(x => (now - x.published_at_parsed.getTime())/86400000 <=2);
     renderGallery(recientes);
-  }else{
+  } else {
     renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===type));
   }
 }
