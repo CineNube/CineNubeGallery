@@ -3,107 +3,130 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CineNube</title>
+  <title>CineNube Gallery</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #0e0e0e; color: #fff; margin: 0; padding: 0; }
-    header { text-align: center; padding: 20px; font-size: 24px; font-weight: bold; background:#1a1a1a; }
-    .menu { display: flex; justify-content: center; gap: 10px; margin: 20px; }
-    .menu button { padding: 10px 20px; border: none; cursor: pointer; background: #333; color: white; border-radius: 5px; }
-    .menu button:hover { background: #555; }
-    .contenedor { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 20px; }
-    .item { background: #1f1f1f; padding: 10px; border-radius: 8px; text-align: center; }
-    .item img { width: 100%; border-radius: 5px; }
-    .titulo { font-weight: bold; margin: 10px 0; }
-    .badge { background: #e63946; padding: 3px 7px; font-size: 12px; border-radius: 5px; margin-top:5px; display:inline-block; }
-    h2 { margin-left: 20px; margin-top: 30px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #0e0e0e;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+    header {
+      padding: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      background-color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav {
+      display: flex;
+      gap: 15px;
+      padding: 15px;
+      justify-content: center;
+      background-color: #161616;
+    }
+    .nav button {
+      padding: 10px 20px;
+      background: #2c2c2c;
+      border: none;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .nav button:hover, .nav button.active {
+      background: #444;
+    }
+    .content {
+      padding: 20px;
+    }
+    .item {
+      display: inline-block;
+      width: 150px;
+      margin: 10px;
+      text-align: center;
+    }
+    .item img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .title {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #ccc;
+    }
   </style>
 </head>
 <body>
 
 <header>🎬 CineNube Gallery</header>
 
-<div class="menu">
-  <button onclick="mostrarTodo()">📁 Todo</button>
-  <button onclick="filtrar('movie')">🎥 Películas</button>
-  <button onclick="filtrar('series')">📺 Series</button>
-  <button onclick="mostrarRecientes()">🔥 Recientes (24h)</button>
+<div class="nav">
+  <button class="active" data-filter="all">📁 Todo</button>
+  <button data-filter="pelicula">🎥 Películas</button>
+  <button data-filter="serie">📺 Series</button>
+  <button data-filter="recientes">🔥 Recientes (24h)</button>
 </div>
 
-<h2 id="titulo-seccion">📁 Todo</h2>
-<div id="contenedor" class="contenedor"></div>
+<div class="content" id="items"></div>
 
 <script>
-// URL del JSON generado por tu Apps Script:
-const DATA_URL = "https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec";
+  const sheetURL = "https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec";
+  let dataItems = [];
 
-let datos = []; // Aquí se guardan todos los elementos
-
-// 1. Cargar datos al iniciar
-window.onload = async function() {
-  try {
-    const res = await fetch(DATA_URL);
-    datos = await res.json();
-    mostrarTodo();
-  } catch (e) {
-    console.error("Error cargando datos:", e);
-  }
-};
-
-// 2. Mostrar todos
-function mostrarTodo() {
-  document.getElementById('titulo-seccion').textContent = "📁 Todo";
-  renderizar(datos);
-}
-
-// 3. Filtrar por tipo (movie o series)
-function filtrar(tipo) {
-  document.getElementById('titulo-seccion').textContent = tipo === 'movie' ? "🎥 Películas" : "📺 Series";
-  renderizar(datos.filter(el => el.type === tipo));
-}
-
-// 4. Mostrar recientes 24h usando published_at
-function mostrarRecientes() {
-  document.getElementById('titulo-seccion').textContent = "🔥 Recientes (últimas 24h)";
-  const ahora = new Date();
-  const filtrado = datos.filter(el => {
-    if (!el.published_at) return false;
-    const fecha = new Date(el.published_at);
-    const diffHoras = (ahora - fecha) / (1000 * 60 * 60);
-    return diffHoras <= 24;
-  });
-  renderizar(filtrado);
-}
-
-// 5. Renderizar ítems en pantalla
-function renderizar(lista) {
-  const cont = document.getElementById('contenedor');
-  cont.innerHTML = "";
-  if (!lista || lista.length === 0) {
-    cont.innerHTML = "<p>No hay contenido para mostrar.</p>";
-    return;
+  async function loadData() {
+    try {
+      const res = await fetch(sheetURL);
+      dataItems = await res.json();
+      showItems('all');
+    } catch (err) {
+      document.getElementById('items').innerHTML = "<p>Error cargando datos.</p>";
+    }
   }
 
-  lista.sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0));
+  function showItems(filter) {
+    const container = document.getElementById('items');
+    container.innerHTML = "";
 
-  lista.forEach(item => {
-    const div = document.createElement('div');
-    div.className = "item";
-    div.innerHTML = `
-      <img src="${item.poster || ''}" alt="${item.title}">
-      <div class="titulo">${item.title || ''}</div>
-      <div>⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
-      ${item.published_at && esReciente(item.published_at) ? <div class="badge">Nuevo</div> : ""}
-    `;
-    cont.appendChild(div);
+    const now = new Date();
+    const filtered = dataItems.filter(item => {
+      if (filter === 'pelicula') return item.type === 'movie';
+      if (filter === 'serie') return item.type === 'series';
+      if (filter === 'recientes') {
+        const published = new Date(item.published_at);
+        return (now - published) <= 24 * 60 * 60 * 1000;
+      }
+      return true;
+    });
+
+    if (!filtered.length) {
+      container.innerHTML = "<p>No hay contenido disponible.</p>";
+      return;
+    }
+
+    filtered.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        <img src="${item.poster}" alt="${item.title}">
+        <div class="title">${item.title}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  document.querySelectorAll('.nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelector('.nav button.active').classList.remove('active');
+      btn.classList.add('active');
+      showItems(btn.getAttribute('data-filter'));
+    });
   });
-}
 
-// 6. Saber si es de las últimas 24h
-function esReciente(fecha) {
-  const ahora = new Date();
-  const diffHoras = (ahora - new Date(fecha)) / (1000 * 60 * 60);
-  return diffHoras <= 24;
-}
+  loadData();
 </script>
 
 </body>
