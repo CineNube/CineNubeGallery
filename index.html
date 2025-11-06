@@ -1,102 +1,168 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🎬 CineNube Gallery</title>
-<style>
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
-  header{background:#1c1c1c;padding:20px;text-align:center;font-size:26px;font-weight:bold;color:#00aaff;box-shadow:0 0 10px rgba(0,0,0,0.5)}
-  nav{display:flex;justify-content:center;gap:20px;background:#141414;padding:12px 0;font-weight:bold}
-  nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;transition:color .3s}
-  nav button:hover{color:#00aaff}
-  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px}
-  .item{background:#1a1a1a;border-radius:12px;overflow:hidden;text-align:center;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:transform .25s,box-shadow .25s;position:relative}
-  .item:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(0,170,255,.6)}
-  .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #00aaff}
-  @media(max-width:768px){.item img{height:260px}}
-  .tag{position:absolute;top:10px;left:10px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
-  .new{position:absolute;top:10px;right:10px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;animation:pulse 1.5s infinite}
-  @keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
-  .item h3{font-size:17px;margin:10px 0 5px;color:#00aaff}
-  .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
-  .hashtags{font-size:12px;color:#00ccff;margin:5px 0 10px;padding:0 10px;height:36px;overflow:hidden}
-  .btn{display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:bold;transition:background .3s}
-  .btn:hover{background:#0077cc}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CineNube Gallery - Descubre películas y series con enlaces actualizados y sin publicidad molesta.">
+  <title>🎬 CineNube Gallery</title>
+  <link rel="icon" href="https://cinenube.github.io/CineNubeGallery/favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0e0e0e;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      background-color: #141414;
+      padding: 20px 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 2em;
+      color: #ff4444;
+      margin-bottom: 10px;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    nav button:hover {
+      background: #ff6666;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    .card {
+      background: #1c1c1c;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .poster {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
+    .content {
+      padding: 10px;
+    }
+    .title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin: 5px 0;
+      color: #ff4444;
+    }
+    .desc {
+      color: #ccc;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #141414;
+      color: #aaa;
+      font-size: 0.9em;
+    }
+    a {
+      color: #ff4444;
+      text-decoration: none;
+    }
+    .link {
+      display: block;
+      background: #ff4444;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .link:hover {
+      background: #ff6666;
+    }
+  </style>
 </head>
 <body>
-<header>🎬 CineNube Gallery</header>
-<nav>
-  <button onclick="filterContent('recientes')">🔥 Recientes</button>
-  <button onclick="filterContent('pelicula')">🎥 Películas</button>
-  <button onclick="filterContent('serie')">📺 Series</button>
-</nav>
-<div id="gallery"></div>
-<script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-let allData=[];
+  <header>
+    <h1>🎬 CineNube Gallery</h1>
+    <nav>
+      <button onclick="filterContent('all')">🔥 Recientes</button>
+      <button onclick="filterContent('movie')">🎥 Películas</button>
+      <button onclick="filterContent('tv')">📺 Series</button>
+    </nav>
+  </header>
 
-async function loadGallery(){
-  try{
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
+  <div id="gallery" class="grid"></div>
 
-    // Parseamos published_at como Date y ordenamos de más reciente a más antiguo
-    allData = data.map(item => ({...item, published_at_parsed: new Date(item.published_at)}))
-                  .sort((a,b)=>b.published_at_parsed - a.published_at_parsed);
+  <footer>
+    🌐 Ver más en <a href="https://cinenube.github.io/CineNubeGallery" target="_blank">CineNube</a>
+  </footer>
 
-    renderGallery(allData);
-  }catch(e){
-    document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
-    console.error(e);
-  }
-}
+  <script>
+    const sheetURL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 
-function renderGallery(items){
-  const g = document.getElementById('gallery'); g.innerHTML='';
-  const now = Date.now();
+    async function loadGallery() {
+      try {
+        const response = await fetch(sheetURL);
+        const data = await response.json();
 
-  items.forEach(item=>{
-    const tipo = (item.tipo||'pelicula').toLowerCase();
-    const tipoTexto = tipo==='serie'?'📺 Serie':'🎥 Película';
-    const btnText = tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
-    let link='#';
-    if(item.terabox && item.terabox.includes('http')) link=item.terabox;
-    else if(item.season_links){
-      try{const s=JSON.parse(item.season_links);link=s[0]?.link||'#';}catch{}
+        data.reverse();
+        displayGallery(data);
+      } catch (e) {
+        console.error('Error al cargar datos:', e);
+      }
     }
-    let hashtags='';
-    if(item.generos){hashtags=item.generos.split(',').map(g=>'#'+g.trim().replace(/\s+/g,'')).join(' ');}
-    const isNew = (now - item.published_at_parsed.getTime())/(1000*3600*24) <=2;
 
-    const div = document.createElement('div');
-    div.className='item';
-    div.dataset.type = tipo;
-    div.innerHTML = `
-      <span class="tag">${tipoTexto}</span>
-      ${isNew?'<span class="new">🆕 Nuevo</span>':''}
-      <img src="${item.poster}" loading="lazy" alt="${item.title}">
-      <h3>${item.title}</h3>
-      <p>${item.overview||''}</p>
-      <div class="hashtags">${hashtags}</div>
-      <a href="${link}" target="_blank" class="btn">${btnText}</a>
-    `;
-    g.appendChild(div);
-  });
-}
+    function displayGallery(data) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+      data.forEach(item => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.type = (item.tipo || 'movie').toLowerCase();
 
-function filterContent(type){
-  const now = Date.now();
-  if(type==='recientes'){
-    const recientes = allData.filter(x => (now - x.published_at_parsed.getTime())/86400000 <=2);
-    renderGallery(recientes);
-  } else {
-    renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===type));
-  }
-}
+        card.innerHTML = `
+          <img src="${item.imagen}" alt="${item.titulo}" class="poster">
+          <div class="content">
+            <div class="title">${item.titulo}</div>
+            <div class="desc">${item.descripcion || 'Sin descripción'}</div>
+            <a href="${item.enlace}" target="_blank" class="link">Ver / Descargar</a>
+          </div>
+        `;
+        gallery.appendChild(card);
+      });
+    }
 
-loadGallery();
-</script>
+    function filterContent(type) {
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
+      });
+    }
+
+    loadGallery();
+  </script>
 </body>
 </html>
