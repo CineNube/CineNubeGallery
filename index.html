@@ -1,100 +1,232 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CineNube</title>
-  <style>
-    body { background:#0e0e0e; color:white; font-family:Arial,sans-serif; margin:0; }
-    header { display:flex; gap:20px; padding:15px; justify-content:center; background:#111; }
-    header a { color:white; text-decoration:none; font-weight:bold; cursor:pointer; }
-    header a.active { color:#f39c12; }
-
-    .content { padding:20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:20px; }
-    .item { background:#1a1a1a; padding:10px; border-radius:8px; text-align:center; }
-    .item img { width:100%; border-radius:5px; }
-    .item h3 { font-size:14px; margin:10px 0 5px; }
-    .item span { font-size:12px; color:#bbb; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CineNube Gallery</title>
+<style>
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
+  header{background:#1c1c1c;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+  nav{display:flex;justify-content:center;gap:14px;background:#141414;padding:10px 8px;font-weight:700;flex-wrap:wrap}
+  nav button{background:none;border:1px solid transparent;color:#fff;cursor:pointer;font-size:15px;padding:6px 10px;border-radius:6px;transition:all .18s}
+  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:#00aaff}
+  nav button:hover{color:#00aaff}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:18px}
+  .item{background:#141414;border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 0 10px rgba(0,0,0,0.6);transition:transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;height:460px}
+  .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,170,255,.08)}
+  .thumb{height:300px;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid #00aaff}
+  .title{color:#00aaff;font-size:16px;margin:6px 12px 4px;height:40px;overflow:hidden}
+  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin:0 12px 8px}
+  .meta{font-size:12px;color:#99e6ff;margin:0 12px 8px}
+  .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
+  .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .hashtags{font-size:12px;color:#00ccff;padding:0 12px;height:28px;overflow:hidden;margin-top:6px}
+  .empty{padding:40px;text-align:center;color:#aaa}
+  #debugBox{position:fixed;right:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:9999;max-width:320px}
+  #debugBox b{color:#00aaff}
+  @media(max-width:700px){.item{height:420px}.thumb{height:260px}}
+</style>
 </head>
 <body>
+<header>🎬 CineNube Gallery</header>
+<nav id="nav">
+  <button data-filter="all" class="active">🔁 Todos</button>
+  <button data-filter="recientes">🔥 Recientes (24h)</button>
+  <button data-filter="movie">🎥 Películas</button>
+  <button data-filter="series">📺 Series</button>
+</nav>
 
-<header>
-  <a onclick="showItems('all')" id="btn-all" class="active">📁 Todo</a>
-  <a onclick="showItems('movie')" id="btn-movie">🎬 Películas</a>
-  <a onclick="showItems('series')" id="btn-series">📺 Series</a>
-  <a onclick="showItems('recent')" id="btn-recent">🕒 Recientes (24h)</a>
-</header>
+<div id="gallery"></div>
 
-<div class="content" id="content"></div>
+<div id="debugBox" style="display:none">
+  <div>Items: <b id="dbgCount">0</b></div>
+  <div>Más nuevo: <b id="dbgMax">—</b></div>
+  <div>Más antiguo: <b id="dbgMin">—</b></div>
+  <div style="margin-top:6px"><button id="dbgShow" style="cursor:pointer;padding:6px;border-radius:6px;border:none;background:#00aaff;color:#fff">Ver consola</button></div>
+</div>
 
 <script>
-  const SHEET_URL = "https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec";
+/*
+Robust index:
+- Detecta cualquier nombre de campo parecido a published_at (case-insensitive, con/ sin guiones/espacios).
+- Usa published_at como prioridad; fallback updated/created.
+*/
 
-  let items = []; // Aquí se guarda todo lo que viene de Google Sheet
+const SHEET_URL = 'TU_URL_WEBAPP_AQUI'; // <-- sustituye por tu URL web app
+const SHOW_DEBUG = true;
+let allData = [];
 
-  // Normalizar el tipo (movie / series)
-  function normalizeType(type) {
-    if (!type) return "";
-    let t = type.toString().trim().toLowerCase();
-    if (t.includes("movie") || t.includes("pel")) return "movie";
-    if (t.includes("serie") || t.includes("tv")) return "series";
-    return t;
+// Busca en 'raw' cualquier clave que al normalizar equivalga a published_at/updated/created
+function findDateKey(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  var keys = Object.keys(raw);
+  // funciones de normalización: quitar _, -, espacios y todo a minúsculas
+  function norm(k){ return String(k).replace(/[\s_\-]/g,'').toLowerCase(); }
+  var map = {};
+  keys.forEach(k => map[norm(k)] = k); // map[normKey] => actualKey
+  // prioridades (normalizadas)
+  var wanted = ['publishedat','published_at','published','publishedat','published-at','published at','publishedat'];
+  var fallbacks = ['updated','updatedat','updated_at','created','createdat','date','fecha'];
+  // check published variants
+  for (var i=0;i<wanted.length;i++){
+    var w = wanted[i].replace(/[\s_\-]/g,'').toLowerCase();
+    if (map[w]) return map[w];
   }
-
-  // Cargar datos al iniciar
-  async function loadData() {
-    try {
-      const res = await fetch(SHEET_URL);
-      items = await res.json();
-      showItems('all');
-    } catch (err) {
-      document.getElementById('content').innerHTML = "<p>Error al cargar datos</p>";
-    }
+  // fallback to updated/created
+  for (var j=0;j<fallbacks.length;j++){
+    var f = fallbacks[j].replace(/[\s_\-]/g,'').toLowerCase();
+    if (map[f]) return map[f];
   }
+  // none found
+  return null;
+}
 
-  // Mostrar según filtro
-  function showItems(filter) {
-    document.querySelectorAll('header a').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(btn-${filter === 'all' ? 'all' : filter}).classList.add('active');
-
-    let filtered = items;
-    if (filter === 'movie') {
-      filtered = items.filter(i => normalizeType(i.type) === 'movie');
-    }
-    if (filter === 'series') {
-      filtered = items.filter(i => normalizeType(i.type) === 'series');
-    }
-    if (filter === 'recent') {
-      const now = new Date();
-      filtered = items.filter(i => {
-        if (!i.published_at) return false;
-        const date = new Date(i.published_at);
-        return (now - date) < 86400000; // 24 horas en ms
-      });
-    }
-
-    render(filtered);
+function parseDateValue(raw, key) {
+  if (!raw || !key) return null;
+  var v = raw[key];
+  if (!v) return null;
+  // if number (epoch ms or seconds)
+  if (typeof v === 'number') {
+    if (v > 1000000000000) return v; // ms
+    if (v > 1000000000) return v * 1000; // secs -> ms
   }
+  // try Date.parse
+  var t = Date.parse(String(v));
+  if (!isNaN(t)) return t;
+  // try ISO-like with possible milliseconds separator differences
+  try { var d = new Date(String(v)); if (!isNaN(d.getTime())) return d.getTime(); } catch(e){}
+  return null;
+}
 
-  // Pintar en pantalla
-  function render(data) {
-    const content = document.getElementById('content');
-    if (data.length === 0) {
-      content.innerHTML = "<p>No hay contenido.</p>";
-      return;
+function normalizeItem(raw){
+  var it = {};
+  it.raw = raw;
+  it.title = raw.title || raw.titulo || raw.name || '';
+  it.poster = raw.poster || raw.imagen || raw.poster_path || '';
+  it.overview = raw.overview || raw.descripcion || raw.description || '';
+  it.rating = raw.rating || raw.vote_average || '';
+  it.year = raw.year || '';
+  it.generos = raw.generos || raw.genres || '';
+  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(['tv','series','serie'].indexOf(s)!==-1) return 'series'; if(['movie','pelicula','película','film'].indexOf(s)!==-1) return 'movie'; return s; })(raw.type || raw.tipo);
+  it.terabox = raw.terabox || raw.link || raw.enlace || '';
+  it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
+  // detect date key robustly
+  var dateKey = findDateKey(raw);
+  it.dateKey = dateKey; // for debug
+  it.published_ts = dateKey ? parseDateValue(raw, dateKey) : null;
+  it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
+  return it;
+}
+
+async function loadGallery(){
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+      // Some deployments returned object with {todos, recientes} — handle both
+      if (data.todos && Array.isArray(data.todos)) {
+        // prefer 'todos'
+        allData = data.todos.map(normalizeItem);
+      } else {
+        document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del Web App (no es array).</div>';
+        console.error('Respuesta WebApp:', data);
+        return;
+      }
+    } else {
+      allData = data.map(normalizeItem);
     }
-    content.innerHTML = data.map(item => `
-      <div class="item">
-        <img src="${item.poster || ''}" alt="">
-        <h3>${item.title || ''}</h3>
-        <span>${item.year || ''} • ${normalizeType(item.type)}</span>
-      </div>
-    `).join('');
-  }
 
-  loadData();
+    // sort newest first; nulls go to end
+    allData.sort(function(a,b){ var ta = a.published_ts || 0; var tb = b.published_ts || 0; return tb - ta; });
+
+    if (SHOW_DEBUG) {
+      document.getElementById('dbgCount').textContent = allData.length;
+      var ts = allData.map(x=>x.published_ts).filter(Boolean);
+      if (ts.length) {
+        document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString();
+        document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString();
+      } else {
+        document.getElementById('dbgMax').textContent = '—';
+        document.getElementById('dbgMin').textContent = '—';
+      }
+      document.getElementById('debugBox').style.display = 'block';
+      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 50):', allData.slice(0,50)); alert('Abre la consola para ver detalles.'); };
+    }
+
+    renderGallery(allData);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
+  }
+}
+
+function makeHashtags(g){ if(!g) return ''; if(typeof g==='string') return g.split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' '); if(Array.isArray(g)) return g.map(s=>'#'+String(s).trim().replace(/\s+/g,'')).join(' '); return ''; }
+
+function getFirstLink(it){
+  if(it.terabox){
+    try{ var p = JSON.parse(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){ var m=(it.terabox||'').match(/https?:\/\/[^\s"']+/); if(m) return m[0]; }
+  }
+  if(it.season_links){
+    try{ var s = (typeof it.season_links === 'string') ? JSON.parse(it.season_links) : it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
+  }
+  return '#';
+}
+
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderGallery(list){
+  var g = document.getElementById('gallery'); g.innerHTML = '';
+  if(!list || list.length===0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
+  var now = Date.now();
+  list.forEach(function(it){
+    var tipo = it.type === 'series' ? 'series' : 'movie';
+    var tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
+    var btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
+    var poster = it.poster || '';
+    var title = it.title || '';
+    var overview = it.overview || '';
+    var hashtags = makeHashtags(it.generos);
+    var link = getFirstLink(it);
+    var isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
+
+    var div = document.createElement('div'); div.className = 'item';
+    div.innerHTML = ''
+      + '<div class="thumb"><img src="' + (poster ? encodeURI(poster) : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>') + '" alt="' + escapeHtml(title) + '"></div>'
+      + '<div style="position:relative;padding:8px 12px;flex:1;display:flex;flex-direction:column">'
+      + '<div class="title">' + escapeHtml(title) + '</div>'
+      + '<div class="overview">' + escapeHtml(overview) + '</div>'
+      + '<div class="meta">' + (it.rating ? '⭐ ' + escapeHtml(it.rating) + ' ' : '') + (it.year ? '• ' + escapeHtml(it.year) : '') + '</div>'
+      + '<div class="hashtags">' + escapeHtml(hashtags) + '</div>'
+      + '<a class="btn" href="' + escapeHtml(link) + '" target="_blank">' + escapeHtml(btnText) + '</a>'
+      + '</div>'
+      + '<span class="tag">' + escapeHtml(tipoTexto) + '</span>'
+      + (isNew ? '<span class="new">🆕 Nuevo</span>' : '');
+    g.appendChild(div);
+  });
+}
+
+// NAV
+document.getElementById('nav').addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-filter]'); if(!btn) return;
+  var filter = btn.getAttribute('data-filter');
+  document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if(filter === 'all') {
+    renderGallery(allData);
+  } else if(filter === 'recientes') {
+    var items = allData.filter(function(i){ return i.published_ts && ((Date.now() - i.published_ts) <= (1000*60*60*24)); });
+    renderGallery(items);
+  } else if(filter === 'movie' || filter === 'series') {
+    renderGallery(allData.filter(function(i){ return i.type === filter; }));
+  } else {
+    renderGallery(allData.filter(function(i){ return (i.type || '').toLowerCase() === filter; }));
+  }
+});
+
+loadGallery();
 </script>
-
 </body>
 </html>
