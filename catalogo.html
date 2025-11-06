@@ -6,23 +6,23 @@
 <title>📚 Catálogo - CineNube Gallery</title>
 <link rel="icon" href="https://cinenube.github.io/CineNubeGallery/favicon.png" type="image/png">
 <style>
-body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0}
-header{text-align:center;background:#141414;padding:20px 10px;box-shadow:0 2px 10px rgba(0,0,0,0.5)}
-h1{font-size:2em;color:#ff4444;margin-bottom:10px}
-nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-nav button{background:#ff4444;color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;transition:0.3s}
-nav button:hover{background:#ff6666}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;padding:20px}
-.card{background:#1c1c1c;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.3s}
-.card:hover{transform:scale(1.03)}
-.poster{width:100%;height:300px;object-fit:cover}
-.content{padding:10px}
-.title{font-size:1.1em;font-weight:bold;margin:5px 0;color:#ff4444}
-.desc{color:#ccc;font-size:0.9em;margin-top:5px}
-footer{text-align:center;padding:20px;background:#141414;color:#aaa;font-size:0.9em}
-a{color:#ff4444;text-decoration:none}
-.link{display:block;background:#ff4444;color:white;text-align:center;padding:8px;margin-top:10px;border-radius:5px;font-weight:bold}
-.link:hover{background:#ff6666}
+body{font-family:Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;}
+header{text-align:center;background:#141414;padding:20px 10px;box-shadow:0 2px 10px rgba(0,0,0,.5);}
+h1{font-size:2em;color:#ff4444;margin-bottom:10px;}
+nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+nav button{background:#ff4444;color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;transition:.3s;}
+nav button:hover{background:#ff6666;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;padding:20px;}
+.card{background:#1c1c1c;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:transform .3s;}
+.card:hover{transform:scale(1.03);}
+.poster{width:100%;height:300px;object-fit:cover;}
+.content{padding:10px;}
+.title{font-size:1.1em;font-weight:bold;margin:5px 0;color:#ff4444;}
+.desc{color:#ccc;font-size:.9em;margin-top:5px;}
+footer{text-align:center;padding:20px;background:#141414;color:#aaa;font-size:.9em;}
+a{color:#ff4444;text-decoration:none;}
+.link{display:block;background:#ff4444;color:white;text-align:center;padding:8px;margin-top:10px;border-radius:5px;font-weight:bold;}
+.link:hover{background:#ff6666;}
 </style>
 </head>
 <body>
@@ -31,57 +31,46 @@ a{color:#ff4444;text-decoration:none}
 <nav>
 <button onclick="filterContent('movie')">🎥 Películas</button>
 <button onclick="filterContent('series')">📺 Series</button>
-<button onclick="filterContent('all')">🔥 Todo</button>
 </nav>
 </header>
-
 <div id="catalog" class="grid"></div>
-
 <footer>⬅️ Volver al inicio: <a href="index.html">CineNube Gallery</a></footer>
 
 <script>
-const sheetURL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-let allData = [];
+const sheetURL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData=[];
 
-async function loadCatalog() {
-    try {
-        const res = await fetch(sheetURL);
-        const data = await res.json();
-        allData = data.sort((a,b) => new Date(b.published_at) - new Date(a.published_at));
-        displayCatalog(allData);
-    } catch(e) {
-        console.error('Error cargando datos:', e);
-        document.getElementById('catalog').innerHTML = '<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
-    }
+async function loadCatalog(){
+  try{
+    const res=await fetch(sheetURL);
+    const data=await res.json();
+    allData=data;
+    displayCatalog(allData);
+  }catch(e){console.error('Error:',e);}
 }
 
-function displayCatalog(data) {
-    const catalog = document.getElementById('catalog');
-    catalog.innerHTML = '';
-    data.forEach(item => {
-        const tipo = (item.type || '').toLowerCase();
-        const card = document.createElement('div');
-        card.classList.add('card');
-        card.dataset.type = tipo;
-        const enlace = item.terabox || '#';
-        card.innerHTML = `
-            <img src="${item.poster || ''}" alt="${item.title || 'Sin título'}" class="poster">
-            <div class="content">
-                <div class="title">${item.title || 'Sin título'}</div>
-                <div class="desc">${item.overview || 'Sin descripción'}</div>
-                <a href="${enlace}" target="_blank" class="link">Ver / Descargar</a>
-            </div>
-        `;
-        catalog.appendChild(card);
-    });
+function displayCatalog(data){
+  const catalog=document.getElementById('catalog');
+  catalog.innerHTML='';
+  data.forEach(item=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.dataset.type=item.type;
+    card.innerHTML=`
+      <img src="${item.poster}" alt="${item.title}" class="poster">
+      <div class="content">
+        <div class="title">${item.title || 'Sin título'}</div>
+        <div class="desc">${item.overview || 'Sin descripción'}</div>
+        <a href="${item.terabox || '#'}" target="_blank" class="link">Ver / Descargar</a>
+      </div>
+    `;
+    catalog.appendChild(card);
+  });
 }
 
-function filterContent(type) {
-    const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
-        if(type==='all'){card.style.display='block';}
-        else{card.style.display = (card.dataset.type === type) ? 'block' : 'none';}
-    });
+function filterContent(type){
+  const filtered=allData.filter(x=>x.type===type);
+  displayCatalog(filtered);
 }
 
 loadCatalog();
