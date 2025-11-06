@@ -141,7 +141,9 @@
       data.forEach(item => {
         const card = document.createElement('div');
         card.classList.add('card');
-card.dataset.type = (item.tipo || item.type || 'movie').toLowerCase();
+let type = (item.tipo || item.type || 'movie').toLowerCase();
+if (type === 'series') type = 'tv';
+card.dataset.type = type;
 
         card.innerHTML = `
           <img src="${item.imagen}" alt="${item.titulo}" class="poster">
