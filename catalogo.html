@@ -1,98 +1,177 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Catálogo - CineNube Gallery</title>
-<style>
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
-  header{background:#1c1c1c;padding:20px;text-align:center;font-size:26px;font-weight:bold;color:#ff4444;box-shadow:0 0 10px rgba(0,0,0,0.5)}
-  nav{display:flex;justify-content:center;gap:20px;background:#141414;padding:12px 0;font-weight:bold;flex-wrap:wrap}
-  nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;transition:color .3s}
-  nav button:hover{color:#ff4444}
-  #search{width:90%;max-width:400px;margin:10px auto 0;display:block;padding:8px;border-radius:8px;border:none;font-size:16px}
-  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px}
-  .item{background:#1a1a1a;border-radius:12px;overflow:hidden;text-align:center;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:transform .25s,box-shadow .25s;position:relative}
-  .item:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(255,68,68,.6)}
-  .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #ff4444}
-  @media(max-width:768px){.item img{height:260px}}
-  .tag{position:absolute;top:10px;left:10px;background:#ff4444;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
-  .item h3{font-size:17px;margin:10px 0 5px;color:#ff4444}
-  .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
-  .hashtags{font-size:12px;color:#ff66aa;margin:5px 0 10px;padding:0 10px;height:36px;overflow:hidden}
-  .btn{display:block;background:#ff4444;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:bold;transition:background .3s}
-  .btn:hover{background:#cc0000}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Catálogo completo de CineNube Gallery - Películas y series con enlaces actualizados.">
+  <title>🎬 Catálogo - CineNube Gallery</title>
+  <link rel="icon" href="https://cinenube.github.io/CineNubeGallery/favicon.png" type="image/png">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0e0e0e;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      background-color: #141414;
+      padding: 20px 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 2em;
+      color: #ff4444;
+      margin-bottom: 10px;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    nav button:hover {
+      background: #ff6666;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    .card {
+      background: #1c1c1c;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .poster {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
+    .content {
+      padding: 10px;
+    }
+    .title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin: 5px 0;
+      color: #ff4444;
+    }
+    .desc {
+      color: #ccc;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    .category-label {
+      text-align: center;
+      font-size: 1.4em;
+      margin-top: 30px;
+      color: #ff4444;
+      border-bottom: 1px solid #ff4444;
+      padding-bottom: 8px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #141414;
+      color: #aaa;
+      font-size: 0.9em;
+    }
+    a {
+      color: #ff4444;
+      text-decoration: none;
+    }
+    .link {
+      display: block;
+      background: #ff4444;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .link:hover {
+      background: #ff6666;
+    }
+  </style>
 </head>
 <body>
-<header>📚 Catálogo - CineNube Gallery</header>
-<nav>
-  <button onclick="filterContent('all')">🔥 Todo</button>
-  <button onclick="filterContent('pelicula')">🎥 Películas</button>
-  <button onclick="filterContent('serie')">📺 Series</button>
-</nav>
-<input type="text" id="search" placeholder="🔍 Buscar películas o series..." oninput="searchGallery(this.value)">
-<div id="gallery"></div>
+
+<header>
+  <h1>📚 Catálogo Completo</h1>
+  <nav>
+    <button onclick="filterContent('all')">🔥 Todo</button>
+    <button onclick="filterContent('movie')">🎥 Películas</button>
+    <button onclick="filterContent('tv')">📺 Series</button>
+  </nav>
+</header>
+
+<div id="catalog" class="grid"></div>
+
+<footer>
+  ⬅️ Volver al inicio: <a href="index.html">CineNube Gallery</a>
+</footer>
+
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-let allData=[];
+  const sheetURL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 
-async function loadGallery(){
- try{
-  const res=await fetch(SHEET_URL);
-  const data=await res.json();
-  allData=data.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
-  renderGallery(allData);
- }catch(e){
-  document.getElementById('gallery').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
- }
-}
+  async function loadCatalog() {
+    try {
+      const response = await fetch(sheetURL);
+      const data = await response.json();
+      showCatalog(data);
+    } catch (e) {
+      console.error('Error al cargar datos:', e);
+    }
+  }
 
-function renderGallery(items){
- const g=document.getElementById('gallery');g.innerHTML='';
- items.forEach(item=>{
-  const tipo=(item.tipo||'pelicula').toLowerCase();
-  const tipoTexto=tipo==='serie'?'📺 Serie':'🎥 Película';
-  const btnText=tipo==='serie'?'📺 Ver temporada':'🎥 Ver película';
-  let link='#';
-  if(item.terabox&&item.terabox.includes('http')) link=item.terabox;
-  else if(item.season_links){try{const s=JSON.parse(item.season_links);link=s[0]?.link||'#';}catch{}}
-  let hashtags='';
-  if(item.generos){const gArr=item.generos.split(',').map(g=>g.trim());hashtags=gArr.map(g=>'#'+g.replace(/\s+/g,'')).join(' ');}
-  const div=document.createElement('div');
-  div.className='item';
-  div.dataset.tipo=tipo;
-  div.dataset.titulo=(item.titulo||'').toLowerCase();
-  div.dataset.descripcion=(item.descripcion||'').toLowerCase();
-  div.innerHTML=`
-   <span class="tag">${tipoTexto}</span>
-   <img src="${item.imagen}" loading="lazy" alt="${item.titulo}">
-   <h3>${item.titulo}</h3>
-   <p>${item.descripcion||''}</p>
-   <div class="hashtags">${hashtags}</div>
-   <a href="${link}" target="_blank" class="btn">${btnText}</a>`;
-  g.appendChild(div);
- });
-}
+  function showCatalog(data) {
+    const catalog = document.getElementById('catalog');
+    catalog.innerHTML = '';
+    data.forEach(item => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.type = (item.tipo || 'movie').toLowerCase();
 
-function filterContent(t){
- if(t==='all'){renderGallery(allData);}
- else{renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===t));}
-}
+      card.innerHTML = `
+        <img src="${item.imagen}" alt="${item.titulo}" class="poster">
+        <div class="content">
+          <div class="title">${item.titulo}</div>
+          <div class="desc">${item.descripcion || 'Sin descripción'}</div>
+          <a href="${item.enlace}" target="_blank" class="link">Ver / Descargar</a>
+        </div>
+      `;
+      catalog.appendChild(card);
+    });
+  }
 
-function normalize(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+  function filterContent(type) {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+      card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
+    });
+  }
 
-function searchGallery(query){
- const q=normalize(query);
- const filtered=allData.filter(item=>{
-   const titulo=normalize(item.titulo||'');
-   const desc=normalize(item.descripcion||'');
-   return titulo.includes(q) || desc.includes(q);
- });
- renderGallery(filtered);
-}
-
-loadGallery();
+  loadCatalog();
 </script>
+
 </body>
 </html>
