@@ -28,7 +28,6 @@ a{color:#ff4444;text-decoration:none;}
 <header>
 <h1>📚 Catálogo Completo</h1>
 <nav>
-  <button onclick="filterContent('all')">🔥 Todo</button>
   <button onclick="filterContent('pelicula')">🎥 Películas</button>
   <button onclick="filterContent('serie')">📺 Series</button>
 </nav>
@@ -45,19 +44,19 @@ async function loadCatalog(){
     const data=await res.json();
     allData=data.map(item=>({...item, published_at_parsed:new Date(item.published_at)}))
                 .sort((a,b)=>b.published_at_parsed - a.published_at_parsed);
-    renderCatalog(allData);
+    renderCatalog('pelicula');
   }catch(e){
     document.getElementById('catalog').innerHTML='<p style="text-align:center;color:#ccc;">Error cargando datos</p>';
     console.error(e);
   }
 }
 
-function renderCatalog(items){
+function renderCatalog(type){
   const catalog=document.getElementById('catalog'); catalog.innerHTML='';
-  items.forEach(item=>{
+  const filtered=allData.filter(x=>(x.type||'').toLowerCase()===type);
+  filtered.forEach(item=>{
     const card=document.createElement('div');
     card.className='card';
-    card.dataset.type=(item.type||'pelicula').toLowerCase();
     card.innerHTML=`
       <img src="${item.poster}" alt="${item.title}" class="poster">
       <div class="content">
@@ -69,10 +68,7 @@ function renderCatalog(items){
   });
 }
 
-function filterContent(type){
-  if(type==='all'){renderCatalog(allData);}
-  else{renderCatalog(allData.filter(x=>(x.type||'').toLowerCase()===type));}
-}
+function filterContent(type){ renderCatalog(type.toLowerCase()); }
 
 loadCatalog();
 </script>
