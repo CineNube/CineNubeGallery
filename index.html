@@ -1,22 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CineNube Gallery</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <style>
-body { background-color: #0d0d0d; color: #fff; font-family: 'Poppins', sans-serif; }
-header { text-align: center; padding: 1.5rem 0; }
-section { margin: 2rem auto; max-width: 1200px; }
-h2 { border-left: 4px solid #e50914; padding-left: 10px; margin-bottom: 1rem; }
-.card { background-color: #1a1a1a; border: none; border-radius: 10px; overflow: hidden; transition: transform 0.3s ease; }
-.card:hover { transform: scale(1.03); }
-.card img { width: 100%; height: 330px; object-fit: cover; }
-.card-body { padding: 0.8rem; }
-.card-title { font-size: 1rem; font-weight: 600; }
-.btn-ver { background-color: #e50914; color: #fff; border: none; border-radius: 20px; padding: 6px 12px; text-decoration: none; display: inline-block; margin: 2px; }
-footer { text-align: center; padding: 2rem; color: #aaa; }
+  :root{--accent:#00aaff;--bg:#0e0e0e;--card:#141414;--muted:#9aaebf}
+  body{font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:#fff;margin:0;padding:0}
+  header{background:#131313;padding:18px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.6)}
+  header h1{margin:0;font-size:22px;color:var(--accent)}
+  nav{display:flex;gap:10px;justify-content:center;padding:10px;background:#101010}
+  nav button{background:transparent;border:1px solid transparent;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:var(--accent)}
+  main{max-width:1200px;margin:18px auto;padding:0 12px}
+  h2{font-size:18px;margin:14px 0;color:#fff;border-left:4px solid var(--accent);padding-left:10px}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .card{background:#141414;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;height:460px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+  .thumb{height:300px;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid var(--accent)}
+  .content{padding:12px;display:flex;flex-direction:column;flex:1}
+  .title{color:var(--accent);font-weight:700;font-size:15px;height:46px;overflow:hidden}
+  .overview{color:#d1d7db;font-size:13px;line-height:1.2;height:66px;overflow:hidden;margin:8px 0}
+  .meta{color:#9aaebf;font-size:13px;margin-bottom:8px}
+  .actions{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}
+  .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;text-decoration:none;font-weight:700}
+  .tag{position:absolute;left:12px;top:12px;background:var(--accent);color:#000;padding:4px 8px;border-radius:6px;font-weight:700}
+  .new{position:absolute;right:12px;top:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-weight:700}
+  .empty{padding:40px;text-align:center;color:#aaa}
+  @media(max-width:700px){.card{height:420px}.thumb{height:260px}}
 </style>
 </head>
 <body>
@@ -24,110 +36,264 @@ footer { text-align: center; padding: 2rem; color: #aaa; }
   <h1>🎬 CineNube Gallery</h1>
 </header>
 
-<section>
-  <h2>🔥 Recientes</h2>
-  <div id="recientes" class="row g-3"></div>
-</section>
+<main>
+  <nav id="filters" style="margin-bottom:8px;display:flex;gap:8px;justify-content:center">
+    <button data-filter="all" class="active">🔁 Todos</button>
+    <button data-filter="recientes">🔥 Recientes (24h)</button>
+    <button data-filter="pelicula">🎥 Películas</button>
+    <button data-filter="serie">📺 Series</button>
+  </nav>
 
-<section>
-  <h2>🎥 Películas</h2>
-  <div id="peliculas" class="row g-3"></div>
-</section>
-
-<section>
-  <h2>📺 Series</h2>
-  <div id="series" class="row g-3"></div>
-</section>
-
-<footer>© 2025 CineNube Gallery</footer>
+  <div id="gallery" aria-live="polite"></div>
+</main>
 
 <script>
+/*
+  index.js para CineNube
+  - Consume tu WebApp: SHEET_URL (JSON array)
+  - Usa columns: TMDB_ID, type, title, poster, overview, rating, year, updated, season_links, terabox, Idioma, Enviar, Enviado, generos, Actualizar, published_at
+  - Orden: published_at > updated > fallback (reverse input)
+  - Links: terabox (películas), season_links JSON (series) -> botones por temporada
+  - Abre en _blank si externo; si el enlace apunta a cinenube.github.io abre en la misma pestaña
+*/
+
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec";
+let ALL = [];
 
-async function cargarDatos() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Datos no válidos");
+function safeParseJSON(str){
+  try { return JSON.parse(str); } catch(e){ return null; }
+}
 
-    // Ordenar de más reciente a más antiguo
-    const ordenado = data.sort((a, b) => {
-      const fechaA = new Date(a.fecha || a.date || 0);
-      const fechaB = new Date(b.fecha || b.date || 0);
-      return fechaB - fechaA;
-    });
+function parseDateBest(item){
+  // prefer published_at, then updated, then year as fallback
+  const candidates = [item.published_at, item.updated, item.updated_at, item.year];
+  for(const c of candidates){
+    if(!c) continue;
+    const t = Date.parse(c);
+    if(!isNaN(t)) return t;
+  }
+  return null;
+}
 
-    // Filtrar categorías
-    const peliculas = ordenado.filter(i =>
-      (i.type || "").toLowerCase().includes("pel")
-    );
-    const series = ordenado.filter(i =>
-      (i.type || "").toLowerCase().includes("ser")
-    );
+function getPrimaryLink(item){
+  // Películas: terabox preferred
+  if(item.terabox){
+    // terabox could be JSON array or plain url text
+    const t = safeParseJSON(item.terabox);
+    if(Array.isArray(t) && t.length>0){
+      // find first link property
+      for(const e of t){ if(e && e.link) return String(e.link).trim(); }
+    } else {
+      // try regex
+      const m = String(item.terabox).match(/https?:\/\/[^\s"']+/);
+      if(m) return m[0].trim();
+      // maybe it's a plain relative path: return as-is
+      if(String(item.terabox).trim()!=="") return String(item.terabox).trim();
+    }
+  }
 
-    mostrar(ordenado.slice(0, 8), "recientes");
-    mostrar(peliculas, "peliculas");
-    mostrar(series, "series");
+  // Series: season_links -> take first season link if exists
+  if(item.season_links){
+    const s = safeParseJSON(item.season_links);
+    if(Array.isArray(s) && s.length>0){
+      for(const e of s) if(e && e.link) return String(e.link).trim();
+    } else {
+      const m = String(item.season_links).match(/https?:\/\/[^\s"']+/);
+      if(m) return m[0].trim();
+      if(String(item.season_links).trim()!=="") return String(item.season_links).trim();
+    }
+  }
+  return null;
+}
 
-  } catch (e) {
-    console.error("Error:", e);
+function getSeasonButtonsHtml(item){
+  if(!item.season_links) return "";
+  const s = safeParseJSON(item.season_links);
+  if(!Array.isArray(s)) return "";
+  let html = "";
+  for(const season of s){
+    if(!season || !season.link) continue;
+    const link = normalizeLink(season.link);
+    html += `<a class="btn" href="${encodeURI(link)}" ${shouldOpenBlank(link) ? 'target="_blank"':' '}>📺 T${season.season}</a>`;
+  }
+  return html;
+}
+
+function normalizeLink(raw){
+  if(!raw) return "";
+  const str = String(raw).trim();
+  if(str.startsWith("http://") || str.startsWith("https://")) return str;
+  // If it looks like a relative internal link (pelicula.html?id=...), prefix GH pages base
+  // Remove leading slashes
+  const candidate = str.replace(/^\/+/, "");
+  return "https://cinenube.github.io/CineNubeGallery/" + candidate;
+}
+
+function shouldOpenBlank(url){
+  if(!url) return false;
+  try{
+    const u = new URL(url);
+    return u.hostname !== location.hostname;
+  } catch(e){
+    // if not a full url, treat as internal -> same window
+    return false;
   }
 }
 
-function corregirEnlace(url) {
-  if (!url) return "#";
-  if (url.startsWith("http")) return url;
-  return "https://cinenube.github.io/CineNubeGallery/" + url.replace(/^\/+/, "");
-}
+function renderItems(list){
+  const gallery = document.getElementById("gallery");
+  gallery.innerHTML = "";
+  if(!list || list.length===0){ gallery.innerHTML = '<div class="empty">No hay resultados.</div>'; return; }
+  for(const it of list){
+    const tipo = (it.type || "").toString().toLowerCase();
+    const isSeries = tipo.includes("ser") || tipo.includes("tv");
+    const isMovie  = tipo.includes("pel") || tipo.includes("mov");
 
-function mostrar(lista, contenedorId) {
-  const contenedor = document.getElementById(contenedorId);
-  contenedor.innerHTML = "";
+    const poster = (it.poster && String(it.poster).startsWith("http")) ? it.poster : (it.poster ? `https://image.tmdb.org/t/p/w500${it.poster}` : '');
+    const title = it.title || it.titulo || it.name || "Sin título";
+    const overview = it.overview || it.descripcion || "";
+    const rating = it.rating || "";
+    const year = it.year || "";
 
-  lista.forEach(item => {
-    const img = item.poster?.startsWith("http")
-      ? item.poster
-      : `https://image.tmdb.org/t/p/w500${item.poster}`;
+    // primary link for main button
+    const primaryRaw = getPrimaryLink(it);
+    const primary = primaryRaw ? normalizeLink(primaryRaw) : null;
+    const btnHtml = primary ? `<a class="btn" href="${encodeURI(primary)}" ${shouldOpenBlank(primary) ? 'target="_blank"':''}>🎬 Ver ahora</a>` : "";
 
-    let botones = "";
+    // season buttons (for series)
+    const seasonBtns = isSeries ? getSeasonButtonsHtml(it) : "";
 
-    // 🎥 Películas → usar terabox
-    if (item.terabox) {
-      const enlace = corregirEnlace(item.terabox);
-      botones += `<a href="${enlace}" target="_blank" class="btn-ver">🎬 Ver película</a>`;
+    // New flag detect: published_at within 24h or updated within 24h
+    const ts = parseDateBest(it);
+    const isNew = ts ? ((Date.now() - ts) <= (1000*60*60*24)) : false;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.position = "relative";
+    card.innerHTML = `
+      <div class="thumb">${ poster ? `<img src="${encodeURI(poster)}" alt="${escapeHtml(title)}">` : '<div style="height:100%;display:flex;align-items:center;justify-content:center;background:#111;color:#888">Sin imagen</div>' }</div>
+      <div class="content">
+        <div class="title">${escapeHtml(title)}</div>
+        <div class="overview">${escapeHtml(overview)}</div>
+        <div class="meta">${rating ? '⭐ '+escapeHtml(rating) : ''} ${year ? ' • '+escapeHtml(year):''}</div>
+        <div class="actions">${btnHtml}${seasonBtns}</div>
+      </div>
+    `;
+    // add tag and new badge
+    const tag = document.createElement("div");
+    tag.className = "tag";
+    tag.textContent = isSeries ? "📺 Serie" : "🎥 Película";
+    tag.style.position = "absolute";
+    tag.style.left = "12px";
+    tag.style.top = "12px";
+    tag.style.background = "#00aaff";
+    tag.style.color = "#000";
+    tag.style.padding = "4px 8px";
+    tag.style.borderRadius = "6px";
+    tag.style.fontWeight = "700";
+    card.appendChild(tag);
+    if(isNew){
+      const newBadge = document.createElement("div");
+      newBadge.className = "new";
+      newBadge.textContent = "🆕 Nuevo";
+      newBadge.style.position = "absolute";
+      newBadge.style.right = "12px";
+      newBadge.style.top = "12px";
+      newBadge.style.background = "#ff2d55";
+      newBadge.style.color = "#fff";
+      newBadge.style.padding = "4px 8px";
+      newBadge.style.borderRadius = "6px";
+      newBadge.style.fontWeight = "700";
+      card.appendChild(newBadge);
     }
 
-    // 📺 Series → usar season_links (JSON)
-    if (item.season_links) {
-      try {
-        const temporadas = JSON.parse(item.season_links);
-        temporadas.forEach(temp => {
-          if (temp.link) {
-            const link = corregirEnlace(temp.link);
-            botones += `<a href="${link}" target="_blank" class="btn-ver">📺 T${temp.season}</a>`;
-          }
-        });
-      } catch (err) {
-        console.warn("Error leyendo season_links:", err);
-      }
-    }
+    // wrapper to get grid layout
+    const wrapper = document.createElement("div");
+    wrapper.style.height = "100%";
+    wrapper.className = "grid-item";
+    wrapper.style.minHeight = "100%";
+    wrapper.appendChild(card);
 
-    const card = `
-      <div class="col-6 col-md-3">
-        <div class="card">
-          <img src="${img}" alt="${item.title}">
-          <div class="card-body">
-            <h5 class="card-title">${item.title || "Sin título"}</h5>
-            <p>⭐️ ${item.rating || "N/A"} | 📅 ${item.year || ""}</p>
-            ${botones}
-          </div>
-        </div>
-      </div>`;
-    contenedor.innerHTML += card;
-  });
+    // create grid cell with bootstrap-like classes (works on GH)
+    const cell = document.createElement("div");
+    cell.className = "grid-cell";
+    // use inline-flex css to make it responsive like your previous layout
+    cell.style.display = "block";
+    cell.style.width = "100%";
+    cell.appendChild(wrapper);
+
+    // Append raw HTML (we use simpler approach: append as grid cell)
+    const outer = document.createElement("div");
+    outer.style.boxSizing = "border-box";
+    outer.style.width = "100%";
+    outer.appendChild(card);
+    gallery.appendChild(outer);
+  }
+  // small layout tweak: apply CSS grid with the gallery container
+  gallery.style.display = "grid";
+  gallery.style.gridTemplateColumns = "repeat(auto-fill,minmax(220px,1fr))";
+  gallery.style.gap = "14px";
 }
 
-cargarDatos();
+/* helpers */
+function escapeHtml(s){ if(!s) return ""; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function loadAndRender(){
+  try{
+    const resp = await fetch(SHEET_URL);
+    const data = await resp.json();
+    if(!Array.isArray(data)) { document.getElementById("gallery").innerHTML = '<div class="empty">Respuesta inválida del WebApp.</div>'; console.error('Respuesta WebApp:', data); return; }
+
+    // annotate timestamps and sort:
+    const annotated = data.map((it, idx) => {
+      const ts = parseDateBest(it);
+      return Object.assign({}, it, { _ts: ts, _idx: idx });
+    });
+
+    // if any item has _ts (non-null), sort by _ts desc; otherwise reverse array (last rows first)
+    const hasTs = annotated.some(x=>x._ts);
+    let sorted;
+    if(hasTs){
+      sorted = annotated.sort((a,b) => (b._ts || 0) - (a._ts || 0));
+    } else {
+      sorted = annotated.reverse(); // simple fallback
+    }
+
+    // store ALL for filters
+    ALL = sorted;
+
+    // default view: show all (sorted)
+    renderItems(sorted);
+  }catch(err){
+    console.error(err);
+    document.getElementById("gallery").innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
+  }
+}
+
+/* filters UI */
+document.getElementById("filters").addEventListener("click", function(ev){
+  const btn = ev.target.closest("button[data-filter]");
+  if(!btn) return;
+  document.querySelectorAll("#filters button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  const filter = btn.getAttribute("data-filter");
+  if(filter === "all"){
+    renderItems(ALL);
+  } else if(filter === "recientes"){
+    const now = Date.now();
+    const items = ALL.filter(i => {
+      const ts = parseDateBest(i);
+      return ts && ((now - ts) <= (1000*60*60*24)); // 24h
+    });
+    renderItems(items);
+  } else if(filter === "pelicula"){
+    renderItems(ALL.filter(i => (String(i.type||"").toLowerCase().includes("pel") || String(i.type||"").toLowerCase().includes("mov"))));
+  } else if(filter === "serie"){
+    renderItems(ALL.filter(i => (String(i.type||"").toLowerCase().includes("ser") || String(i.type||"").toLowerCase().includes("tv"))));
+  }
+});
+
+loadAndRender();
 </script>
 </body>
 </html>
