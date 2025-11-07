@@ -1,255 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CineNube Gallery</title>
 <style>
   body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
-  header{background:#1c1c1c;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
-  nav{display:flex;justify-content:center;gap:14px;background:#141414;padding:10px 8px;font-weight:700;flex-wrap:wrap}
-  nav button{background:none;border:1px solid transparent;color:#fff;cursor:pointer;font-size:15px;padding:6px 10px;border-radius:6px;transition:all .18s}
-  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:#00aaff}
+  header{background:#1c1c1c;padding:20px;text-align:center;font-size:26px;font-weight:bold;color:#00aaff;box-shadow:0 0 10px rgba(0,0,0,0.5)}
+  nav{display:flex;justify-content:center;gap:20px;background:#141414;padding:12px 0;font-weight:bold}
+  nav button{background:none;border:none;color:#fff;cursor:pointer;font-size:16px;transition:color .3s}
   nav button:hover{color:#00aaff}
-  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:18px}
-  .item{background:#141414;border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 0 10px rgba(0,0,0,0.6);transition:transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;height:460px}
-  .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,170,255,.08)}
-  .thumb{height:300px;overflow:hidden}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid #00aaff}
-  .content{padding:10px 12px;display:flex;flex-direction:column;flex:1}
-  .title{color:#00aaff;font-size:16px;margin:6px 0 4px;height:40px;overflow:hidden}
-  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px}
-  .meta{font-size:12px;color:#99e6ff;margin-bottom:8px}
-  .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
-  .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
-  .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
-  .hashtags{font-size:12px;color:#00ccff;padding:0 12px;height:28px;overflow:hidden;margin-top:6px}
-  .empty{padding:40px;text-align:center;color:#aaa}
-  #debugBox{position:fixed;right:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:9999;max-width:320px}
-  #debugBox b{color:#00aaff}
-  @media(max-width:700px){.item{height:420px}.thumb{height:260px}}
+  #search{width:90%;margin:15px auto;display:block;padding:12px;border-radius:8px;border:none;font-size:16px;outline:none;background:#1c1c1c;color:#fff}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px}
+  .item{background:#1a1a1a;border-radius:12px;overflow:hidden;text-align:center;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:transform .25s,box-shadow .25s;position:relative}
+  .item:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(0,170,255,.6)}
+  .item img{width:100%;height:320px;object-fit:cover;border-bottom:3px solid #00aaff}
+  @media(max-width:768px){.item img{height:260px}}
+  .tag{position:absolute;top:10px;left:10px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
+  .item h3{font-size:17px;margin:10px 0;color:#00aaff}
+  .item p{font-size:13px;color:#ccc;padding:0 10px;text-align:justify;height:60px;overflow:hidden}
+  .btn-holder{padding:10px;border-top:1px solid #00aaff}
+  .btn{display:block;background:#00aaff;color:#fff;text-decoration:none;padding:8px;border-radius:8px;font-weight:bold;margin-top:6px}
+  .btn:hover{background:#0077cc}
+  .season-box{background:#111;border-top:1px solid #00aaff;padding:8px;display:none}
+  .season-box a{display:block;background:#222;color:#fff;padding:6px;border-radius:6px;text-decoration:none;margin:4px 0;border-left:3px solid #00aaff;font-size:14px}
+  .season-box a:hover{background:#333}
 </style>
 </head>
 <body>
 <header>🎬 CineNube Gallery</header>
-<nav id="nav">
-  <button data-filter="all" class="active">🔁 Todos</button>
-  <button data-filter="recientes">🔥 Recientes (24h)</button>
-  <button data-filter="movie">🎥 Películas</button>
-  <button data-filter="series">📺 Series</button>
+
+<nav>
+  <button onclick="filterContent('all')">🔥 Todo</button>
+  <button onclick="filterContent('pelicula')">🎥 Películas</button>
+  <button onclick="filterContent('serie')">📺 Series</button>
 </nav>
+
+<input type="text" id="search" placeholder="🔍 Buscar por título, género o descripción...">
 
 <div id="gallery"></div>
 
-<div id="debugBox" style="display:none">
-  <div>Items: <b id="dbgCount">0</b></div>
-  <div>Más nuevo: <b id="dbgMax">—</b></div>
-  <div>Más antiguo: <b id="dbgMin">—</b></div>
-  <div style="margin-top:6px"><button id="dbgShow" style="cursor:pointer;padding:6px;border-radius:6px;border:none;background:#00aaff;color:#fff">Ver consola</button></div>
-</div>
-
 <script>
-/* ---------- CONFIG ---------- */
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-const SHOW_DEBUG = true;
-let allData = [];
+const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData=[];
 
-/* ---------- Helpers ---------- */
-function safeParseJSON(s){
-  try{ return JSON.parse(s); }catch(e){ return null; }
-}
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-/* Prioridad de fechas: published_at -> updated -> updated_at -> year */
-function parseDatePrefer(obj){
-  if(!obj) return null;
-  const candidates = [
-    obj.published_at, obj.publishedAt, obj.published, obj.publishedAt,
-    obj.updated, obj.updated_at, obj.updatedAt,
-    obj.created, obj.created_at, obj.year
-  ];
-  for(let i=0;i<candidates.length;i++){
-    if(!candidates[i]) continue;
-    const t = Date.parse(candidates[i]);
-    if(!isNaN(t)) return t;
-  }
-  return null;
-}
-
-/* Normaliza nombres y valores de una fila (tu estructura previa) */
-function normalizeItem(raw){
-  var it = {};
-  it.raw = raw;
-  it.title = raw.title || raw.titulo || raw.name || '';
-  it.poster = raw.poster || raw.imagen || raw.poster_path || '';
-  it.overview = raw.overview || raw.descripcion || raw.description || '';
-  it.rating = raw.rating || raw.vote_average || '';
-  it.year = raw.year || '';
-  it.generos = raw.generos || raw.genres || '';
-  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv' || s==='series' || s==='serie') return 'series'; if(s==='movie' || s==='pelicula' || s==='película' || s==='film') return 'movie'; return s; })(raw.type || raw.tipo);
-  it.terabox = raw.terabox || raw.link || raw.enlace || '';
-  it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
-  it.published_ts = parseDatePrefer(raw); // may be null
-  it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
-  return it;
-}
-
-/* Obtiene primer enlace válido: terabox (película) OR season_links first link (serie) */
-function getFirstLink(it){
-  // try terabox JSON -> plain url
-  if(it.terabox){
-    try{
-      var p = safeParseJSON(it.terabox);
-      if(Array.isArray(p) && p[0] && p[0].link) return p[0].link;
-    }catch(e){}
-    var m = (it.terabox||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(m) return m[0];
-    // if terabox is non-http relative path
-    if(String(it.terabox).trim()) return String(it.terabox).trim();
-  }
-  // season_links -> parse and return first season link
-  if(it.season_links){
-    try{
-      var s = (typeof it.season_links === 'string') ? safeParseJSON(it.season_links) : it.season_links;
-      if(Array.isArray(s) && s[0] && s[0].link) return s[0].link;
-    }catch(e){}
-    var mm = (it.season_links||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(mm) return mm[0];
-    if(String(it.season_links).trim()) return String(it.season_links).trim();
-  }
-  return '#';
-}
-
-/* Normaliza link: si no empieza por http -> lo trata como ruta relativa en tu GH pages */
-function normalizeLink(raw){
-  if(!raw) return '#';
-  const s = String(raw).trim();
-  if(s.startsWith('http://') || s.startsWith('https://')) return s;
-  // si es '#', devolver '#'
-  if(s === '#') return '#';
-  // otherwise prefix with repo base
-  return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/,'');
-}
-
-/* Crea botones por temporada si existen */
-function getSeasonButtonsHtml(item){
-  if(!item.season_links) return '';
-  const parsed = safeParseJSON(item.season_links);
-  if(!Array.isArray(parsed)) return '';
-  let html = '';
-  parsed.forEach(s=>{
-    if(s && s.link){
-      const link = normalizeLink(s.link);
-      const blank = (link.startsWith('http') && !link.includes('cinenube.github.io')) ? ' target="_blank"' : '';
-      html += `<a class="btn" href="${escapeHtml(link)}"${blank}>📺 T${s.season}</a>`;
-    }
-  });
-  return html;
-}
-
-/* ---------- Render ---------- */
 async function loadGallery(){
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    if(!Array.isArray(data)) {
-      document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del Web App (no es array).</div>';
-      console.error('Respuesta WebApp:', data);
-      return;
-    }
-
-    allData = data.map(normalizeItem);
-
-    // Compute timestamps and sort:
-    const hasTs = allData.some(x => x.published_ts);
-    if(hasTs){
-      allData.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
-    } else {
-      // fallback: reverse original order (last rows first)
-      allData = allData.reverse();
-    }
-
-    if(SHOW_DEBUG){
-      document.getElementById('dbgCount').textContent = allData.length;
-      const ts = allData.map(x=>x.published_ts).filter(Boolean);
-      if(ts.length){ document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString(); document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString(); }
-      document.getElementById('debugBox').style.display = 'block';
-      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 30):', allData.slice(0,30)); alert('Abre la consola para ver detalles.'); };
-    }
-
-    renderGallery(allData);
-  } catch (err) {
-    console.error(err);
-    document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
-  }
+  const res=await fetch(SHEET_URL);
+  const data=await res.json();
+  allData=data.sort((a,b)=>new Date(b.updated)-new Date(a.updated));
+  renderGallery(allData);
 }
 
-function renderGallery(list){
-  const g = document.getElementById('gallery');
-  g.innerHTML = '';
-  if(!list || list.length === 0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
+function renderGallery(items){
+  const g=document.getElementById('gallery');g.innerHTML='';
+  items.forEach(item=>{
+    const tipo=(item.tipo||'pelicula').toLowerCase();
+    const card=document.createElement('div');card.className='item';
 
-  const now = Date.now();
-  list.forEach(function(it){
-    const tipo = it.type === 'series' ? 'series' : 'movie';
-    const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
-    const btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
+    let seasonsHTML="";
+    if(tipo==='serie' && item.season_links){
+      try{
+        const sl=JSON.parse(item.season_links);
+        seasonsHTML=`<div class="btn-holder"><button class="btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">📺 Ver temporadas</button><div class="season-box">${sl.map(s=>`<a target="_blank" href="${s.link}">Temporada ${s.season}</a>`).join('')}</div></div>`;
+      }catch{}
+    }
 
-    // poster fallback logic: poster or imagen or tmdb path
-    const poster = it.poster || '';
-    const posterUrl = (poster && poster.indexOf('http') === 0) ? poster : (poster ? 'https://image.tmdb.org/t/p/w500' + poster : '');
+    const btnMovie= tipo==='pelicula' ? `<div class="btn-holder"><a class="btn" href="${item.terabox}" target="_blank">🎥 Ver película</a></div>` : '';
 
-    const title = it.title || it.titulo || it.name || '';
-    const overview = it.overview || '';
-    const rating = it.rating || '';
-    const year = it.year || '';
-
-    // primary link (terabox for movie, first season link for series)
-    const primaryRaw = getFirstLink(it);
-    const primary = normalizeLink(primaryRaw);
-    const blank = (primary.startsWith('http') && !primary.includes('cinenube.github.io')) ? ' target="_blank"' : '';
-
-    const seasonButtonsHtml = getSeasonButtonsHtml(it);
-
-    const isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
-
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-      <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
-      <div class="content">
-        <div class="title">${escapeHtml(title)}</div>
-        <div class="overview">${escapeHtml(overview)}</div>
-        <div class="meta">${rating ? '⭐ '+escapeHtml(rating) : '⭐️ N/A'} ${year ? '• '+escapeHtml(year) : ''}</div>
-        <div class="hashtags">${escapeHtml( (it.generos||'').toString().split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' ') )}</div>
-        <a class="btn" href="${escapeHtml(primary)}"${blank}>${escapeHtml(btnText)}</a>
-        <div style="margin-top:8px">${seasonButtonsHtml}</div>
-      </div>
-      <span class="tag">${escapeHtml(tipoTexto)}</span>
-      ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
+    card.innerHTML=`
+      <span class="tag">${tipo==='serie'?'📺 Serie':'🎥 Película'}</span>
+      <img src="${item.imagen}">
+      <h3>${item.titulo}</h3>
+      <p>${item.descripcion||''}</p>
+      ${tipo==='serie'?seasonsHTML:btnMovie}
     `;
-    g.appendChild(div);
+    g.appendChild(card);
   });
 }
 
-/* NAV filters */
-document.getElementById('nav').addEventListener('click', function(e){
-  var btn = e.target.closest('button[data-filter]');
-  if(!btn) return;
-  var filter = btn.getAttribute('data-filter');
-  document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
+function filterContent(t){
+  if(t==='all') renderGallery(allData);
+  else renderGallery(allData.filter(x=>(x.tipo||'').toLowerCase()===t));
+}
 
-  if(filter === 'all') {
-    renderGallery(allData);
-  } else if(filter === 'recientes') {
-    var items = allData.filter(function(i){ return i.published_ts && ((Date.now() - i.published_ts) <= (1000*60*60*24)); });
-    renderGallery(items);
-  } else if(filter === 'movie' || filter === 'series') {
-    renderGallery(allData.filter(function(i){ return i.type === filter; }));
-  } else {
-    renderGallery(allData.filter(function(i){ return (i.type || '').toLowerCase() === filter; }));
-  }
+document.getElementById('search').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  renderGallery(allData.filter(x=>{
+    return (x.titulo+x.generos+x.descripcion).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").includes(q);
+  }));
 });
 
 loadGallery();
