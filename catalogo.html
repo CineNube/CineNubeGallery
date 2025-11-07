@@ -6,48 +6,20 @@
 <title>Catálogo | CineNube Gallery</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <style>
-body {
-  background-color: #0d0d0d;
-  color: #fff;
-  font-family: 'Poppins', sans-serif;
-}
+body { background-color: #0d0d0d; color: #fff; font-family: 'Poppins', sans-serif; }
 header { text-align: center; padding: 2rem 0; }
-h2 {
-  border-left: 4px solid #e50914;
-  padding-left: 10px;
-  margin-bottom: 1rem;
-}
-.card {
-  background-color: #1a1a1a;
-  border: none;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
+h2 { border-left: 4px solid #e50914; padding-left: 10px; margin-bottom: 1rem; }
+.card { background-color: #1a1a1a; border: none; border-radius: 10px; overflow: hidden; transition: transform 0.3s ease; }
 .card:hover { transform: scale(1.03); }
-.card img {
-  width: 100%;
-  height: 330px;
-  object-fit: cover;
-}
+.card img { width: 100%; height: 330px; object-fit: cover; }
 .card-body { padding: 0.8rem; }
 .card-title { font-size: 1rem; font-weight: 600; }
-.btn-ver {
-  background-color: #e50914;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 6px 12px;
-  text-decoration: none;
-  display: inline-block;
-}
+.btn-ver { background-color: #e50914; color: #fff; border: none; border-radius: 20px; padding: 6px 12px; text-decoration: none; display: inline-block; }
 footer { text-align: center; padding: 2rem; color: #aaa; }
 </style>
 </head>
 <body>
-<header>
-  <h1>🎞️ Catálogo CineNube</h1>
-</header>
+<header><h1>🎞️ Catálogo CineNube</h1></header>
 
 <div class="container">
   <h2>🎥 Películas</h2>
@@ -68,8 +40,14 @@ async function cargarCatalogo() {
     const data = await res.json();
     const ordenado = data.reverse();
 
-    const peliculas = ordenado.filter(i => i.type?.toLowerCase() === "pelicula");
-    const series = ordenado.filter(i => i.type?.toLowerCase() === "serie");
+    const peliculas = ordenado.filter(i =>
+      (i.type || "").toLowerCase().includes("pel") ||
+      (i.type || "").toLowerCase().includes("mov")
+    );
+    const series = ordenado.filter(i =>
+      (i.type || "").toLowerCase().includes("ser") ||
+      (i.type || "").toLowerCase().includes("tv")
+    );
 
     mostrarCatalogo(peliculas, "peliculas");
     mostrarCatalogo(series, "series");
@@ -85,8 +63,9 @@ function mostrarCatalogo(lista, id) {
     const imagen = item.poster?.startsWith("http")
       ? item.poster
       : `https://image.tmdb.org/t/p/w500${item.poster}`;
-    const boton = item.type?.toLowerCase() === "serie" && item.season_links
-      ? `<a href="${item.season_links}" target="_blank" class="btn-ver">📺 Ver temporadas</a>`
+    const enlace = item.season_links || item.terabox || item.enlace || "#";
+    const boton = enlace !== "#"
+      ? `<a href="${enlace}" target="_blank" class="btn-ver">🎬 Ver ahora</a>`
       : "";
     const card = `
       <div class="col-6 col-md-3">
