@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CineNube Gallery - Descubre películas y series actualizadas sin publicidad molesta.">
+  <meta name="description" content="🎬 CineNube Gallery - Películas y series actualizadas sin publicidad molesta.">
   <title>🎬 CineNube Gallery</title>
   <link rel="icon" href="https://cinenube.github.io/CineNubeGallery/favicon.png" type="image/png">
   <style>
@@ -73,24 +73,13 @@
       margin: 5px 0;
       color: #ff4444;
     }
-    .desc {
-      color: #ccc;
+    .rating {
+      color: #ffd700;
       font-size: 0.9em;
-      margin-top: 5px;
     }
-    .link {
-      display: block;
-      background: #ff4444;
-      color: white;
-      text-align: center;
-      padding: 8px;
-      margin-top: 10px;
-      border-radius: 5px;
-      font-weight: bold;
-      text-decoration: none;
-    }
-    .link:hover {
-      background: #ff6666;
+    .year {
+      color: #aaa;
+      font-size: 0.9em;
     }
     footer {
       text-align: center;
@@ -123,16 +112,18 @@
 
   <script>
     const sheetURL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+    let allData = [];
 
     async function loadGallery() {
       try {
         const response = await fetch(sheetURL);
         const data = await response.json();
 
-        // Mostrar los más recientes primero
-        data.reverse();
+        // 🔁 Invertimos el orden (últimos primero)
+        allData = data.reverse();
 
-        displayGallery(data);
+        // Mostrar contenido por defecto (recientes)
+        displayGallery(allData);
       } catch (e) {
         console.error('Error al cargar datos:', e);
       }
@@ -141,17 +132,18 @@
     function displayGallery(data) {
       const gallery = document.getElementById('gallery');
       gallery.innerHTML = '';
+
       data.forEach(item => {
         const card = document.createElement('div');
         card.classList.add('card');
-        card.dataset.type = (item.tipo || 'movie').toLowerCase();
+        card.dataset.type = item.type;
 
         card.innerHTML = `
-          <img src="${item.imagen}" alt="${item.titulo}" class="poster">
+          <img src="${item.poster}" alt="${item.title}" class="poster">
           <div class="content">
-            <div class="title">${item.titulo}</div>
-            <div class="desc">${item.descripcion || 'Sin descripción'}</div>
-            <a href="${item.enlace}" target="_blank" class="link">Ver / Descargar</a>
+            <div class="title">${item.title}</div>
+            <div class="rating">⭐️ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
+            <p>${item.overview ? item.overview.substring(0, 100) + '...' : ''}</p>
           </div>
         `;
         gallery.appendChild(card);
@@ -159,10 +151,12 @@
     }
 
     function filterContent(type) {
-      const cards = document.querySelectorAll('.card');
-      cards.forEach(card => {
-        card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
-      });
+      if (type === 'all') {
+        displayGallery(allData.slice(0, 20)); // Recientes: solo los primeros 20
+      } else {
+        const filtered = allData.filter(item => item.type === type);
+        displayGallery(filtered);
+      }
     }
 
     loadGallery();
