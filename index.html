@@ -1,157 +1,168 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineNube Gallery</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CineNube Gallery - Descubre películas y series actualizadas sin publicidad molesta.">
+  <title>🎬 CineNube Gallery</title>
+  <link rel="icon" href="https://cinenube.github.io/CineNubeGallery/favicon.png" type="image/png">
   <style>
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0e0e0e;
+      font-family: Arial, sans-serif;
+      background-color: #0e0e0e;
       color: #fff;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
     }
     header {
-      background: #1c1c1c;
-      padding: 20px;
       text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-      color: #00aaff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      letter-spacing: 1px;
+      background-color: #141414;
+      padding: 20px 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
-    #gallery {
+    h1 {
+      font-size: 2em;
+      color: #ff4444;
+      margin-bottom: 10px;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    nav button:hover {
+      background: #ff6666;
+    }
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 15px;
       padding: 20px;
     }
-    .item {
-      background: #1a1a1a;
-      border-radius: 12px;
+    .card {
+      background: #1c1c1c;
+      border-radius: 10px;
       overflow: hidden;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      transition: transform 0.25s, box-shadow 0.25s;
-      position: relative;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
     }
-    .item:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(0,170,255,0.6);
+    .card:hover {
+      transform: scale(1.03);
     }
-    .item img {
+    .poster {
       width: 100%;
-      height: 290px;
+      height: 300px;
       object-fit: cover;
-      border-bottom: 3px solid #00aaff;
     }
-    .tag {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: #00aaff;
-      color: #fff;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: bold;
-      box-shadow: 0 0 5px rgba(0,0,0,0.4);
-    }
-    .item h3 {
-      font-size: 17px;
-      margin: 10px 0 5px;
-      color: #00aaff;
-    }
-    .item p {
-      font-size: 13px;
-      color: #ccc;
-      padding: 0 10px;
-      text-align: justify;
-      height: 60px;
-      overflow: hidden;
-    }
-    .hashtags {
-      font-size: 12px;
-      color: #00ccff;
-      margin: 5px 0 10px;
-      padding: 0 10px;
-      height: 36px;
-      overflow: hidden;
-    }
-    .btn {
-      display: block;
-      background: #00aaff;
-      color: #fff;
-      text-decoration: none;
+    .content {
       padding: 10px;
-      border-radius: 0 0 12px 12px;
-      font-weight: bold;
-      transition: background 0.3s;
     }
-    .btn:hover {
-      background: #0077cc;
+    .title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin: 5px 0;
+      color: #ff4444;
+    }
+    .desc {
+      color: #ccc;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    .link {
+      display: block;
+      background: #ff4444;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .link:hover {
+      background: #ff6666;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #141414;
+      color: #aaa;
+      font-size: 0.9em;
+    }
+    a {
+      color: #ff4444;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  <header>🎬 CineNube Gallery</header>
-  <div id="gallery"></div>
+  <header>
+    <h1>🎬 CineNube Gallery</h1>
+    <nav>
+      <button onclick="filterContent('all')">🔥 Recientes</button>
+      <button onclick="filterContent('movie')">🎥 Películas</button>
+      <button onclick="filterContent('tv')">📺 Series</button>
+    </nav>
+  </header>
+
+  <div id="gallery" class="grid"></div>
+
+  <footer>
+    🌐 Ver más en <a href="https://cinenube.github.io/CineNubeGallery" target="_blank">CineNube</a>
+  </footer>
 
   <script>
-    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+    const sheetURL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 
     async function loadGallery() {
       try {
-        const res = await fetch(SHEET_URL);
-        const data = await res.json();
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = '';
+        const response = await fetch(sheetURL);
+        const data = await response.json();
 
-        data.forEach(item => {
-          const tipo = item.tipo?.toLowerCase() || 'pelicula';
-          const tipoTexto = tipo === 'serie' ? '📺 Serie' : '🎥 Película';
-          const btnText = tipo === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
-          let link = '';
+        // Mostrar los más recientes primero
+        data.reverse();
 
-          // Enlace correcto (prioriza terabox si existe)
-          if (item.terabox && item.terabox.includes('http')) {
-            link = item.terabox;
-          } else if (item.season_links) {
-            try {
-              const seasons = JSON.parse(item.season_links);
-              link = seasons[0]?.link || '#';
-            } catch {
-              link = '#';
-            }
-          }
-
-          // Convertir géneros en hashtags
-          let hashtags = '';
-          if (item.generos) {
-            const generos = item.generos.split(',').map(g => g.trim());
-            hashtags = generos.map(g => '#' + g.replace(/\s+/g, '')).join(' ');
-          }
-
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.innerHTML = `
-            <span class="tag">${tipoTexto}</span>
-            <img src="${item.imagen}" alt="${item.titulo}">
-            <h3>${item.titulo}</h3>
-            <p>${item.descripcion || ''}</p>
-            <div class="hashtags">${hashtags}</div>
-            <a href="${link}" target="_blank" class="btn">${btnText}</a>
-          `;
-          gallery.appendChild(div);
-        });
-      } catch (err) {
-        console.error(err);
-        document.getElementById('gallery').innerHTML =
-          '<p style="text-align:center;color:#ccc;">Error cargando datos. Intenta más tarde.</p>';
+        displayGallery(data);
+      } catch (e) {
+        console.error('Error al cargar datos:', e);
       }
+    }
+
+    function displayGallery(data) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+      data.forEach(item => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.type = (item.tipo || 'movie').toLowerCase();
+
+        card.innerHTML = `
+          <img src="${item.imagen}" alt="${item.titulo}" class="poster">
+          <div class="content">
+            <div class="title">${item.titulo}</div>
+            <div class="desc">${item.descripcion || 'Sin descripción'}</div>
+            <a href="${item.enlace}" target="_blank" class="link">Ver / Descargar</a>
+          </div>
+        `;
+        gallery.appendChild(card);
+      });
+    }
+
+    function filterContent(type) {
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
+      });
     }
 
     loadGallery();
