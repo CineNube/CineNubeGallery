@@ -4,296 +4,255 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CineNube Gallery</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <style>
-  :root{--accent:#00aaff;--bg:#0e0e0e;--card:#141414;--muted:#9aaebf}
-  body{font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:#fff;margin:0;padding:0}
-  header{background:#131313;padding:18px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.6)}
-  header h1{margin:0;font-size:22px;color:var(--accent)}
-  nav{display:flex;gap:10px;justify-content:center;padding:10px;background:#101010}
-  nav button{background:transparent;border:1px solid transparent;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
-  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:var(--accent)}
-  main{max-width:1200px;margin:18px auto;padding:0 12px}
-  h2{font-size:18px;margin:14px 0;color:#fff;border-left:4px solid var(--accent);padding-left:10px}
-  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-  .card{background:#141414;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;height:460px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
+  header{background:#1c1c1c;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+  nav{display:flex;justify-content:center;gap:14px;background:#141414;padding:10px 8px;font-weight:700;flex-wrap:wrap}
+  nav button{background:none;border:1px solid transparent;color:#fff;cursor:pointer;font-size:15px;padding:6px 10px;border-radius:6px;transition:all .18s}
+  nav button.active{border-color:rgba(0,170,255,.18);background:rgba(0,170,255,.03);color:#00aaff}
+  nav button:hover{color:#00aaff}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:18px}
+  .item{background:#141414;border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 0 10px rgba(0,0,0,0.6);transition:transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;height:460px}
+  .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,170,255,.08)}
   .thumb{height:300px;overflow:hidden}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid var(--accent)}
-  .content{padding:12px;display:flex;flex-direction:column;flex:1}
-  .title{color:var(--accent);font-weight:700;font-size:15px;height:46px;overflow:hidden}
-  .overview{color:#d1d7db;font-size:13px;line-height:1.2;height:66px;overflow:hidden;margin:8px 0}
-  .meta{color:#9aaebf;font-size:13px;margin-bottom:8px}
-  .actions{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}
-  .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;text-decoration:none;font-weight:700}
-  .tag{position:absolute;left:12px;top:12px;background:var(--accent);color:#000;padding:4px 8px;border-radius:6px;font-weight:700}
-  .new{position:absolute;right:12px;top:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-weight:700}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-bottom:3px solid #00aaff}
+  .content{padding:10px 12px;display:flex;flex-direction:column;flex:1}
+  .title{color:#00aaff;font-size:16px;margin:6px 0 4px;height:40px;overflow:hidden}
+  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px}
+  .meta{font-size:12px;color:#99e6ff;margin-bottom:8px}
+  .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
+  .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .hashtags{font-size:12px;color:#00ccff;padding:0 12px;height:28px;overflow:hidden;margin-top:6px}
   .empty{padding:40px;text-align:center;color:#aaa}
-  @media(max-width:700px){.card{height:420px}.thumb{height:260px}}
+  #debugBox{position:fixed;right:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:9999;max-width:320px}
+  #debugBox b{color:#00aaff}
+  @media(max-width:700px){.item{height:420px}.thumb{height:260px}}
 </style>
 </head>
 <body>
-<header>
-  <h1>🎬 CineNube Gallery</h1>
-</header>
+<header>🎬 CineNube Gallery</header>
+<nav id="nav">
+  <button data-filter="all" class="active">🔁 Todos</button>
+  <button data-filter="recientes">🔥 Recientes (24h)</button>
+  <button data-filter="movie">🎥 Películas</button>
+  <button data-filter="series">📺 Series</button>
+</nav>
 
-<main>
-  <nav id="filters" style="margin-bottom:8px;display:flex;gap:8px;justify-content:center">
-    <button data-filter="all" class="active">🔁 Todos</button>
-    <button data-filter="recientes">🔥 Recientes (24h)</button>
-    <button data-filter="pelicula">🎥 Películas</button>
-    <button data-filter="serie">📺 Series</button>
-  </nav>
+<div id="gallery"></div>
 
-  <div id="gallery" aria-live="polite"></div>
-</main>
+<div id="debugBox" style="display:none">
+  <div>Items: <b id="dbgCount">0</b></div>
+  <div>Más nuevo: <b id="dbgMax">—</b></div>
+  <div>Más antiguo: <b id="dbgMin">—</b></div>
+  <div style="margin-top:6px"><button id="dbgShow" style="cursor:pointer;padding:6px;border-radius:6px;border:none;background:#00aaff;color:#fff">Ver consola</button></div>
+</div>
 
 <script>
-/*
-  index.js para CineNube
-  - Consume tu WebApp: SHEET_URL (JSON array)
-  - Usa columns: TMDB_ID, type, title, poster, overview, rating, year, updated, season_links, terabox, Idioma, Enviar, Enviado, generos, Actualizar, published_at
-  - Orden: published_at > updated > fallback (reverse input)
-  - Links: terabox (películas), season_links JSON (series) -> botones por temporada
-  - Abre en _blank si externo; si el enlace apunta a cinenube.github.io abre en la misma pestaña
-*/
+/* ---------- CONFIG ---------- */
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+const SHOW_DEBUG = true;
+let allData = [];
 
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec";
-let ALL = [];
-
-function safeParseJSON(str){
-  try { return JSON.parse(str); } catch(e){ return null; }
+/* ---------- Helpers ---------- */
+function safeParseJSON(s){
+  try{ return JSON.parse(s); }catch(e){ return null; }
 }
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function parseDateBest(item){
-  // prefer published_at, then updated, then year as fallback
-  const candidates = [item.published_at, item.updated, item.updated_at, item.year];
-  for(const c of candidates){
-    if(!c) continue;
-    const t = Date.parse(c);
+/* Prioridad de fechas: published_at -> updated -> updated_at -> year */
+function parseDatePrefer(obj){
+  if(!obj) return null;
+  const candidates = [
+    obj.published_at, obj.publishedAt, obj.published, obj.publishedAt,
+    obj.updated, obj.updated_at, obj.updatedAt,
+    obj.created, obj.created_at, obj.year
+  ];
+  for(let i=0;i<candidates.length;i++){
+    if(!candidates[i]) continue;
+    const t = Date.parse(candidates[i]);
     if(!isNaN(t)) return t;
   }
   return null;
 }
 
-function getPrimaryLink(item){
-  // Películas: terabox preferred
-  if(item.terabox){
-    // terabox could be JSON array or plain url text
-    const t = safeParseJSON(item.terabox);
-    if(Array.isArray(t) && t.length>0){
-      // find first link property
-      for(const e of t){ if(e && e.link) return String(e.link).trim(); }
-    } else {
-      // try regex
-      const m = String(item.terabox).match(/https?:\/\/[^\s"']+/);
-      if(m) return m[0].trim();
-      // maybe it's a plain relative path: return as-is
-      if(String(item.terabox).trim()!=="") return String(item.terabox).trim();
-    }
-  }
-
-  // Series: season_links -> take first season link if exists
-  if(item.season_links){
-    const s = safeParseJSON(item.season_links);
-    if(Array.isArray(s) && s.length>0){
-      for(const e of s) if(e && e.link) return String(e.link).trim();
-    } else {
-      const m = String(item.season_links).match(/https?:\/\/[^\s"']+/);
-      if(m) return m[0].trim();
-      if(String(item.season_links).trim()!=="") return String(item.season_links).trim();
-    }
-  }
-  return null;
+/* Normaliza nombres y valores de una fila (tu estructura previa) */
+function normalizeItem(raw){
+  var it = {};
+  it.raw = raw;
+  it.title = raw.title || raw.titulo || raw.name || '';
+  it.poster = raw.poster || raw.imagen || raw.poster_path || '';
+  it.overview = raw.overview || raw.descripcion || raw.description || '';
+  it.rating = raw.rating || raw.vote_average || '';
+  it.year = raw.year || '';
+  it.generos = raw.generos || raw.genres || '';
+  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv' || s==='series' || s==='serie') return 'series'; if(s==='movie' || s==='pelicula' || s==='película' || s==='film') return 'movie'; return s; })(raw.type || raw.tipo);
+  it.terabox = raw.terabox || raw.link || raw.enlace || '';
+  it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
+  it.published_ts = parseDatePrefer(raw); // may be null
+  it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
+  return it;
 }
 
-function getSeasonButtonsHtml(item){
-  if(!item.season_links) return "";
-  const s = safeParseJSON(item.season_links);
-  if(!Array.isArray(s)) return "";
-  let html = "";
-  for(const season of s){
-    if(!season || !season.link) continue;
-    const link = normalizeLink(season.link);
-    html += `<a class="btn" href="${encodeURI(link)}" ${shouldOpenBlank(link) ? 'target="_blank"':' '}>📺 T${season.season}</a>`;
+/* Obtiene primer enlace válido: terabox (película) OR season_links first link (serie) */
+function getFirstLink(it){
+  // try terabox JSON -> plain url
+  if(it.terabox){
+    try{
+      var p = safeParseJSON(it.terabox);
+      if(Array.isArray(p) && p[0] && p[0].link) return p[0].link;
+    }catch(e){}
+    var m = (it.terabox||'').toString().match(/https?:\/\/[^\s"']+/);
+    if(m) return m[0];
+    // if terabox is non-http relative path
+    if(String(it.terabox).trim()) return String(it.terabox).trim();
   }
+  // season_links -> parse and return first season link
+  if(it.season_links){
+    try{
+      var s = (typeof it.season_links === 'string') ? safeParseJSON(it.season_links) : it.season_links;
+      if(Array.isArray(s) && s[0] && s[0].link) return s[0].link;
+    }catch(e){}
+    var mm = (it.season_links||'').toString().match(/https?:\/\/[^\s"']+/);
+    if(mm) return mm[0];
+    if(String(it.season_links).trim()) return String(it.season_links).trim();
+  }
+  return '#';
+}
+
+/* Normaliza link: si no empieza por http -> lo trata como ruta relativa en tu GH pages */
+function normalizeLink(raw){
+  if(!raw) return '#';
+  const s = String(raw).trim();
+  if(s.startsWith('http://') || s.startsWith('https://')) return s;
+  // si es '#', devolver '#'
+  if(s === '#') return '#';
+  // otherwise prefix with repo base
+  return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/,'');
+}
+
+/* Crea botones por temporada si existen */
+function getSeasonButtonsHtml(item){
+  if(!item.season_links) return '';
+  const parsed = safeParseJSON(item.season_links);
+  if(!Array.isArray(parsed)) return '';
+  let html = '';
+  parsed.forEach(s=>{
+    if(s && s.link){
+      const link = normalizeLink(s.link);
+      const blank = (link.startsWith('http') && !link.includes('cinenube.github.io')) ? ' target="_blank"' : '';
+      html += `<a class="btn" href="${escapeHtml(link)}"${blank}>📺 T${s.season}</a>`;
+    }
+  });
   return html;
 }
 
-function normalizeLink(raw){
-  if(!raw) return "";
-  const str = String(raw).trim();
-  if(str.startsWith("http://") || str.startsWith("https://")) return str;
-  // If it looks like a relative internal link (pelicula.html?id=...), prefix GH pages base
-  // Remove leading slashes
-  const candidate = str.replace(/^\/+/, "");
-  return "https://cinenube.github.io/CineNubeGallery/" + candidate;
-}
+/* ---------- Render ---------- */
+async function loadGallery(){
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    if(!Array.isArray(data)) {
+      document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del Web App (no es array).</div>';
+      console.error('Respuesta WebApp:', data);
+      return;
+    }
 
-function shouldOpenBlank(url){
-  if(!url) return false;
-  try{
-    const u = new URL(url);
-    return u.hostname !== location.hostname;
-  } catch(e){
-    // if not a full url, treat as internal -> same window
-    return false;
+    allData = data.map(normalizeItem);
+
+    // Compute timestamps and sort:
+    const hasTs = allData.some(x => x.published_ts);
+    if(hasTs){
+      allData.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
+    } else {
+      // fallback: reverse original order (last rows first)
+      allData = allData.reverse();
+    }
+
+    if(SHOW_DEBUG){
+      document.getElementById('dbgCount').textContent = allData.length;
+      const ts = allData.map(x=>x.published_ts).filter(Boolean);
+      if(ts.length){ document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString(); document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString(); }
+      document.getElementById('debugBox').style.display = 'block';
+      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 30):', allData.slice(0,30)); alert('Abre la consola para ver detalles.'); };
+    }
+
+    renderGallery(allData);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
   }
 }
 
-function renderItems(list){
-  const gallery = document.getElementById("gallery");
-  gallery.innerHTML = "";
-  if(!list || list.length===0){ gallery.innerHTML = '<div class="empty">No hay resultados.</div>'; return; }
-  for(const it of list){
-    const tipo = (it.type || "").toString().toLowerCase();
-    const isSeries = tipo.includes("ser") || tipo.includes("tv");
-    const isMovie  = tipo.includes("pel") || tipo.includes("mov");
+function renderGallery(list){
+  const g = document.getElementById('gallery');
+  g.innerHTML = '';
+  if(!list || list.length === 0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
 
-    const poster = (it.poster && String(it.poster).startsWith("http")) ? it.poster : (it.poster ? `https://image.tmdb.org/t/p/w500${it.poster}` : '');
-    const title = it.title || it.titulo || it.name || "Sin título";
-    const overview = it.overview || it.descripcion || "";
-    const rating = it.rating || "";
-    const year = it.year || "";
+  const now = Date.now();
+  list.forEach(function(it){
+    const tipo = it.type === 'series' ? 'series' : 'movie';
+    const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
+    const btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
 
-    // primary link for main button
-    const primaryRaw = getPrimaryLink(it);
-    const primary = primaryRaw ? normalizeLink(primaryRaw) : null;
-    const btnHtml = primary ? `<a class="btn" href="${encodeURI(primary)}" ${shouldOpenBlank(primary) ? 'target="_blank"':''}>🎬 Ver ahora</a>` : "";
+    // poster fallback logic: poster or imagen or tmdb path
+    const poster = it.poster || '';
+    const posterUrl = (poster && poster.indexOf('http') === 0) ? poster : (poster ? 'https://image.tmdb.org/t/p/w500' + poster : '');
 
-    // season buttons (for series)
-    const seasonBtns = isSeries ? getSeasonButtonsHtml(it) : "";
+    const title = it.title || it.titulo || it.name || '';
+    const overview = it.overview || '';
+    const rating = it.rating || '';
+    const year = it.year || '';
 
-    // New flag detect: published_at within 24h or updated within 24h
-    const ts = parseDateBest(it);
-    const isNew = ts ? ((Date.now() - ts) <= (1000*60*60*24)) : false;
+    // primary link (terabox for movie, first season link for series)
+    const primaryRaw = getFirstLink(it);
+    const primary = normalizeLink(primaryRaw);
+    const blank = (primary.startsWith('http') && !primary.includes('cinenube.github.io')) ? ' target="_blank"' : '';
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.position = "relative";
-    card.innerHTML = `
-      <div class="thumb">${ poster ? `<img src="${encodeURI(poster)}" alt="${escapeHtml(title)}">` : '<div style="height:100%;display:flex;align-items:center;justify-content:center;background:#111;color:#888">Sin imagen</div>' }</div>
+    const seasonButtonsHtml = getSeasonButtonsHtml(it);
+
+    const isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
+
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
       <div class="content">
         <div class="title">${escapeHtml(title)}</div>
         <div class="overview">${escapeHtml(overview)}</div>
-        <div class="meta">${rating ? '⭐ '+escapeHtml(rating) : ''} ${year ? ' • '+escapeHtml(year):''}</div>
-        <div class="actions">${btnHtml}${seasonBtns}</div>
+        <div class="meta">${rating ? '⭐ '+escapeHtml(rating) : '⭐️ N/A'} ${year ? '• '+escapeHtml(year) : ''}</div>
+        <div class="hashtags">${escapeHtml( (it.generos||'').toString().split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' ') )}</div>
+        <a class="btn" href="${escapeHtml(primary)}"${blank}>${escapeHtml(btnText)}</a>
+        <div style="margin-top:8px">${seasonButtonsHtml}</div>
       </div>
+      <span class="tag">${escapeHtml(tipoTexto)}</span>
+      ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
     `;
-    // add tag and new badge
-    const tag = document.createElement("div");
-    tag.className = "tag";
-    tag.textContent = isSeries ? "📺 Serie" : "🎥 Película";
-    tag.style.position = "absolute";
-    tag.style.left = "12px";
-    tag.style.top = "12px";
-    tag.style.background = "#00aaff";
-    tag.style.color = "#000";
-    tag.style.padding = "4px 8px";
-    tag.style.borderRadius = "6px";
-    tag.style.fontWeight = "700";
-    card.appendChild(tag);
-    if(isNew){
-      const newBadge = document.createElement("div");
-      newBadge.className = "new";
-      newBadge.textContent = "🆕 Nuevo";
-      newBadge.style.position = "absolute";
-      newBadge.style.right = "12px";
-      newBadge.style.top = "12px";
-      newBadge.style.background = "#ff2d55";
-      newBadge.style.color = "#fff";
-      newBadge.style.padding = "4px 8px";
-      newBadge.style.borderRadius = "6px";
-      newBadge.style.fontWeight = "700";
-      card.appendChild(newBadge);
-    }
-
-    // wrapper to get grid layout
-    const wrapper = document.createElement("div");
-    wrapper.style.height = "100%";
-    wrapper.className = "grid-item";
-    wrapper.style.minHeight = "100%";
-    wrapper.appendChild(card);
-
-    // create grid cell with bootstrap-like classes (works on GH)
-    const cell = document.createElement("div");
-    cell.className = "grid-cell";
-    // use inline-flex css to make it responsive like your previous layout
-    cell.style.display = "block";
-    cell.style.width = "100%";
-    cell.appendChild(wrapper);
-
-    // Append raw HTML (we use simpler approach: append as grid cell)
-    const outer = document.createElement("div");
-    outer.style.boxSizing = "border-box";
-    outer.style.width = "100%";
-    outer.appendChild(card);
-    gallery.appendChild(outer);
-  }
-  // small layout tweak: apply CSS grid with the gallery container
-  gallery.style.display = "grid";
-  gallery.style.gridTemplateColumns = "repeat(auto-fill,minmax(220px,1fr))";
-  gallery.style.gap = "14px";
+    g.appendChild(div);
+  });
 }
 
-/* helpers */
-function escapeHtml(s){ if(!s) return ""; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-async function loadAndRender(){
-  try{
-    const resp = await fetch(SHEET_URL);
-    const data = await resp.json();
-    if(!Array.isArray(data)) { document.getElementById("gallery").innerHTML = '<div class="empty">Respuesta inválida del WebApp.</div>'; console.error('Respuesta WebApp:', data); return; }
-
-    // annotate timestamps and sort:
-    const annotated = data.map((it, idx) => {
-      const ts = parseDateBest(it);
-      return Object.assign({}, it, { _ts: ts, _idx: idx });
-    });
-
-    // if any item has _ts (non-null), sort by _ts desc; otherwise reverse array (last rows first)
-    const hasTs = annotated.some(x=>x._ts);
-    let sorted;
-    if(hasTs){
-      sorted = annotated.sort((a,b) => (b._ts || 0) - (a._ts || 0));
-    } else {
-      sorted = annotated.reverse(); // simple fallback
-    }
-
-    // store ALL for filters
-    ALL = sorted;
-
-    // default view: show all (sorted)
-    renderItems(sorted);
-  }catch(err){
-    console.error(err);
-    document.getElementById("gallery").innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
-  }
-}
-
-/* filters UI */
-document.getElementById("filters").addEventListener("click", function(ev){
-  const btn = ev.target.closest("button[data-filter]");
+/* NAV filters */
+document.getElementById('nav').addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-filter]');
   if(!btn) return;
-  document.querySelectorAll("#filters button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  const filter = btn.getAttribute("data-filter");
-  if(filter === "all"){
-    renderItems(ALL);
-  } else if(filter === "recientes"){
-    const now = Date.now();
-    const items = ALL.filter(i => {
-      const ts = parseDateBest(i);
-      return ts && ((now - ts) <= (1000*60*60*24)); // 24h
-    });
-    renderItems(items);
-  } else if(filter === "pelicula"){
-    renderItems(ALL.filter(i => (String(i.type||"").toLowerCase().includes("pel") || String(i.type||"").toLowerCase().includes("mov"))));
-  } else if(filter === "serie"){
-    renderItems(ALL.filter(i => (String(i.type||"").toLowerCase().includes("ser") || String(i.type||"").toLowerCase().includes("tv"))));
+  var filter = btn.getAttribute('data-filter');
+  document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if(filter === 'all') {
+    renderGallery(allData);
+  } else if(filter === 'recientes') {
+    var items = allData.filter(function(i){ return i.published_ts && ((Date.now() - i.published_ts) <= (1000*60*60*24)); });
+    renderGallery(items);
+  } else if(filter === 'movie' || filter === 'series') {
+    renderGallery(allData.filter(function(i){ return i.type === filter; }));
+  } else {
+    renderGallery(allData.filter(function(i){ return (i.type || '').toLowerCase() === filter; }));
   }
 });
 
-loadAndRender();
+loadGallery();
 </script>
 </body>
 </html>
