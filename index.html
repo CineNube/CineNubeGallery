@@ -146,22 +146,45 @@ async function cargar() {
   mostrar('todo');
 }
 
+function limpiarLink(url) {
+  if (!url) return '#';
+  if (!url.startsWith("http")) return "https://" + url;
+  return url;
+}
+
+function obtenerLink(item) {
+  const t = item.tipo?.toLowerCase() || 'pelicula';
+
+  // Película: usar terabox
+  if (t === 'pelicula' && item.terabox) {
+    return limpiarLink(item.terabox);
+  }
+
+  // Serie: leer JSON de season_links
+  if (t === 'serie' && item.season_links) {
+    try {
+      const seasons = JSON.parse(item.season_links);
+      if (seasons.length > 0 && seasons[0].link) {
+        return limpiarLink(seasons[0].link);
+      }
+    } catch {}
+  }
+
+  return "#";
+}
+
 function mostrar(tipo) {
   const cont = document.getElementById('gallery');
   cont.innerHTML = '';
+
   DATA.filter(i => tipo === 'todo' || (i.tipo?.toLowerCase() || 'pelicula') === tipo)
   .forEach(item => {
     const t = item.tipo?.toLowerCase() || 'pelicula';
     const label = t === 'serie' ? '📺 Serie' : '🎥 Película';
     const btnText = t === 'serie' ? '📺 Ver temporada' : '🎥 Ver película';
+    const link = obtenerLink(item);
 
-    let link = item.terabox?.includes('http') ? item.terabox : '#';
-    if (!item.terabox && item.season_links) {
-      try { link = JSON.parse(item.season_links)[0]?.link || '#'; } catch {}
-    }
-
-    let hashtags = '';
-    if (item.generos) hashtags = item.generos.split(',').map(g=> '#'+g.trim().replace(/\s+/g,'')).join(' ');
+    let hashtags = item.generos ? item.generos.split(',').map(g => '#'+g.trim().replace(/\s+/g,'')).join(' ') : '';
 
     cont.innerHTML += `
       <div class="item">
