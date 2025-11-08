@@ -62,6 +62,7 @@
         // Build actions
         let actions = '';
         if(it.terabox){
+          // try parse as JSON
           const p = safeParseJSON(it.terabox);
           let href = '#';
           if(Array.isArray(p) && p[0] && p[0].link) href = normalizeLink(p[0].link);
@@ -69,7 +70,7 @@
             const m = (it.terabox||'').match(/https?:\/\/[^\s"']+/);
             href = m ? m[0] : normalizeLink(it.terabox);
           }
-          const blank = shouldOpenBlank(href) ? ' target="_blank"':''; 
+          const blank = shouldOpenBlank(href) ? ' target="_blank"':'';
           actions += `<a href="${href}" ${blank}>🎬 Ver película</a>`;
         }
         if(it.season_links){
@@ -78,7 +79,7 @@
             s.forEach(se=>{
               if(se && se.link){
                 const href = normalizeLink(se.link);
-                const blank = shouldOpenBlank(href) ? ' target="_blank"':''; 
+                const blank = shouldOpenBlank(href) ? ' target="_blank"':'';
                 actions += ` <a href="${href}" ${blank}>📺 T${se.season}</a>`;
               }
             });
@@ -91,8 +92,8 @@
           <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
           <div class="content">
             <h3>${escapeHtml(title)}</h3>
-            <p class="meta">${rating ? '⭐ '+escapeHtml(rating):''} ${year ? '• '+escapeHtml(year):''}</p>
-            <p>${truncateText(it.overview||it.descripcion||'',120)}</p>
+            <p class="meta">${rating ? '⭐ '+escapeHtml(rating):'⭐️ N/A'} ${year ? '• '+escapeHtml(year):''}</p>
+            <p>${escapeHtml(it.overview||it.descripcion||'')}</p>
             <div style="margin-top:auto">${actions}</div>
           </div>
         `;
@@ -101,12 +102,6 @@
     }
 
     function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    function truncateText(text, max){
-      if(!text) return '';
-      text = String(text).trim();
-      return text.length > max ? text.slice(0,max).trim() + '...' : text;
-    }
 
     loadCatalog();
   </script>
