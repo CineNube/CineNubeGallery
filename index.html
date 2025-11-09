@@ -219,7 +219,8 @@ function renderGallery(list){
     const div = document.createElement('div');
     div.className = 'item';
 
-    const hasPrimary = primary && primary !== '#';
+    // 🔧 CORRECCIÓN AQUÍ:
+    const hasPrimary = (primary && primary !== '#') || seasonButtonsHtml.trim() !== '';
 
     div.innerHTML = `
       <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
