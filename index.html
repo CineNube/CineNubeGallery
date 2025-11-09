@@ -217,8 +217,7 @@ function renderGallery(list){
       <div class="content">
         <div class="title">${escapeHtml(title)}</div>
         <div class="overview">${escapeHtml(overview)}</div>
-        <div class="meta">${rating ? '⭐ '+escapeHtml(rating) : '⭐️ N/A'} ${year ? '• '+escapeHtml(year) : ''}</div>
-        <div class="hashtags">${escapeHtml( (it.generos||'').toString().split(',').map(s=>'#'+s.trim().replace(/\s+/g,'')).join(' ') )}</div>
+        <div class="meta">${year ? escapeHtml(year) : ''}</div>
         ${ hasPrimary ? `<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>` : `<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>` }
         <div style="margin-top:8px">${seasonButtonsHtml}</div>
       </div>
