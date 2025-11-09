@@ -22,8 +22,8 @@
   .title{color:#00aaff;font-size:16px;margin:6px 0 4px;height:40px;overflow:hidden}
   .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px}
   .meta{font-size:12px;color:#99e6ff;margin-bottom:8px}
-  .btn{margin-top:auto;display:block;background:#00aaff;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
-  .btn.disabled{background:#333;cursor:default}
+  .btn{margin-top:auto;display:inline-block;background:#00aaff;color:#fff;text-decoration:none;padding:8px 10px;border-radius:6px;font-weight:700;text-align:center;margin:3px 4px}
+  .btn.disabled{background:#333;color:#777;cursor:not-allowed}
   .tag{position:absolute;top:12px;left:12px;background:#00aaff;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
   .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
   .hashtags{font-size:12px;color:#00ccff;padding:0 12px;height:28px;overflow:hidden;margin-top:6px}
@@ -66,12 +66,11 @@ let filteredData = [];
 function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Remove accents, punctuation, lowercase
 function normText(s){
   if(!s) return '';
   return String(s)
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // quitar acentos
-    .replace(/[^0-9a-zA-Z\s]/g,' ') // quitar símbolos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^0-9a-zA-Z\s]/g,' ')
     .replace(/\s+/g,' ')
     .trim()
     .toLowerCase();
@@ -102,12 +101,10 @@ function normalizeItem(raw){
   it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
   it.published_ts = parseDatePrefer(raw);
   it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
-  // indexed text for fast search:
   it._index = normText([it.title, it.overview, it.generos, it.year].join(' '));
   return it;
 }
 
-/* Get first real link (prioritize terabox JSON -> plain url -> season_links) */
 function getFirstLink(it){
   if(it.terabox){
     try{ var p = safeParseJSON(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){}
@@ -116,10 +113,7 @@ function getFirstLink(it){
     if(String(it.terabox).trim()) return String(it.terabox).trim();
   }
   if(it.season_links){
-    try{ var s = (typeof it.season_links === 'string') ? safeParseJSON(it.season_links) : it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
-    var mm = (it.season_links||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(mm) return mm[0];
-    if(String(it.season_links).trim()) return String(it.season_links).trim();
+    try{ var s = (typeof it.season_links === 'string') ? safeParseJSON(it.season_links) : it.season_links; if(Array.isArray(s)) { const valid = s.find(x=>x.link && x.link.trim()); if(valid) return valid.link; } }catch(e){}
   }
   return '#';
 }
@@ -132,17 +126,24 @@ function normalizeLink(raw){
   return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/, '');
 }
 
+/* ✅ Nueva función mejorada */
 function getSeasonButtonsHtml(item){
   if(!item.season_links) return '';
   const parsed = safeParseJSON(item.season_links);
   if(!Array.isArray(parsed)) return '';
   let html = '';
+
   parsed.forEach(s=>{
-    if(s && s.link){
-      const link = normalizeLink(s.link);
-      html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
+    if(s && s.season){
+      const link = s.link && s.link.trim() ? normalizeLink(s.link) : null;
+      if(link){
+        html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
+      } else {
+        html += ` <a class="btn disabled" title="Enlace no disponible">🔒 T${s.season}</a>`;
+      }
     }
   });
+
   return html;
 }
 
@@ -158,12 +159,9 @@ async function loadGallery(){
     }
 
     allData = data.map(normalizeItem);
-
-    // sort by published_ts desc if exists, else preserve spreadsheet order reversed
     const hasTs = allData.some(x => x.published_ts);
     if(hasTs) allData.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
     else allData = allData.reverse();
-
     filteredData = allData.slice();
 
     if(SHOW_DEBUG){
@@ -175,7 +173,7 @@ async function loadGallery(){
     }
 
     renderGallery(filteredData);
-    applyFilters(); // 🔹 Mostrar resultados iniciales al cargar la web
+    applyFilters();
 
   } catch (err) {
     console.error(err);
@@ -206,11 +204,13 @@ function renderGallery(list){
     const primary = normalizeLink(primaryRaw);
 
     const seasonButtonsHtml = getSeasonButtonsHtml(it);
+    const parsedSeasons = safeParseJSON(it.season_links);
+    const hasMultipleSeasons = Array.isArray(parsedSeasons) && parsedSeasons.length > 1;
+
     const isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
 
     const div = document.createElement('div');
     div.className = 'item';
-
     const hasPrimary = primary && primary !== '#';
 
     div.innerHTML = `
@@ -219,8 +219,12 @@ function renderGallery(list){
         <div class="title">${escapeHtml(title)}</div>
         <div class="overview">${escapeHtml(overview)}</div>
         <div class="meta">${year ? escapeHtml(year) : ''}</div>
-        ${ hasPrimary ? `<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>` : `<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>` }
-        <div style="margin-top:8px">${seasonButtonsHtml}</div>
+        ${ tipo === 'series'
+            ? (hasMultipleSeasons ? `<div style="margin-top:8px">${seasonButtonsHtml}</div>` 
+              : (hasPrimary ? `<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>` 
+              : `<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>`))
+            : (hasPrimary ? `<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>` 
+              : `<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>`) }
       </div>
       <span class="tag">${escapeHtml(tipoTexto)}</span>
       ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
@@ -254,7 +258,6 @@ function applyFilters(){
   renderGallery(filteredData);
 }
 
-/* NAV filters */
 document.getElementById('nav').addEventListener('click', function(e){
   var btn = e.target.closest('button[data-filter]');
   if(!btn) return;
@@ -263,7 +266,6 @@ document.getElementById('nav').addEventListener('click', function(e){
   applyFilters();
 });
 
-/* init */
 loadGallery();
 </script>
 </body>
