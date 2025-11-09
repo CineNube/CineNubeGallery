@@ -136,14 +136,22 @@ function getSeasonButtonsHtml(item){
   if(!item.season_links) return '';
   const parsed = safeParseJSON(item.season_links);
   if(!Array.isArray(parsed)) return '';
+
   let html = '';
-  parsed.forEach(s=>{
-    if(s && s.link){
-      const link = normalizeLink(s.link);
+  let hasAnyLink = false;
+
+  parsed.forEach(s => {
+    if(!s || typeof s.season === 'undefined') return;
+    const link = s.link ? normalizeLink(s.link) : '';
+    if(link && link !== '#'){
+      hasAnyLink = true;
       html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
+    } else {
+      html += ` <a class="btn disabled" href="javascript:void(0)">🔒 T${s.season}</a>`;
     }
   });
-  return html;
+
+  return hasAnyLink ? html : '';
 }
 
 /* ---------- Render ---------- */
