@@ -3,200 +3,123 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CineNube</title>
+<title>🎬 CineNube - Estrenos y Series</title>
 <style>
-  body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #0e0e0e;
-    color: #f2f2f2;
-    margin: 0;
-    padding: 0;
-  }
-
-  header {
-    background: #111;
-    padding: 20px;
-    text-align: center;
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #fff;
-    letter-spacing: 1px;
-  }
-
-  #catalogo {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-
-  .item {
-    background: #1b1b1b;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    transition: transform 0.2s ease;
-  }
-
-  .item:hover {
-    transform: scale(1.03);
-  }
-
-  .item img {
-    width: 100%;
-    height: 330px;
-    object-fit: cover;
-  }
-
-  .item h3 {
-    font-size: 1.1em;
-    margin: 10px;
-    color: #fff;
-  }
-
-  .item p {
-    font-size: 0.9em;
-    color: #bbb;
-    margin: 0 10px 10px;
-    min-height: 40px;
-  }
-
-  .botones {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .botones a, .botones span {
-    display: inline-block;
-    padding: 8px 12px;
-    border-radius: 6px;
-    background: #272727;
-    color: #fff;
-    text-decoration: none;
-    font-size: 0.9em;
-    transition: background 0.2s ease;
-  }
-
-  .botones a:hover {
-    background: #0078ff;
-  }
-
-  .botones span {
-    opacity: 0.6;
-    cursor: default;
-  }
-
-  footer {
-    text-align: center;
-    padding: 15px;
-    background: #111;
-    color: #777;
-    font-size: 0.85em;
-  }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0e0e0e; color: #f2f2f2; margin: 0; padding:0;}
+header { background: #111; padding: 20px; text-align:center; font-size:1.8em; font-weight:bold; color:#fff; letter-spacing:1px;}
+#catalogo { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:20px; padding:20px;}
+.item { background:#1b1b1b; border-radius:10px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.5); transition:transform 0.2s ease; display:flex; flex-direction:column;}
+.item:hover { transform: scale(1.03); }
+.item img { width:100%; height:330px; object-fit:cover; }
+.item h3 { font-size:1.1em; margin:10px; color:#fff; }
+.item p { font-size:0.9em; color:#bbb; margin:0 10px 10px; min-height:40px; }
+.botones { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:10px; }
+.botones a, .botones span { display:inline-block; padding:8px 12px; border-radius:6px; background:#272727; color:#fff; text-decoration:none; font-size:0.9em; transition: background 0.2s ease; }
+.botones a:hover { background:#0078ff; }
+.botones span { opacity:0.6; cursor:default; }
+footer { text-align:center; padding:15px; background:#111; color:#777; font-size:0.85em; }
+.empty { padding:40px; text-align:center; color:#aaa; }
 </style>
 </head>
-
 <body>
-  <header>🎬 CineNube - Estrenos y Series</header>
+<header>🎬 CineNube - Estrenos y Series</header>
+<div id="catalogo"></div>
+<footer>© 2025 CineNube. Todos los derechos reservados.</footer>
 
-  <div id="catalogo"></div>
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 
-  <footer>© 2025 CineNube. Todos los derechos reservados.</footer>
+function safeParseJSON(s){ try{return JSON.parse(s);}catch(e){return null;} }
+function normalizeLink(raw){ if(!raw) return '#'; const s=String(raw).trim(); if(s.startsWith('http://') || s.startsWith('https://')) return s; return '#'; }
 
-  <script>
-  async function loadCatalog() {
-    const response = await fetch('catalogo.json');
-    const catalog = await response.json();
-    showItems(catalog);
+function getPrimaryLink(it){
+  if(it.terabox){
+    try{ const p = safeParseJSON(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){}
+    const m = (it.terabox||'').match(/https?:\/\/[^\s"']+/);
+    if(m) return m[0];
+    if(String(it.terabox).trim()) return String(it.terabox).trim();
   }
+  if(it.season_links){
+    try{ const s = safeParseJSON(it.season_links); if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
+    const mm = (it.season_links||'').match(/https?:\/\/[^\s"']+/);
+    if(mm) return mm[0];
+    if(String(it.season_links).trim()) return String(it.season_links).trim();
+  }
+  return '#';
+}
 
-  function showItems(items) {
-    const container = document.getElementById('catalogo');
-    container.innerHTML = '';
+async function loadCatalog(){
+  try{
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    if(!Array.isArray(data)){ document.getElementById('catalogo').innerHTML='<div class="empty">Respuesta inválida del WebApp.</div>'; return; }
 
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'item';
-
-      const img = document.createElement('img');
-      img.src = item.poster || 'sinimagen.jpg';
-      img.alt = item.title;
-
-      const title = document.createElement('h3');
-      title.textContent = item.title;
-
-      const overview = document.createElement('p');
-      overview.textContent = item.overview || '';
-
-      const buttonsDiv = document.createElement('div');
-      buttonsDiv.className = 'botones';
-
-      // 🔹 Obtener temporadas
-      let seasonLinks = [];
-      try {
-        if (item.season_links && typeof item.season_links === "string") {
-          seasonLinks = JSON.parse(item.season_links);
-        } else if (Array.isArray(item.season_links)) {
-          seasonLinks = item.season_links;
-        }
-      } catch (e) {
-        console.log("Error parseando seasons:", e);
-      }
-
-      // 🔹 Crear botones según número de temporadas
-      if (item.type === "series") {
-        if (seasonLinks.length > 1) {
-          // Varias temporadas → mostrar solo T1, T2, T3...
-          seasonLinks.forEach((s, i) => {
-            if (s.link && s.link.trim()) {
-              const btn = document.createElement('a');
-              btn.textContent = `📺 T${i + 1}`;
-              btn.href = s.link;
-              btn.target = "_blank";
-              buttonsDiv.appendChild(btn);
-            }
-          });
-        } else if (seasonLinks.length === 1 && seasonLinks[0].link) {
-          // Solo una temporada
-          const btn = document.createElement('a');
-          btn.textContent = "📺 Ver temporada";
-          btn.href = seasonLinks[0].link;
-          btn.target = "_blank";
-          buttonsDiv.appendChild(btn);
-        } else {
-          // Ninguna temporada con enlace válido
-          const btn = document.createElement('span');
-          btn.textContent = "🔒 Enlace no disponible";
-          buttonsDiv.appendChild(btn);
-        }
-      } else if (item.type === "movie") {
-        // Películas
-        const link = item.terabox || "";
-        if (link && link.trim()) {
-          const btn = document.createElement('a');
-          btn.textContent = "🎥 Ver película";
-          btn.href = link;
-          btn.target = "_blank";
-          buttonsDiv.appendChild(btn);
-        } else {
-          const btn = document.createElement('span');
-          btn.textContent = "🔒 Enlace no disponible";
-          buttonsDiv.appendChild(btn);
-        }
-      }
-
-      card.appendChild(img);
-      card.appendChild(title);
-      card.appendChild(overview);
-      card.appendChild(buttonsDiv);
-      container.appendChild(card);
+    const annotated = data.map(it=>{
+      return {
+        raw: it,
+        title: it.title || it.titulo || it.name || 'Sin título',
+        poster: it.poster || it.imagen || '',
+        overview: it.overview || it.descripcion || '',
+        type: it.type || it.tipo || 'movie',
+        season_links: it.season_links || '',
+        terabox: it.terabox || '',
+        year: it.year || ''
+      };
     });
-  }
 
-  document.addEventListener('DOMContentLoaded', loadCatalog);
-  </script>
+    renderCatalog(annotated);
+  } catch(e){
+    console.error(e);
+    document.getElementById('catalogo').innerHTML='<div class="empty">Error cargando el catálogo</div>';
+  }
+}
+
+function renderCatalog(list){
+  const container = document.getElementById('catalogo');
+  container.innerHTML='';
+  if(!list || list.length===0){ container.innerHTML='<div class="empty">No hay resultados</div>'; return; }
+
+  list.forEach(it=>{
+    const card = document.createElement('div'); card.className='item';
+    const img = document.createElement('img'); img.src=it.poster||'https://via.placeholder.com/500x750?text=Sin+imagen'; img.alt=it.title;
+    const title = document.createElement('h3'); title.textContent=it.title;
+    const overview = document.createElement('p'); overview.textContent=it.overview||'';
+    const buttonsDiv = document.createElement('div'); buttonsDiv.className='botones';
+
+    // Seasons
+    let seasonLinks = [];
+    try{
+      if(it.season_links && typeof it.season_links === "string") seasonLinks = JSON.parse(it.season_links);
+      else if(Array.isArray(it.season_links)) seasonLinks = it.season_links;
+    }catch(e){}
+
+    if(it.type==='series'){
+      if(seasonLinks.length>0){
+        seasonLinks.forEach((s,i)=>{
+          const btn = document.createElement('a');
+          btn.textContent = s.link ? `📺 T${i+1}` : `🔒 T${i+1}`;
+          btn.href = s.link||'#';
+          btn.target="_blank";
+          buttonsDiv.appendChild(btn);
+        });
+      } else {
+        const btn = document.createElement('span'); btn.textContent='🔒 Enlace no disponible'; buttonsDiv.appendChild(btn);
+      }
+    } else {
+      // movie
+      const link = getPrimaryLink(it.raw);
+      const btn = document.createElement(link!=='#'?'a':'span');
+      btn.textContent = link!=='#'?'🎥 Ver película':'🔒 Enlace no disponible';
+      if(link!=='#'){ btn.href=link; btn.target="_blank"; }
+      buttonsDiv.appendChild(btn);
+    }
+
+    card.appendChild(img); card.appendChild(title); card.appendChild(overview); card.appendChild(buttonsDiv);
+    container.appendChild(card);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', loadCatalog);
+</script>
 </body>
 </html>
