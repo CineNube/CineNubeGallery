@@ -1,1 +1,22 @@
-{ "sheetName": "Hoja 1", "checkColumn": "Enviar", "statusColumn": "Enviado", "tmdbColumn": "TMDB_ID", "typeColumn": "type", "titleColumn": "title", "posterColumn": "poster", "overviewColumn": "overview", "ratingColumn": "rating", "seasonLinksColumn": "season_links", "teraboxColumn": "terabox", "languageColumn": "Idioma", "githubRepository": "CineNube/CineNubeGallery", "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json", "telegram": { "channel": "@estrenos_online_25", "topic_series": 3, "topic_movies": 2 }, "notes": "Archivo de configuración para procesos automáticos. Ajusta sheetName si cambias el nombre de la hoja." }
+{
+  "sheetName": "Hoja 1",
+  "checkColumn": "Enviar",
+  "statusColumn": "Enviado",
+  "tmdbColumn": "TMDB_ID",
+  "typeColumn": "type",
+  "titleColumn": "title",
+  "posterColumn": "poster",
+  "overviewColumn": "overview",
+  "ratingColumn": "rating",
+  "seasonLinksColumn": "season_links",
+  "teraboxColumn": "terabox",
+  "languageColumn": "Idioma",
+  "githubRepository": "CineNube/CineNubeGallery",
+  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
+  "telegram": {
+    "channel": "@estrenos_online_25",
+    "topic_series": 3,
+    "topic_movies": 2
+  },
+  "notes": "Archivo de configuración para procesos automáticos. Ajusta sheetName si cambias el nombre de la hoja."
+}
