@@ -2,71 +2,53 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CineNube Catálogo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalogo CineNube</title>
 <style>
-body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0}
-header{background:#1c1c1c;padding:16px;text-align:center;font-size:22px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{padding:8px 10px;border:1px solid #222;color:#fff;font-size:14px;text-align:left}
-th{background:#141414;color:#00aaff}
-tr:nth-child(even){background:#121212}
-tr:hover{background:#1a1a1a}
-a{color:#00aaff;text-decoration:none}
-a:hover{text-decoration:underline}
+body{margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff}
+header{background:#1c1c1c;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#00aaff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+#sheetData{width:100%;border-collapse:collapse;margin:0;padding:0}
+#sheetData th, #sheetData td{border:1px solid #222;padding:6px;font-size:13px;color:#fff;text-align:left}
+#sheetData th{background:#141414;color:#00aaff;position:sticky;top:0;z-index:1}
+#sheetData tr:nth-child(even){background:#111}
+.searchInput{width:320px;max-width:90%;padding:6px 10px;margin:12px;border-radius:8px;border:1px solid #2b2b2b;background:#0f0f0f;color:#fff}
+.empty{padding:40px;text-align:center;color:#aaa}
 </style>
 </head>
 <body>
-<header>📚 CineNube Catálogo</header>
-<table id="catalogo">
-<thead>
-<tr><th>Título</th><th>Tipo</th><th>Año</th><th>Rating</th><th>Enlace</th></tr>
-</thead>
-<tbody></tbody>
-</table>
+<header>📄 Catálogo Completo CineNube</header>
+<input type="text" id="searchInput" class="searchInput" placeholder="Filtrar por título, género, año...">
+<table id="sheetData"><thead><tr>
+<th>TMDB_ID</th><th>type</th><th>title</th><th>poster</th><th>overview</th><th>rating</th><th>year</th><th>updated</th><th>season_links</th><th>terabox</th><th>Idioma</th><th>Enviar</th><th>Enviado</th><th>generos</th><th>Actualizar</th><th>published_at</th>
+</tr></thead><tbody></tbody></table>
+<div id="emptyMsg" class="empty" style="display:none">No hay resultados</div>
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-
-function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
-function normText(s){ if(!s) return ''; return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
-function normalizeLink(raw){ if(!raw) return '#'; const s=String(raw).trim(); if(s.startsWith('http')) return s; return '#'; }
-
-function normalizeItem(raw){
-  const it = {};
-  it.title = raw.title || raw.titulo || '';
-  it.type = raw.type || raw.tipo || 'movie';
-  it.year = raw.year || '';
-  it.rating = raw.rating || '';
-  it.terabox = raw.terabox || raw.link || raw.enlace || '';
-  it.season_links = raw.season_links || raw.seasons || '';
-  return it;
+const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+let allData=[];
+async function loadTable(){
+  try{
+    const res=await fetch(SHEET_URL);
+    const data=await res.json();
+    if(!Array.isArray(data)){document.getElementById('emptyMsg').style.display='block';return;}
+    allData=data;
+    renderTable(allData);
+  }catch(e){console.error(e);document.getElementById('emptyMsg').style.display='block'}
 }
-
-function getFirstLink(it){
-  if(it.terabox){ try{ const p = safeParseJSON(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){} var m = String(it.terabox).match(/https?:\/\/[^\s"']+/); if(m) return m[0]; }
-  if(it.season_links){ try{ const s = typeof it.season_links === 'string'? safeParseJSON(it.season_links):it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){} var mm = String(it.season_links).match(/https?:\/\/[^\s"']+/); if(mm) return mm[0]; }
-  return '#';
-}
-
-async function loadCatalogo(){
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    if(!Array.isArray(data)){ document.querySelector('#catalogo tbody').innerHTML='<tr><td colspan="5">Datos inválidos</td></tr>'; return; }
-    const items = data.map(normalizeItem);
-    const tbody = document.querySelector('#catalogo tbody');
-    tbody.innerHTML = '';
-    items.forEach(it=>{
-      const link = normalizeLink(getFirstLink(it));
-      const tipo = (it.type.toLowerCase()==='series') ? 'Serie' : 'Película';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${it.title}</td><td>${tipo}</td><td>${it.year}</td><td>${it.rating}</td><td>${link!=='#'?`<a href="${link}" target="_blank">Ver</a>`:'No disponible'}</td>`;
-      tbody.appendChild(tr);
+function renderTable(list){
+  const tbody=document.querySelector('#sheetData tbody');
+  tbody.innerHTML='';
+  if(!list.length){document.getElementById('emptyMsg').style.display='block';return}else document.getElementById('emptyMsg').style.display='none';
+  list.forEach(r=>{
+    const tr=document.createElement('tr');
+    ['TMDB_ID','type','title','poster','overview','rating','year','updated','season_links','terabox','Idioma','Enviar','Enviado','generos','Actualizar','published_at'].forEach(k=>{
+      const td=document.createElement('td');td.textContent=r[k]||'';tr.appendChild(td);
     });
-  } catch(err){ console.error(err); document.querySelector('#catalogo tbody').innerHTML='<tr><td colspan="5">Error cargando datos</td></tr>'; }
+    tbody.appendChild(tr);
+  });
 }
-
-loadCatalogo();
+const searchInput=document.getElementById('searchInput');
+searchInput.addEventListener('input',()=>{const q=searchInput.value.toLowerCase();renderTable(allData.filter(r=>Object.values(r).some(v=>v&&(v+'').toLowerCase().includes(q))))});
+loadTable();
 </script>
 </body>
 </html>
