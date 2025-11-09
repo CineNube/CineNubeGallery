@@ -64,6 +64,7 @@ let filteredData = [];
 function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function normText(s){ if(!s) return ''; return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+
 function parseDatePrefer(obj){ if(!obj) return null; const candidates = [ obj.published_at, obj.updated, obj.updated_at, obj.year ]; for(let i=0;i<candidates.length;i++){ if(!candidates[i]) continue; const t = Date.parse(candidates[i]); if(!isNaN(t)) return t; } return null; }
 
 function normalizeItem(raw){
@@ -100,25 +101,14 @@ function getFirstLink(it){
   return '#';
 }
 
-function normalizeLink(raw){
-  if(!raw) return '#';
-  const s = String(raw).trim();
-  if(s.startsWith('http://') || s.startsWith('https://')) return s;
-  if(s === '#') return '#';
-  return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/, '');
-}
+function normalizeLink(raw){ if(!raw) return '#'; const s = String(raw).trim(); if(s.startsWith('http://') || s.startsWith('https://')) return s; if(s === '#') return '#'; return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/, ''); }
 
 function getSeasonButtonsHtml(item){
   if(!item.season_links) return '';
   const parsed = safeParseJSON(item.season_links);
   if(!Array.isArray(parsed)) return '';
   let html = '';
-  parsed.forEach(s=>{
-    if(s && s.link){
-      const link = normalizeLink(s.link);
-      html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
-    }
-  });
+  parsed.forEach(s=>{ if(s && s.link){ const link = normalizeLink(s.link); html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`; } });
   return html;
 }
 
@@ -126,13 +116,12 @@ async function loadGallery(){
   try {
     const res = await fetch(SHEET_URL);
     const data = await res.json();
-    if(!Array.isArray(data)) { document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del WebApp (no es array).</div>'; return; }
+    if(!Array.isArray(data)) { document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del WebApp.</div>'; return; }
     allData = data.map(normalizeItem);
     const hasTs = allData.some(x => x.published_ts);
     if(hasTs) allData.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
     else allData = allData.reverse();
     filteredData = allData.slice();
-
     if(SHOW_DEBUG){
       document.getElementById('dbgCount').textContent = allData.length;
       const ts = allData.map(x=>x.published_ts).filter(Boolean);
@@ -140,7 +129,6 @@ async function loadGallery(){
       document.getElementById('debugBox').style.display = 'block';
       document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 30):', allData.slice(0,30)); alert('Abre la consola para ver detalles.'); };
     }
-
     renderGallery(filteredData);
     applyFilters();
   } catch (err) {
@@ -152,37 +140,36 @@ async function loadGallery(){
 function renderGallery(list){
   const g = document.getElementById('gallery');
   g.innerHTML = '';
-  if(!list || list.length === 0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
+  if(!list || list.length===0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
   const now = Date.now();
   list.forEach(function(it){
-    const tipo = it.type === 'series' ? 'series' : 'movie';
-    const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
-    const btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
+    const tipo = it.type==='series'?'series':'movie';
+    const tipoTexto = tipo==='series'?'📺 Serie':'🎥 Película';
+    const btnText = tipo==='series'?'📺 Ver temporada':'🎥 Ver película';
     const poster = it.poster || '';
-    const posterUrl = (poster && poster.indexOf('http') === 0) ? poster : (poster ? 'https://image.tmdb.org/t/p/w500' + poster : '');
-    const title = it.title || '';
-    const overview = it.overview || '';
-    const rating = it.rating || '';
-    const year = it.year || '';
+    const posterUrl = (poster && poster.indexOf('http')===0)?poster:(poster?'https://image.tmdb.org/t/p/w500'+poster:'');
+    const title = it.title||'';
+    const overview = it.overview||'';
+    const rating = it.rating||'';
+    const year = it.year||'';
     const primaryRaw = getFirstLink(it);
     const primary = normalizeLink(primaryRaw);
     const seasonButtonsHtml = getSeasonButtonsHtml(it);
-    const isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
-
+    const isNew = it.published_ts?((now-it.published_ts)<=(1000*60*60*24)):false;
     const div = document.createElement('div');
-    div.className = 'item';
-    const hasPrimary = primary && primary !== '#';
-    div.innerHTML = `
-      <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
+    div.className='item';
+    const hasPrimary = primary && primary!=='#';
+    div.innerHTML=`
+      <div class="thumb"><img src="${encodeURI(posterUrl||'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
       <div class="content">
         <div class="title">${escapeHtml(title)}</div>
         <div class="overview">${escapeHtml(overview)}</div>
-        <div class="meta">${year ? escapeHtml(year) : ''}</div>
-        ${ hasPrimary ? `<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>` : `<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>` }
+        <div class="meta">${year?escapeHtml(year):''}</div>
+        ${hasPrimary?`<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>`:`<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>`}
         <div style="margin-top:8px">${seasonButtonsHtml}</div>
       </div>
       <span class="tag">${escapeHtml(tipoTexto)}</span>
-      ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
+      ${isNew?'<span class="new">🆕 Nuevo</span>':''}
     `;
     g.appendChild(div);
   });
@@ -190,27 +177,27 @@ function renderGallery(list){
 
 const searchInput = document.getElementById('search');
 let searchTimer = null;
-searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 220); });
+searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters,220); });
 
 function applyFilters(){
-  const q = normText(searchInput.value || '');
+  const q = normText(searchInput.value||'');
   const activeBtn = document.querySelector('#nav button.active');
-  const filter = activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
-  filteredData = allData.filter(it => {
-    if(filter === 'movie' && it.type !== 'movie') return false;
-    if(filter === 'series' && it.type !== 'series') return false;
+  const filter = activeBtn?activeBtn.getAttribute('data-filter'):'all';
+  filteredData = allData.filter(it=>{
+    if(filter==='movie' && it.type!=='movie') return false;
+    if(filter==='series' && it.type!=='series') return false;
     if(!q) return true;
-    if(it._index.indexOf(q) !== -1) return true;
-    const tokens = q.split(' ').filter(Boolean);
-    return tokens.every(t => it._index.indexOf(t) !== -1);
+    if(it._index.indexOf(q)!==-1) return true;
+    const tokens=q.split(' ').filter(Boolean);
+    return tokens.every(t=>it._index.indexOf(t)!==-1);
   });
   renderGallery(filteredData);
 }
 
 document.getElementById('nav').addEventListener('click', function(e){
-  var btn = e.target.closest('button[data-filter]');
+  var btn=e.target.closest('button[data-filter]');
   if(!btn) return;
-  document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyFilters();
 });
