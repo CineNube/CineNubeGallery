@@ -175,6 +175,8 @@ async function loadGallery(){
     }
 
     renderGallery(filteredData);
+    applyFilters(); // 🔹 Mostrar resultados iniciales al cargar la web
+
   } catch (err) {
     console.error(err);
     document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
@@ -209,7 +211,6 @@ function renderGallery(list){
     const div = document.createElement('div');
     div.className = 'item';
 
-    // If primary is '#' (no usable link) we hide or disable main button to avoid opening home
     const hasPrimary = primary && primary !== '#';
 
     div.innerHTML = `
@@ -238,19 +239,14 @@ searchInput.addEventListener('input', () => {
 
 function applyFilters(){
   const q = normText(searchInput.value || '');
-  // active filter
   const activeBtn = document.querySelector('#nav button.active');
   const filter = activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
 
   filteredData = allData.filter(it => {
-    // type filter
     if(filter === 'movie' && it.type !== 'movie') return false;
     if(filter === 'series' && it.type !== 'series') return false;
-    // search
     if(!q) return true;
-    // exact substring on normalized index
     if(it._index.indexOf(q) !== -1) return true;
-    // fallback: split query and require each token present (loose matching)
     const tokens = q.split(' ').filter(Boolean);
     return tokens.every(t => it._index.indexOf(t) !== -1);
   });
