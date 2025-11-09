@@ -56,22 +56,19 @@
 </div>
 
 <script>
-/* ---------- CONFIG ---------- */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 const SHOW_DEBUG = true;
 let allData = [];
 let filteredData = [];
 
-/* ---------- Helpers ---------- */
 function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Remove accents, punctuation, lowercase
 function normText(s){
   if(!s) return '';
   return String(s)
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // quitar acentos
-    .replace(/[^0-9a-zA-Z\s]/g,' ') // quitar símbolos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^0-9a-zA-Z\s]/g,' ')
     .replace(/\s+/g,' ')
     .trim()
     .toLowerCase();
@@ -102,26 +99,60 @@ function normalizeItem(raw){
   it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
   it.published_ts = parseDatePrefer(raw);
   it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
-  // indexed text for fast search:
   it._index = normText([it.title, it.overview, it.generos, it.year].join(' '));
   return it;
 }
 
-/* Get first real link (prioritize terabox JSON -> plain url -> season_links) */
+/* ✅ CORREGIDO — Busca la primera temporada con link válido */
 function getFirstLink(it){
   if(it.terabox){
-    try{ var p = safeParseJSON(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){}
-    var m = (it.terabox||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(m) return m[0];
-    if(String(it.terabox).trim()) return String(it.terabox).trim();
+    const tStr = String(it.terabox).trim();
+    try {
+      const parsed = safeParseJSON(tStr);
+      if(Array.isArray(parsed)){
+        const first = parsed.find(p => p.link && p.link.trim());
+        if(first) return first.link.trim();
+      }
+    } catch(e){}
+    const match = tStr.match(/https?:\/\/[^\s"']+/);
+    if(match) return match[0];
+    if(tStr) return tStr;
   }
+
   if(it.season_links){
-    try{ var s = (typeof it.season_links === 'string') ? safeParseJSON(it.season_links) : it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
-    var mm = (it.season_links||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(mm) return mm[0];
-    if(String(it.season_links).trim()) return String(it.season_links).trim();
+    const sStr = String(it.season_links).trim();
+    try {
+      const parsed = safeParseJSON(sStr);
+      if(Array.isArray(parsed)){
+        const first = parsed.find(p => p.link && p.link.trim());
+        if(first) return first.link.trim();
+      }
+    } catch(e){}
+    const match = sStr.match(/https?:\/\/[^\s"']+/);
+    if(match) return match[0];
+    if(sStr) return sStr;
   }
+
   return '#';
+}
+
+/* ✅ CORREGIDO — Muestra todas las temporadas aunque haya vacías */
+function getSeasonButtonsHtml(item){
+  if(!item.season_links) return '';
+  const parsed = safeParseJSON(item.season_links);
+  if(!Array.isArray(parsed)) return '';
+
+  let html = '';
+  parsed.forEach(s => {
+    if(!s || typeof s.season === 'undefined') return;
+    const link = s.link ? normalizeLink(s.link) : '';
+    if(link && link !== '#' && link !== 'https://cinenube.github.io/CineNubeGallery/'){
+      html += `<a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
+    } else {
+      html += `<a class="btn disabled" href="javascript:void(0)">🔒 T${s.season}</a>`;
+    }
+  });
+  return html;
 }
 
 function normalizeLink(raw){
@@ -130,20 +161,6 @@ function normalizeLink(raw){
   if(s.startsWith('http://') || s.startsWith('https://')) return s;
   if(s === '#') return '#';
   return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/, '');
-}
-
-function getSeasonButtonsHtml(item){
-  if(!item.season_links) return '';
-  const parsed = safeParseJSON(item.season_links);
-  if(!Array.isArray(parsed)) return '';
-  let html = '';
-  parsed.forEach(s=>{
-    if(s && s.link){
-      const link = normalizeLink(s.link);
-      html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
-    }
-  });
-  return html;
 }
 
 /* ---------- Render ---------- */
@@ -159,7 +176,6 @@ async function loadGallery(){
 
     allData = data.map(normalizeItem);
 
-    // sort by published_ts desc if exists, else preserve spreadsheet order reversed
     const hasTs = allData.some(x => x.published_ts);
     if(hasTs) allData.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
     else allData = allData.reverse();
@@ -175,7 +191,7 @@ async function loadGallery(){
     }
 
     renderGallery(filteredData);
-    applyFilters(); // 🔹 Mostrar resultados iniciales al cargar la web
+    applyFilters();
 
   } catch (err) {
     console.error(err);
@@ -199,7 +215,6 @@ function renderGallery(list){
 
     const title = it.title || it.titulo || it.name || '';
     const overview = it.overview || '';
-    const rating = it.rating || '';
     const year = it.year || '';
 
     const primaryRaw = getFirstLink(it);
@@ -263,7 +278,6 @@ document.getElementById('nav').addEventListener('click', function(e){
   applyFilters();
 });
 
-/* init */
 loadGallery();
 </script>
 </body>
