@@ -56,30 +56,18 @@
 </div>
 
 <script>
-/* ---------- CONFIG ---------- */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
 const SHOW_DEBUG = true;
 let allData = [];
 let filteredData = [];
 
-/* ---------- Helpers ---------- */
 function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// Remove accents, punctuation, lowercase
-function normText(s){
-  if(!s) return '';
-  return String(s)
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // quitar acentos
-    .replace(/[^0-9a-zA-Z\s]/g,' ') // quitar símbolos
-    .replace(/\s+/g,' ')
-    .trim()
-    .toLowerCase();
-}
+function normText(s){ if(!s) return ''; return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
 
 function parseDatePrefer(obj){
   if(!obj) return null;
-  const candidates = [ obj.published_at, obj.updated, obj.updated_at, obj.year ];
+  const candidates = [obj.published_at, obj.updated, obj.updated_at, obj.year];
   for(let i=0;i<candidates.length;i++){
     if(!candidates[i]) continue;
     const t = Date.parse(candidates[i]);
@@ -97,29 +85,30 @@ function normalizeItem(raw){
   it.rating = raw.rating || raw.vote_average || '';
   it.year = raw.year || '';
   it.generos = raw.generos || raw.genres || '';
-  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv' || s==='series' || s==='serie') return 'series'; if(s==='movie' || s==='pelicula' || s==='película' || s==='film') return 'movie'; return s; })(raw.type || raw.tipo);
+  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv'||s==='series'||s==='serie') return 'series'; if(s==='movie'||s==='pelicula'||s==='película'||s==='film') return 'movie'; return s; })(raw.type||raw.tipo);
   it.terabox = raw.terabox || raw.link || raw.enlace || '';
   it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
   it.published_ts = parseDatePrefer(raw);
-  it.published_iso = it.published_ts ? new Date(it.published_ts).toISOString() : null;
-  // indexed text for fast search:
-  it._index = normText([it.title, it.overview, it.generos, it.year].join(' '));
+  it._index = normText([it.title,it.overview,it.generos,it.year].join(' '));
   return it;
 }
 
-/* Get first real link (prioritize terabox JSON -> plain url -> season_links) */
+/* ✅ CORREGIDA: Buscar la primera temporada con link válido */
 function getFirstLink(it){
-  if(it.terabox){
-    try{ var p = safeParseJSON(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){}
-    var m = (it.terabox||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(m) return m[0];
-    if(String(it.terabox).trim()) return String(it.terabox).trim();
-  }
   if(it.season_links){
-    try{ var s = (typeof it.season_links === 'string') ? safeParseJSON(it.season_links) : it.season_links; if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
-    var mm = (it.season_links||'').toString().match(/https?:\/\/[^\s"']+/);
-    if(mm) return mm[0];
-    if(String(it.season_links).trim()) return String(it.season_links).trim();
+    try{
+      const arr = typeof it.season_links === 'string' ? safeParseJSON(it.season_links) : it.season_links;
+      if(Array.isArray(arr)){
+        for(let s of arr){
+          if(s && s.link && s.link.trim() !== '') return s.link.trim();
+        }
+      }
+    }catch(e){}
+  }
+  if(it.terabox){
+    try{ var p=safeParseJSON(it.terabox); if(Array.isArray(p)){for(let s of p){if(s&&s.link&&s.link.trim()!=='') return s.link.trim();}} }catch(e){}
+    var m=(it.terabox||'').toString().match(/https?:\/\/[^\s"']+/); if(m) return m[0];
+    if(String(it.terabox).trim()) return String(it.terabox).trim();
   }
   return '#';
 }
@@ -136,143 +125,58 @@ function getSeasonButtonsHtml(item){
   if(!item.season_links) return '';
   const parsed = safeParseJSON(item.season_links);
   if(!Array.isArray(parsed)) return '';
-
   let html = '';
-  let hasAnyLink = false;
-
-  parsed.forEach(s => {
-    if(!s || typeof s.season === 'undefined') return;
-    const link = s.link ? normalizeLink(s.link) : '';
-    if(link && link !== '#'){
-      hasAnyLink = true;
-      html += ` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;
-    } else {
-      html += ` <a class="btn disabled" href="javascript:void(0)">🔒 T${s.season}</a>`;
-    }
+  let hasAny = false;
+  parsed.forEach(s=>{
+    if(!s||typeof s.season==='undefined') return;
+    const link=s.link?normalizeLink(s.link):'';
+    if(link && link!=='#'){ hasAny=true; html+=` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`; }
+    else html+=` <a class="btn disabled" href="javascript:void(0)">🔒 T${s.season}</a>`;
   });
-
-  return hasAnyLink ? html : '';
+  return hasAny?html:'';
 }
 
-/* ---------- Render ---------- */
 async function loadGallery(){
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    if(!Array.isArray(data)) {
-      document.getElementById('gallery').innerHTML = '<div class="empty">Respuesta inválida del WebApp (no es array).</div>';
-      console.error('Respuesta WebApp:', data);
-      return;
-    }
-
-    allData = data.map(normalizeItem);
-
-    // sort by published_ts desc if exists, else preserve spreadsheet order reversed
-    const hasTs = allData.some(x => x.published_ts);
-    if(hasTs) allData.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
-    else allData = allData.reverse();
-
-    filteredData = allData.slice();
-
-    if(SHOW_DEBUG){
-      document.getElementById('dbgCount').textContent = allData.length;
-      const ts = allData.map(x=>x.published_ts).filter(Boolean);
-      if(ts.length){ document.getElementById('dbgMax').textContent = new Date(Math.max.apply(null,ts)).toISOString(); document.getElementById('dbgMin').textContent = new Date(Math.min.apply(null,ts)).toISOString(); }
-      document.getElementById('debugBox').style.display = 'block';
-      document.getElementById('dbgShow').onclick = function(){ console.log('Items (primeros 30):', allData.slice(0,30)); alert('Abre la consola para ver detalles.'); };
-    }
-
-    renderGallery(filteredData);
-    applyFilters(); // 🔹 Mostrar resultados iniciales al cargar la web
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById('gallery').innerHTML = '<div class="empty">Error cargando datos. Revisa la consola.</div>';
-  }
+  const res=await fetch(SHEET_URL);
+  const data=await res.json();
+  allData=data.map(normalizeItem);
+  allData.sort((a,b)=>(b.published_ts||0)-(a.published_ts||0));
+  filteredData=allData.slice();
+  renderGallery(filteredData);
 }
 
 function renderGallery(list){
-  const g = document.getElementById('gallery');
-  g.innerHTML = '';
-  if(!list || list.length === 0){ g.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
-
-  const now = Date.now();
-  list.forEach(function(it){
-    const tipo = it.type === 'series' ? 'series' : 'movie';
-    const tipoTexto = tipo === 'series' ? '📺 Serie' : '🎥 Película';
-    const btnText = tipo === 'series' ? '📺 Ver temporada' : '🎥 Ver película';
-
-    const poster = it.poster || '';
-    const posterUrl = (poster && poster.indexOf('http') === 0) ? poster : (poster ? 'https://image.tmdb.org/t/p/w500' + poster : '');
-
-    const title = it.title || it.titulo || it.name || '';
-    const overview = it.overview || '';
-    const rating = it.rating || '';
-    const year = it.year || '';
-
-    const primaryRaw = getFirstLink(it);
-    const primary = normalizeLink(primaryRaw);
-
-    const seasonButtonsHtml = getSeasonButtonsHtml(it);
-    const isNew = it.published_ts ? ((now - it.published_ts) <= (1000*60*60*24)) : false;
-
-    const div = document.createElement('div');
-    div.className = 'item';
-
-    // 🔧 CORRECCIÓN AQUÍ:
-    const hasPrimary = (primary && primary !== '#') || seasonButtonsHtml.trim() !== '';
-
-    div.innerHTML = `
-      <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
+  const g=document.getElementById('gallery');
+  g.innerHTML='';
+  if(!list||list.length===0){ g.innerHTML='<div class="empty">No hay resultados</div>'; return; }
+  const now=Date.now();
+  list.forEach(it=>{
+    const tipo=it.type==='series'?'series':'movie';
+    const tipoTexto=tipo==='series'?'📺 Serie':'🎥 Película';
+    const btnText=tipo==='series'?'📺 Ver temporada':'🎥 Ver película';
+    const posterUrl=(it.poster&&it.poster.indexOf('http')===0)?it.poster:'https://image.tmdb.org/t/p/w500'+(it.poster||'');
+    const primary=normalizeLink(getFirstLink(it));
+    const seasons=getSeasonButtonsHtml(it);
+    const hasPrimary=(primary&&primary!=='#')||seasons.trim()!=='';
+    const isNew=it.published_ts?((now-it.published_ts)<=86400000):false;
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`
+      <div class="thumb"><img src="${posterUrl}" alt="${escapeHtml(it.title)}"></div>
       <div class="content">
-        <div class="title">${escapeHtml(title)}</div>
-        <div class="overview">${escapeHtml(overview)}</div>
-        <div class="meta">${year ? escapeHtml(year) : ''}</div>
-        ${ hasPrimary ? `<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>` : `<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>` }
-        <div style="margin-top:8px">${seasonButtonsHtml}</div>
+        <div class="title">${escapeHtml(it.title)}</div>
+        <div class="overview">${escapeHtml(it.overview)}</div>
+        <div class="meta">${escapeHtml(it.year||'')}</div>
+        ${ hasPrimary?`<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>`:`<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>` }
+        <div style="margin-top:8px">${seasons}</div>
       </div>
       <span class="tag">${escapeHtml(tipoTexto)}</span>
-      ${isNew ? '<span class="new">🆕 Nuevo</span>' : ''}
+      ${isNew?'<span class="new">🆕 Nuevo</span>':''}
     `;
     g.appendChild(div);
   });
 }
 
-/* ---------- Search + filters ---------- */
-const searchInput = document.getElementById('search');
-let searchTimer = null;
-searchInput.addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(applyFilters, 220);
-});
-
-function applyFilters(){
-  const q = normText(searchInput.value || '');
-  const activeBtn = document.querySelector('#nav button.active');
-  const filter = activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
-
-  filteredData = allData.filter(it => {
-    if(filter === 'movie' && it.type !== 'movie') return false;
-    if(filter === 'series' && it.type !== 'series') return false;
-    if(!q) return true;
-    if(it._index.indexOf(q) !== -1) return true;
-    const tokens = q.split(' ').filter(Boolean);
-    return tokens.every(t => it._index.indexOf(t) !== -1);
-  });
-
-  renderGallery(filteredData);
-}
-
-/* NAV filters */
-document.getElementById('nav').addEventListener('click', function(e){
-  var btn = e.target.closest('button[data-filter]');
-  if(!btn) return;
-  document.querySelectorAll('#nav button').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-  applyFilters();
-});
-
-/* init */
 loadGallery();
 </script>
 </body>
