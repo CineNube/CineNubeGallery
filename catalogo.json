@@ -1,0 +1,16 @@
+[
+  {
+    "title": "Ejemplo de Película",
+    "overview": "Descripción corta de la película.",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/3teWChNzKJdbfen46IdeKTygdZa.jpg",
+    "type": "movie",
+    "terabox": "https://example.com/pelicula"
+  },
+  {
+    "title": "Ejemplo de Serie",
+    "overview": "Una serie con varias temporadas de prueba.",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/8YFlUJIhCREdFdp0VPl4zo3m0R3.jpg",
+    "type": "series",
+    "season_links": "[{\"season\":1,\"link\":\"https://example.com/t1\"},{\"season\":2,\"link\":\"https://example.com/t2\"}]"
+  }
+]
