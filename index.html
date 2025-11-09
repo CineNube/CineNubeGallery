@@ -48,66 +48,58 @@
 
 <div id="gallery"></div>
 
-<div id="debugBox" style="display:none">
-  <div>Items: <b id="dbgCount">0</b></div>
-  <div>Más nuevo: <b id="dbgMax">—</b></div>
-  <div>Más antiguo: <b id="dbgMin">—</b></div>
-  <div style="margin-top:6px"><button id="dbgShow" style="cursor:pointer;padding:6px;border-radius:6px;border:none;background:#00aaff;color:#fff">Ver consola</button></div>
-</div>
-
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-const SHOW_DEBUG = true;
-let allData = [];
-let filteredData = [];
+const SHEET_URL='https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
+const SHOW_DEBUG=false;
+let allData=[],filteredData=[];
 
-function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function normText(s){ if(!s) return ''; return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+function safeParseJSON(s){try{return JSON.parse(s);}catch(e){return null;}}
+function escapeHtml(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'';}
+function normText(s){return s?String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^0-9a-zA-Z\s]/g,' ').replace(/\s+/g,' ').trim().toLowerCase():'';}
 
 function parseDatePrefer(obj){
   if(!obj) return null;
-  const candidates = [obj.published_at, obj.updated, obj.updated_at, obj.year];
-  for(let i=0;i<candidates.length;i++){
-    if(!candidates[i]) continue;
-    const t = Date.parse(candidates[i]);
-    if(!isNaN(t)) return t;
-  }
+  const c=[obj.published_at,obj.updated,obj.updated_at,obj.year];
+  for(let i=0;i<c.length;i++){if(!c[i])continue;const t=Date.parse(c[i]);if(!isNaN(t))return t;}
   return null;
 }
 
-function normalizeItem(raw){
-  var it = {};
-  it.raw = raw;
-  it.title = raw.title || raw.titulo || raw.name || '';
-  it.poster = raw.poster || raw.imagen || raw.poster_path || '';
-  it.overview = raw.overview || raw.descripcion || raw.description || '';
-  it.rating = raw.rating || raw.vote_average || '';
-  it.year = raw.year || '';
-  it.generos = raw.generos || raw.genres || '';
-  it.type = (function(t){ if(!t) return 'movie'; var s=String(t).toLowerCase(); if(s==='tv'||s==='series'||s==='serie') return 'series'; if(s==='movie'||s==='pelicula'||s==='película'||s==='film') return 'movie'; return s; })(raw.type||raw.tipo);
-  it.terabox = raw.terabox || raw.link || raw.enlace || '';
-  it.season_links = raw.season_links || raw.seasons || raw.seasonLinks || '';
-  it.published_ts = parseDatePrefer(raw);
-  it._index = normText([it.title,it.overview,it.generos,it.year].join(' '));
+function normalizeItem(r){
+  let it={};
+  it.raw=r;
+  it.title=r.title||r.titulo||r.name||'';
+  it.poster=r.poster||r.imagen||r.poster_path||'';
+  it.overview=r.overview||r.descripcion||r.description||'';
+  it.rating=r.rating||r.vote_average||'';
+  it.year=r.year||'';
+  it.generos=r.generos||r.genres||'';
+  it.type=(function(t){if(!t)return'movie';t=String(t).toLowerCase();if(['tv','series','serie'].includes(t))return'series';if(['movie','pelicula','película','film'].includes(t))return'movie';return t;})(r.type||r.tipo);
+  it.terabox=r.terabox||r.link||r.enlace||'';
+  it.season_links=r.season_links||r.seasons||r.seasonLinks||'';
+  it.published_ts=parseDatePrefer(r);
+  it._index=normText([it.title,it.overview,it.generos,it.year].join(' '));
   return it;
 }
 
-/* ✅ CORREGIDA: Buscar la primera temporada con link válido */
+/* ✅ Corregido: busca la primera temporada con link válido */
 function getFirstLink(it){
   if(it.season_links){
-    try{
-      const arr = typeof it.season_links === 'string' ? safeParseJSON(it.season_links) : it.season_links;
-      if(Array.isArray(arr)){
-        for(let s of arr){
-          if(s && s.link && s.link.trim() !== '') return s.link.trim();
-        }
+    const arr=typeof it.season_links==='string'?safeParseJSON(it.season_links):it.season_links;
+    if(Array.isArray(arr)){
+      for(let s of arr){
+        if(s && s.link && s.link.trim()!=='') return s.link.trim();
       }
-    }catch(e){}
+    }
   }
   if(it.terabox){
-    try{ var p=safeParseJSON(it.terabox); if(Array.isArray(p)){for(let s of p){if(s&&s.link&&s.link.trim()!=='') return s.link.trim();}} }catch(e){}
-    var m=(it.terabox||'').toString().match(/https?:\/\/[^\s"']+/); if(m) return m[0];
+    try{
+      const p=safeParseJSON(it.terabox);
+      if(Array.isArray(p)){
+        for(let s of p){if(s&&s.link&&s.link.trim()!=='')return s.link.trim();}
+      }
+    }catch(e){}
+    const m=(it.terabox||'').toString().match(/https?:\/\/[^\s"']+/);
+    if(m) return m[0];
     if(String(it.terabox).trim()) return String(it.terabox).trim();
   }
   return '#';
@@ -115,22 +107,21 @@ function getFirstLink(it){
 
 function normalizeLink(raw){
   if(!raw) return '#';
-  const s = String(raw).trim();
-  if(s.startsWith('http://') || s.startsWith('https://')) return s;
-  if(s === '#') return '#';
-  return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/, '');
+  const s=String(raw).trim();
+  if(s.startsWith('http://')||s.startsWith('https://')) return s;
+  if(s==='#') return '#';
+  return 'https://cinenube.github.io/CineNubeGallery/'+s.replace(/^\/+/,'');
 }
 
 function getSeasonButtonsHtml(item){
   if(!item.season_links) return '';
-  const parsed = safeParseJSON(item.season_links);
+  const parsed=safeParseJSON(item.season_links);
   if(!Array.isArray(parsed)) return '';
-  let html = '';
-  let hasAny = false;
+  let html='',hasAny=false;
   parsed.forEach(s=>{
-    if(!s||typeof s.season==='undefined') return;
+    if(!s||typeof s.season==='undefined')return;
     const link=s.link?normalizeLink(s.link):'';
-    if(link && link!=='#'){ hasAny=true; html+=` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`; }
+    if(link&&link!=='#'){hasAny=true;html+=` <a class="btn" href="${escapeHtml(link)}" target="_blank">📺 T${s.season}</a>`;}
     else html+=` <a class="btn disabled" href="javascript:void(0)">🔒 T${s.season}</a>`;
   });
   return hasAny?html:'';
@@ -148,27 +139,28 @@ async function loadGallery(){
 function renderGallery(list){
   const g=document.getElementById('gallery');
   g.innerHTML='';
-  if(!list||list.length===0){ g.innerHTML='<div class="empty">No hay resultados</div>'; return; }
+  if(!list||!list.length){g.innerHTML='<div class="empty">No hay resultados</div>';return;}
   const now=Date.now();
   list.forEach(it=>{
     const tipo=it.type==='series'?'series':'movie';
     const tipoTexto=tipo==='series'?'📺 Serie':'🎥 Película';
     const btnText=tipo==='series'?'📺 Ver temporada':'🎥 Ver película';
-    const posterUrl=(it.poster&&it.poster.indexOf('http')===0)?it.poster:'https://image.tmdb.org/t/p/w500'+(it.poster||'');
+    const poster=(it.poster&&it.poster.indexOf('http')===0)?it.poster:'https://image.tmdb.org/t/p/w500'+(it.poster||'');
     const primary=normalizeLink(getFirstLink(it));
-    const seasons=getSeasonButtonsHtml(it);
-    const hasPrimary=(primary&&primary!=='#')||seasons.trim()!=='';
+    const seasonHtml=getSeasonButtonsHtml(it);
+    const hasPrimary=(primary&&primary!=='#')||seasonHtml.trim()!=='';
     const isNew=it.published_ts?((now-it.published_ts)<=86400000):false;
+
     const div=document.createElement('div');
     div.className='item';
     div.innerHTML=`
-      <div class="thumb"><img src="${posterUrl}" alt="${escapeHtml(it.title)}"></div>
+      <div class="thumb"><img src="${poster}" alt="${escapeHtml(it.title)}"></div>
       <div class="content">
         <div class="title">${escapeHtml(it.title)}</div>
         <div class="overview">${escapeHtml(it.overview)}</div>
         <div class="meta">${escapeHtml(it.year||'')}</div>
-        ${ hasPrimary?`<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>`:`<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>` }
-        <div style="margin-top:8px">${seasons}</div>
+        ${hasPrimary?`<a class="btn" href="${escapeHtml(primary)}" target="_blank">${escapeHtml(btnText)}</a>`:`<a class="btn disabled" href="javascript:void(0)">Enlace no disponible</a>`}
+        <div style="margin-top:8px">${seasonHtml}</div>
       </div>
       <span class="tag">${escapeHtml(tipoTexto)}</span>
       ${isNew?'<span class="new">🆕 Nuevo</span>':''}
