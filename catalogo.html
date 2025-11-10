@@ -59,20 +59,18 @@
         const data = await res.json();
         if(!Array.isArray(data)){ document.getElementById('catalog').innerHTML = '<div class="empty">Respuesta inválida del WebApp.</div>'; return; }
 
-        // annot + sort by published_at/updated/year if present
-        const annotated = data.map(it => {
-          return {
-            raw: it,
-            title: it.title || it.titulo || it.name || 'Sin título',
-            poster: it.poster || it.imagen || '',
-            overview: it.overview || it.descripcion || '',
-            rating: it.rating || '',
-            year: it.year || '',
-            terabox: it.terabox || '',
-            season_links: it.season_links || '',
-            ts: (Date.parse(it.published_at) || Date.parse(it.updated) || Date.parse(it.updated_at) || Date.parse(it.year) || 0)
-          };
-        });
+        const annotated = data.map(it => ({
+          raw: it,
+          title: it.title || it.titulo || it.name || 'Sin título',
+          poster: it.poster || it.imagen || '',
+          overview: it.overview || it.descripcion || '',
+          rating: it.rating || '',
+          year: it.year || '',
+          terabox: it.terabox || '',
+          season_links: it.season_links || '',
+          ts: (Date.parse(it.published_at) || Date.parse(it.updated) || Date.parse(it.updated_at) || Date.parse(it.year) || 0)
+        }));
+
         const hasTs = annotated.some(x=>x.ts);
         const sorted = hasTs ? annotated.sort((a,b)=> b.ts - a.ts) : annotated.reverse();
 
@@ -102,7 +100,6 @@
           actions += `<a href="${href}" target="_blank">🎬 Ver</a>`;
         }
 
-        // seasons
         if(it.raw.season_links){
           try{
             const s = safeParseJSON(it.raw.season_links);
