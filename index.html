@@ -1,87 +1,115 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🍿 Estrenos Online</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CineNube Gallery</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #0d0d0d;
-    color: #fff;
-    text-align: center;
-    margin: 0;
-  }
-  h1 { background: #111; padding: 15px; margin: 0; }
-  .tabs { display: flex; justify-content: center; background: #1a1a1a; }
-  .tabs button {
-    flex: 1;
-    padding: 12px;
-    cursor: pointer;
-    background: #222;
-    border: none;
-    color: #fff;
-    font-weight: bold;
-  }
-  .tabs button.active { background: #e50914; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    padding: 15px;
-  }
-  .card {
-    background: #1a1a1a;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 10px #000;
-  }
-  .card img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-  }
-  .card h3 {
-    margin: 10px 0;
-    font-size: 16px;
-    color: #fff;
-  }
-  .card p { font-size: 14px; color: #ccc; padding: 0 10px 10px; }
-  a.link { display: block; padding: 8px; background: #e50914; color: #fff; text-decoration: none; border-radius: 0 0 10px 10px; }
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0e0e0e;color:#fff;margin:0;padding:0;overflow-x:hidden}
+  header{background:#e50914;padding:18px;text-align:center;font-size:24px;font-weight:700;color:#fff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+  .topbar{display:flex;gap:12px;align-items:center;justify-content:center;padding:10px;background:#1f1f1f;flex-wrap:wrap}
+  .search { width:320px; max-width:80%; padding:8px 12px;border-radius:8px;border:1px solid #2b2b2b;background:#0f0f0f;color:#fff }
+  nav{display:flex;justify-content:center;gap:14px;background:#1f1f1f;padding:10px 8px;font-weight:700;flex-wrap:wrap}
+  nav button{background:none;border:1px solid transparent;color:#fff;cursor:pointer;font-size:15px;padding:6px 10px;border-radius:6px;transition:all .18s}
+  nav button.active{border-color:rgba(229,9,20,.5);background:rgba(229,9,20,.03);color:#e50914}
+  nav button:hover{color:#e50914}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:18px}
+  .item{background:#1e1e1e;border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 0 10px rgba(0,0,0,0.6);transition:transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;height:460px}
+  .item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,0,0,.8)}
+  .thumb{height:300px;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .content{padding:10px 12px;display:flex;flex-direction:column;flex:1}
+  .title{color:#e50914;font-size:16px;margin:6px 0 4px;height:40px;overflow:hidden}
+  .overview{font-size:13px;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px}
+  .meta{font-size:12px;color:#99e6ff;margin-bottom:8px}
+  .btn{margin-top:auto;display:block;background:#e50914;color:#fff;text-decoration:none;padding:10px;border-radius:0 0 12px 12px;font-weight:700;text-align:center}
+  .btn.disabled{background:#333;cursor:default}
+  .tag{position:absolute;top:12px;left:12px;background:#141414;color:#e50914;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700}
+  .empty{padding:40px;text-align:center;color:#aaa}
 </style>
 </head>
 <body>
-  <h1>🍿 Estrenos Online</h1>
-  <div class="tabs">
-    <button class="active" onclick="showTab('todo')">Todo</button>
-    <button onclick="showTab('movie')">Películas</button>
-    <button onclick="showTab('series')">Series</button>
-  </div>
-  <div id="contenido" class="grid"></div>
+<header>🎬 CineNube Gallery</header>
 
-  <script>
-    const data = <?= JSON.stringify(data) ?>;
-    function showTab(tab) {
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-      document.querySelector(`.tabs button[onclick="showTab('${tab}')"]`).classList.add('active');
+<div class="topbar">
+  <input id="search" class="search" placeholder="Buscar título, género, año... (acentos ignorados)" />
+</div>
 
-      const container = document.getElementById('contenido');
-      container.innerHTML = '';
-      const filtrados = tab === 'todo' ? data : data.filter(d => (d.type || '').toLowerCase() === tab);
-      filtrados.forEach(item => {
-        if (!item.title) return;
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <img src="${item.poster || 'https://via.placeholder.com/200x300'}" alt="${item.title}">
-          <h3>${item.title}</h3>
-          <p>${item.overview || ''}</p>
-          <a class="link" href="${item.terabox || '#'}" target="_blank">Ver ahora</a>
-        `;
-        container.appendChild(card);
-      });
-    }
-    showTab('todo');
-  </script>
+<nav id="nav">
+  <button data-filter="all" class="active">Todos</button>
+  <button data-filter="movie">Películas</button>
+  <button data-filter="series">Series</button>
+</nav>
+
+<div id="gallery"></div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycby4xMzVNgE7ZWLx69T6FmqB3_58Qc60lsGS1eC0D9QU/dev';
+let allData = [];
+let filteredData = [];
+
+function safeParseJSON(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
+function normalizeLink(raw){ if(!raw) return '#'; const s=String(raw).trim(); if(s.startsWith('http')) return s; return '#'; }
+
+async function loadGallery(){
+  try{
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    allData = data.slice();
+    filteredData = allData.slice();
+    renderGallery(filteredData);
+  }catch(err){
+    document.getElementById('gallery').innerHTML='<div class="empty">Error cargando datos.</div>';
+  }
+}
+
+function renderGallery(list){
+  const g = document.getElementById('gallery'); g.innerHTML='';
+  if(!list.length){ g.innerHTML='<div class="empty">No hay resultados</div>'; return; }
+  const now = Date.now();
+  list.forEach(it=>{
+    const isNew = (now - Date.parse(it.published_at||0)) <= 1000*60*60*24*7;
+    const primary = normalizeLink(it.terabox);
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerHTML = `
+      <div class="thumb"><img src="${it.poster||'https://via.placeholder.com/500x750?text=Sin+imagen'}" alt="${it.title}"></div>
+      <div class="content">
+        <div class="title">${it.title}</div>
+        <div class="overview">${it.overview||''}</div>
+        <div class="meta">${it.year||''}</div>
+        <a class="btn ${primary==="#"?'disabled':''}" href="${primary}" target="_blank">${it.type==='series'?'📺 Ver Serie':'🎥 Ver Película'}</a>
+      </div>
+      <span class="tag">${it.type==='series'?'Series':'Película'}</span>
+      ${isNew?'<span class="new">🆕 Nuevo</span>':''}
+    `;
+    g.appendChild(div);
+  });
+}
+
+document.getElementById('search').addEventListener('input',()=>{ applyFilters(); });
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  applyFilters();
+}));
+
+function applyFilters(){
+  const q = document.getElementById('search').value.toLowerCase();
+  const activeBtn = document.querySelector('#nav button.active');
+  const filter = activeBtn?activeBtn.getAttribute('data-filter'):'all';
+  filteredData = allData.filter(it=>{
+    if(filter==='movie' && it.type!=='movie') return false;
+    if(filter==='series' && it.type!=='series') return false;
+    if(!q) return true;
+    const hay = (it.title+' '+it.overview+' '+(it.generos||'')+' '+it.year).toLowerCase();
+    return q.split(' ').every(tok=>hay.includes(tok));
+  });
+  renderGallery(filteredData);
+}
+
+loadGallery();
+</script>
 </body>
 </html>
