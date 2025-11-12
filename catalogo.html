@@ -1,135 +1,105 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Catálogo | CineNube</title>
-<style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; }
-  header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#00aaff; font-weight:bold; }
-  #catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); padding:20px; }
-  .item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; transition:transform 0.2s; display:flex;flex-direction:column;height:420px; }
-  .item:hover { transform:scale(1.05); }
-  .item img { width:100%; height:260px; object-fit:cover; display:block; border-bottom:3px solid #00aaff }
-  .item .content { padding:10px; display:flex; flex-direction:column; flex:1; }
-  .item h3 { margin:0 0 6px 0; font-size:17px; color:#00aaff; }
-  .item p { font-size:14px; color:#ccc; flex:1; margin:0 0 8px 0; overflow:hidden; }
-  .item a { display:inline-block; background:#00aaff; padding:8px 10px; color:white; text-decoration:none; border-radius:8px; font-weight:700; }
-  .item .meta { color:#9aaebf; font-size:13px; margin-bottom:8px; }
-  .empty{padding:40px;text-align:center;color:#aaa}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0e0e0e;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      background: #111;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .item {
+      background: #1a1a1a;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+    }
+    .item:hover { transform: scale(1.03); }
+    .poster {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+    }
+    .info {
+      padding: 12px;
+    }
+    .title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    .meta {
+      color: #ccc;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    .desc {
+      font-size: 0.85rem;
+      color: #aaa;
+      height: 60px;
+      overflow: hidden;
+    }
+    a.button {
+      display: inline-block;
+      margin-top: 8px;
+      background: #e50914;
+      color: #fff;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-  <header>Catálogo CineNube</header>
-  <div id="catalog"></div>
+  <header>🎬 Catálogo de Estrenos</header>
+  <div class="grid" id="catalogo"></div>
 
   <script>
-    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec';
-
-    function safeParseJSON(s){ try{return JSON.parse(s);}catch(e){return null;} }
-    function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    function normalizeLink(raw){
-      if(!raw) return '#';
-      const s=String(raw).trim();
-      if(s.startsWith('http://') || s.startsWith('https://')) return s;
-      if(s === '#') return '#';
-      return 'https://cinenube.github.io/CineNubeGallery/' + s.replace(/^\/+/,'');
-    }
-
-    function getPrimaryLink(it){
-      if(it.terabox){
-        try{ const p = safeParseJSON(it.terabox); if(Array.isArray(p) && p[0] && p[0].link) return p[0].link; }catch(e){}
-        const m = (it.terabox||'').match(/https?:\/\/[^\s"']+/);
-        if(m) return m[0];
-        if(String(it.terabox).trim()) return String(it.terabox).trim();
-      }
-      if(it.season_links){
-        try{ const s = safeParseJSON(it.season_links); if(Array.isArray(s) && s[0] && s[0].link) return s[0].link; }catch(e){}
-        const mm = (it.season_links||'').match(/https?:\/\/[^\s"']+/);
-        if(mm) return mm[0];
-        if(String(it.season_links).trim()) return String(it.season_links).trim();
-      }
-      return '#';
-    }
-
-    async function loadCatalog() {
+    async function cargarCatalogo() {
       try {
-        const res = await fetch(SHEET_URL);
+        const res = await fetch("https://script.google.com/macros/s/AKfycbz0AxlhwQ5-8hnnRMnhP8S-i0xQoUg3iWoEYXbT5o_ltCpR7mAIZqPaHqccFzkC34cLbw/exec?action=getCatalog");
         const data = await res.json();
-        if(!Array.isArray(data)){ document.getElementById('catalog').innerHTML = '<div class="empty">Respuesta inválida del WebApp.</div>'; return; }
+        const contenedor = document.getElementById("catalogo");
 
-        const annotated = data.map(it => ({
-          raw: it,
-          title: it.title || it.titulo || it.name || 'Sin título',
-          poster: it.poster || it.imagen || '',
-          overview: it.overview || it.descripcion || '',
-          rating: it.rating || '',
-          year: it.year || '',
-          terabox: it.terabox || '',
-          season_links: it.season_links || '',
-          ts: (Date.parse(it.published_at) || Date.parse(it.updated) || Date.parse(it.updated_at) || Date.parse(it.year) || 0)
-        }));
-
-        const hasTs = annotated.some(x=>x.ts);
-        const sorted = hasTs ? annotated.sort((a,b)=> b.ts - a.ts) : annotated.reverse();
-
-        renderCatalog(sorted);
-      } catch(e){
-        console.error(e);
-        document.getElementById('catalog').innerHTML = '<div class="empty">Error cargando el catálogo</div>';
+        data.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <img class="poster" src="${item.poster}" alt="${item.title}">
+            <div class="info">
+              <div class="title">${item.title}</div>
+              <div class="meta">⭐ ${item.rating} | ${item.year}</div>
+              <div class="desc">${item.overview}</div>
+              ${item.terabox ? `<a href="${item.terabox}" class="button" target="_blank">Ver ahora</a>` : ""}
+            </div>
+          `;
+          contenedor.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Error al cargar catálogo:", err);
       }
     }
 
-    function renderCatalog(list){
-      const catalog = document.getElementById('catalog');
-      catalog.innerHTML = '';
-      if(!list || list.length === 0){ catalog.innerHTML = '<div class="empty">No hay resultados</div>'; return; }
-
-      list.forEach(it=>{
-        const title = it.title;
-        const poster = it.poster;
-        const posterUrl = (poster && poster.indexOf('http') === 0) ? poster : (poster ? 'https://image.tmdb.org/t/p/w500' + poster : '');
-        const rating = it.rating;
-        const year = it.year;
-
-        let actions = '';
-        const primary = getPrimaryLink(it.raw);
-        const href = normalizeLink(primary);
-        if(href && href !== '#'){
-          actions += `<a href="${href}" target="_blank">🎬 Ver</a>`;
-        }
-
-        if(it.raw.season_links){
-          try{
-            const s = safeParseJSON(it.raw.season_links);
-            if(Array.isArray(s)){
-              s.forEach(se=>{
-                if(se && se.link){
-                  const href2 = normalizeLink(se.link);
-                  actions += ` <a href="${href2}" target="_blank">📺 T${se.season}</a>`;
-                }
-              });
-            }
-          }catch(e){}
-        }
-
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <div class="thumb"><img src="${encodeURI(posterUrl || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22900%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23111%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23aaa%22 font-size=%2220%22 font-family=%22Arial%22 text-anchor=%22middle%22>Sin imagen</text></svg>')}" alt="${escapeHtml(title)}"></div>
-          <div class="content">
-            <h3>${escapeHtml(title)}</h3>
-            ${year ? `<p class="meta">${escapeHtml(year)}</p>` : ''}
-            <p>${escapeHtml(it.overview||'')}</p>
-            <div style="margin-top:auto">${actions}</div>
-          </div>
-        `;
-        catalog.appendChild(div);
-      });
-    }
-
-    loadCatalog();
+    cargarCatalogo();
   </script>
 </body>
 </html>
