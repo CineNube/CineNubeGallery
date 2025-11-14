@@ -1,0 +1,31 @@
+[
+  {
+    "TMDB_ID": "123456",
+    "type": "series",
+    "title": "Mi Serie de Prueba",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/poster.jpg",
+    "overview": "Serie de prueba para ver botones de temporada.",
+    "rating": "8.5",
+    "year": "2025",
+    "generos": "Drama, Misterio",
+    "season_links": [
+      { "season": 1, "link": "https://1024terabox.com/s/abc123" },
+      { "season": 2, "link": "https://1024terabox.com/s/def456" }
+    ],
+    "terabox": "",
+    "published_ts": 0
+  },
+  {
+    "TMDB_ID": "654321",
+    "type": "movie",
+    "title": "Película de Prueba",
+    "poster": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/poster_movie.jpg",
+    "overview": "Película de prueba para ver enlace directo.",
+    "rating": "7.9",
+    "year": "2025",
+    "generos": "Acción, Aventura",
+    "season_links": [],
+    "terabox": "https://1024terabox.com/s/mov123",
+    "published_ts": 0
+  }
+]
