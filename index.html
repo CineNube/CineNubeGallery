@@ -42,7 +42,23 @@ nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
 
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
-let allItems = [], filteredItems = [];
+
+let allItems = [];
+let filteredItems = [];
+
+function parseSeasonLinks(str){
+  if(!str) return [];
+  let seasons=[];
+  str = str.replace(/\s+/g,'');
+  let parts = str.split(/[;,]/);
+  parts.forEach(p=>{
+    let match = p.match(/T?(\d+)=((https?:\/\/)[^\s]+)/i);
+    if(match){
+      seasons.push({season: parseInt(match[1]), link: match[2]});
+    }
+  });
+  return seasons;
+}
 
 async function fetchItems(){
   try{
@@ -52,7 +68,7 @@ async function fetchItems(){
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
   }catch(err){
-    console.error("Error:",err);
+    console.error("Error cargando catálogo:",err);
     document.getElementById('catalog').innerHTML='<p style="text-align:center;color:#aaa;">Error cargando catálogo</p>';
   }
 }
@@ -76,19 +92,15 @@ function renderCatalog(list){
     `;
 
     if(it.type==='series' && it.season_links){
-      const seasons = it.season_links.split(';').map(s=>{
-        const p = s.split('='); return p.length===2?{season:p[0].trim(),link:p[1].trim()}:null;
-      }).filter(x=>x!==null);
-
-      if(seasons.length){
-        seasons.forEach(s=>{
-          if(s.link) contentHTML += `<a class="btn-season" href="${s.link}" target="_blank">${s.season}</a>`;
-        });
-      } else contentHTML += '<span class="btn disabled">Sin temporadas disponibles</span>';
-
+      let seasons = parseSeasonLinks(it.season_links);
+      let seasonButtons = '';
+      seasons.forEach(s=>{
+        if(s.link) seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+      });
+      if(!seasonButtons) seasonButtons = '<span class="btn disabled">Sin temporadas disponibles</span>';
+      contentHTML += seasonButtons;
     } else if(it.type==='movie'){
-      const primary = it.terabox||'#';
-      contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
+      contentHTML += `<a class="btn ${it.terabox?'':'disabled'}" href="${it.terabox||'#'}" target="_blank">🎥 Ver Película</a>`;
     }
 
     contentHTML += '</div>';
@@ -119,7 +131,8 @@ document.querySelectorAll('nav button').forEach(b=>{
     applyFilters();
   });
 });
-document.getElementById('search').addEventListener('input',()=>applyFilters());
+
+document.getElementById('search').addEventListener('input',()=>{ applyFilters(); });
 
 fetchItems();
 </script>
