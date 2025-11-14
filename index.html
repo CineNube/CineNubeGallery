@@ -21,7 +21,7 @@ nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
 .title{font-size:1em;font-weight:bold;color:#e50914;margin:6px 0 4px;overflow:hidden;height:40px;}
 .overview{font-size:0.85em;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px;}
 .meta{font-size:0.8em;color:#999;margin-bottom:6px;}
-.btn{margin-top:auto;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
+.btn{margin-top:3px;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
 .btn.disabled{background:#333;cursor:default;}
 .btn-season{margin:3px 3px 0 0;background:#ff2d55;color:#fff;padding:4px 6px;border-radius:5px;font-size:0.8em;display:inline-block;text-decoration:none;}
 .tag{position:absolute;top:12px;left:12px;background:#141414;color:#e50914;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
@@ -50,6 +50,7 @@ async function fetchItems(){
   try{
     const res = await fetch(WEBAPP_URL);
     let data = await res.json();
+    // Orden descendente por fecha publicada
     allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
@@ -64,12 +65,10 @@ function renderCatalog(list){
   const catalog = document.getElementById('catalog');
   catalog.innerHTML='';
   if(!list.length){ catalog.innerHTML='<p style="text-align:center;color:#aaa;">No hay resultados</p>'; return; }
-
   list.forEach(it=>{
     const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
     const div=document.createElement('div');
     div.className='item';
-    
     let contentHTML = `
       <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
       <div class="content">
@@ -77,33 +76,34 @@ function renderCatalog(list){
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
-    
-    if(it.type==='series'){
+
+    if(it.type==='series' && it.season_links){
       let seasons = [];
-      try {
+      try{
         if(typeof it.season_links === 'string'){
-          // limpiar saltos de línea y comillas dobles dobles
-          let cleanStr = it.season_links.replace(/\n/g,'').replace(/""/g,'"').trim();
-          if(cleanStr) seasons = JSON.parse(cleanStr);
+          // Limpiar comillas dobles dobles, saltos de línea y espacios
+          let cleaned = it.season_links.replace(/\n/g,'').trim();
+          if(cleaned.startsWith('"') && cleaned.endsWith('"')){
+            cleaned = cleaned.slice(1,-1);
+          }
+          if(cleaned) seasons = JSON.parse(cleaned);
         } else if(Array.isArray(it.season_links)){
           seasons = it.season_links;
         }
-      } catch(e){ seasons = []; }
+      }catch(e){ seasons = []; }
 
-      let hasButton = false;
+      // Crear botones solo si hay link
+      let seasonButtons = '';
       seasons.forEach(s=>{
         if(s && s.link && s.link.trim()!==''){
-          hasButton = true;
-          contentHTML += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+          seasonButtons += `<a class="btn btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
         }
       });
-      if(!hasButton){
-        contentHTML += `<span class="btn disabled">Sin temporadas disponibles</span>`;
-      }
-
+      if(!seasonButtons) seasonButtons = '<span class="btn disabled">Sin temporadas disponibles</span>';
+      contentHTML += seasonButtons;
     } else if(it.type==='movie'){
-      const primaryLink = it.terabox && it.terabox.trim()!=='' ? it.terabox : '#';
-      contentHTML += `<a class="btn ${primaryLink==='#'?'disabled':''}" href="${primaryLink}" target="_blank">🎥 Ver Película</a>`;
+      const primary = it.terabox||'#';
+      contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
     }
 
     contentHTML += '</div>'; // cierre content
