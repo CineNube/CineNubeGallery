@@ -76,18 +76,23 @@ function renderCatalog(list){
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
-    if(it.type==='movie'){
-      let primary = it.terabox||'#';
-      contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
-    } else if(it.type==='series' && it.season_links){
-      let seasons = [];
-      try{ seasons = JSON.parse(it.season_links); }catch(e){ seasons = []; }
-      let seasonButtons = '';
-      seasons.forEach(s=>{
-        if(s.link && s.link.trim()!=='') seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
-      });
-      contentHTML += seasonButtons || `<span class="btn disabled">Sin temporadas disponibles</span>`;
+    if(it.type==='series' && it.season_links){
+  let seasons = [];
+  // Manejo robusto del JSON
+  if(typeof it.season_links === 'string'){
+    try{ seasons = JSON.parse(it.season_links); }catch(e){ seasons = []; }
+  } else if(Array.isArray(it.season_links)){
+    seasons = it.season_links;
+  }
+
+  let seasonButtons = '';
+  seasons.forEach(s=>{
+    if(s && s.link && s.link.trim() !== ''){
+      seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
     }
+  });
+  contentHTML += seasonButtons || `<span class="btn disabled">Sin temporadas disponibles</span>`;
+}
     contentHTML += '</div>'; // cierre content
     div.innerHTML = contentHTML;
     div.innerHTML += `<span class="tag">${it.type==='series'?'Series':'Película'}</span>${isNew?'<span class="new">🆕 Nuevo</span>':''}`;
