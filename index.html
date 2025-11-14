@@ -76,23 +76,33 @@ function renderCatalog(list){
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
-    if(it.type==='series' && it.season_links){
+   if(it.type==='series' && it.season_links){
   let seasons = [];
-  // Manejo robusto del JSON
+  // Intentar parsear robustamente
   if(typeof it.season_links === 'string'){
-    try{ seasons = JSON.parse(it.season_links); }catch(e){ seasons = []; }
+    try {
+      // Limpiar comillas dobles dobles y espacios
+      const cleaned = it.season_links.replace(/\n/g,'').trim();
+      if(cleaned && cleaned!=='""'){
+        seasons = JSON.parse(cleaned);
+        if(!Array.isArray(seasons)) seasons = [];
+      }
+    } catch(e){
+      seasons = [];
+    }
   } else if(Array.isArray(it.season_links)){
     seasons = it.season_links;
   }
 
   let seasonButtons = '';
   seasons.forEach(s=>{
-    if(s && s.link && s.link.trim() !== ''){
-      seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+    if(s && s.link && s.link.trim()!==''){
+      seasonButtons += `<a class="btn" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
     }
   });
   contentHTML += seasonButtons || `<span class="btn disabled">Sin temporadas disponibles</span>`;
 }
+
     contentHTML += '</div>'; // cierre content
     div.innerHTML = contentHTML;
     div.innerHTML += `<span class="tag">${it.type==='series'?'Series':'Película'}</span>${isNew?'<span class="new">🆕 Nuevo</span>':''}`;
