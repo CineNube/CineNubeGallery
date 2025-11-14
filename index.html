@@ -46,22 +46,25 @@ const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRg
 let allItems = [];
 let filteredItems = [];
 
-// Parse robusto de season_links
-function parseSeasons(seasonData){
-  let seasons = [];
-  if(!seasonData) return seasons;
+// Función definitiva para obtener array de temporadas
+function parseSeasons(raw){
+  if(!raw) return [];
+  let arr = [];
+  // Si ya es array real
+  if(Array.isArray(raw)) return raw;
   try{
-    let s = seasonData.toString().trim();
-    // eliminar dobles comillas externas
+    let s = raw.toString().trim();
+    // Limpiar dobles comillas externas
     if(s.startsWith('"') && s.endsWith('"')) s = s.slice(1,-1);
-    // eliminar doble corchete externo [[ ... ]]
+    // Limpiar doble corchete externo
     if(s.startsWith('[[') && s.endsWith(']]')) s = s.slice(1,-1);
-    // limpiar escapes de comillas
+    // Limpiar escapes de comillas
     s = s.replace(/\\"/g,'"');
-    seasons = JSON.parse(s);
-    if(!Array.isArray(seasons)) seasons = [];
-  }catch(e){ seasons = []; }
-  return seasons;
+    // Parsear JSON
+    arr = JSON.parse(s);
+    if(!Array.isArray(arr)) arr=[];
+  }catch(e){ arr=[]; }
+  return arr;
 }
 
 async function fetchItems(){
@@ -98,17 +101,17 @@ function renderCatalog(list){
 
     if(it.type==='series'){
       const seasons = parseSeasons(it.season_links);
-      let seasonButtons = '';
+      let buttons = '';
       seasons.forEach(s=>{
         if(s && s.link && s.link.trim()!==''){
-          seasonButtons += `<a class="btn btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+          buttons += `<a class="btn btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
         }
       });
-      if(!seasonButtons) seasonButtons='<span class="btn disabled">Sin temporadas disponibles</span>';
-      contentHTML += seasonButtons;
+      if(!buttons) buttons='<span class="btn disabled">Sin temporadas disponibles</span>';
+      contentHTML += buttons;
     } else if(it.type==='movie'){
-      const primary = it.terabox||'#';
-      contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
+      const link = it.terabox||'#';
+      contentHTML += `<a class="btn ${link==='#'?'disabled':''}" href="${link}" target="_blank">🎥 Ver Película</a>`;
     }
 
     contentHTML += '</div>';
