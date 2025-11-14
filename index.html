@@ -21,8 +21,9 @@ nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
 .title{font-size:1em;font-weight:bold;color:#e50914;margin:6px 0 4px;overflow:hidden;height:40px;}
 .overview{font-size:0.85em;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px;}
 .meta{font-size:0.8em;color:#999;margin-bottom:6px;}
-.btn{margin-top:4px;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
+.btn{margin-top:auto;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
 .btn.disabled{background:#333;cursor:default;}
+.btn-season{margin:3px 3px 0 0;background:#ff2d55;color:#fff;padding:4px 6px;border-radius:5px;font-size:0.8em;display:inline-block;text-decoration:none;}
 .tag{position:absolute;top:12px;left:12px;background:#141414;color:#e50914;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
 .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
 </style>
@@ -48,9 +49,9 @@ let filteredItems = [];
 async function fetchItems(){
   try{
     const res = await fetch(WEBAPP_URL);
-    allItems = await res.json();
+    let data = await res.json();
     // Orden descendente por fecha publicada
-    allItems.sort((a,b)=>b.published_ts - a.published_ts);
+    allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
   }catch(err){
@@ -64,43 +65,32 @@ function renderCatalog(list){
   const catalog = document.getElementById('catalog');
   catalog.innerHTML='';
   if(!list.length){ catalog.innerHTML='<p style="text-align:center;color:#aaa;">No hay resultados</p>'; return; }
-  
   list.forEach(it=>{
     const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
-    
-    // Crear botones
-    let buttonsHTML = '';
-    if(it.type === 'movie') {
-      const link = it.terabox ? it.terabox.trim() : '';
-      buttonsHTML = `<a class="btn ${link?'':'disabled'}" ${link?`href="${link}" target="_blank"`:''}>🎥 Ver Película</a>`;
-    } else if(it.type === 'series' && it.season_links) {
-      try {
-        const seasons = JSON.parse(it.season_links);
-        seasons.forEach(s => {
-          if(s.link && s.link.trim() !== '') {
-            buttonsHTML += `<a class="btn" href="${s.link.trim()}" target="_blank">📺 Ver Temporada ${s.season}</a>`;
-          }
-        });
-        if(!buttonsHTML) buttonsHTML = `<a class="btn disabled">📺 No disponible</a>`;
-      } catch(e) {
-        console.error('Error parsing season_links', e);
-        buttonsHTML = `<a class="btn disabled">📺 No disponible</a>`;
-      }
-    }
-
     const div=document.createElement('div');
     div.className='item';
-    div.innerHTML=`
+    let contentHTML = `
       <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
       <div class="content">
         <div class="title">${it.title}</div>
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
-        ${buttonsHTML}
-      </div>
-      <span class="tag">${it.type==='series'?'Series':'Película'}</span>
-      ${isNew?'<span class="new">🆕 Nuevo</span>':''}
     `;
+    if(it.type==='movie'){
+      let primary = it.terabox||'#';
+      contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
+    } else if(it.type==='series' && it.season_links){
+      let seasons = [];
+      try{ seasons = JSON.parse(it.season_links); }catch(e){ seasons = []; }
+      let seasonButtons = '';
+      seasons.forEach(s=>{
+        if(s.link && s.link.trim()!=='') seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+      });
+      contentHTML += seasonButtons || `<span class="btn disabled">Sin temporadas disponibles</span>`;
+    }
+    contentHTML += '</div>'; // cierre content
+    div.innerHTML = contentHTML;
+    div.innerHTML += `<span class="tag">${it.type==='series'?'Series':'Película'}</span>${isNew?'<span class="new">🆕 Nuevo</span>':''}`;
     catalog.appendChild(div);
   });
 }
