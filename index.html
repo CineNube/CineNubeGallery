@@ -1,140 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎬 CineNube Gallery</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CineNube</title>
 <style>
-body{margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;background:#141414;color:#fff;}
-header{background:#e50914;padding:20px;text-align:center;font-size:2em;font-weight:bold;color:white;letter-spacing:1px;}
-.topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:10px;background:#1f1f1f;}
-.search{padding:8px 12px;border-radius:6px;border:none;width:320px;max-width:90%;font-size:1em;}
-nav{display:flex;justify-content:center;gap:12px;padding:12px;background:#1f1f1f;flex-wrap:wrap;}
-nav button{background:none;border:1px solid transparent;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:700;transition:.2s;}
-nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:20px;}
-.item{background:#1e1e1e;border-radius:10px;overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;height:auto;position:relative;}
-.item:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,0,0,.8);}
-.thumb{height:300px;overflow:hidden;}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-.content{padding:10px;display:flex;flex-direction:column;flex:1;}
-.title{font-size:1em;font-weight:bold;color:#e50914;margin:6px 0 4px;overflow:hidden;height:40px;}
-.overview{font-size:0.85em;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px;}
-.meta{font-size:0.8em;color:#999;margin-bottom:6px;}
-.btn{margin-top:3px;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
-.btn.disabled{background:#333;cursor:default;}
-.btn-season{margin:3px 3px 0 0;background:#ff2d55;color:#fff;padding:4px 6px;border-radius:5px;font-size:0.8em;display:inline-block;text-decoration:none;}
-.tag{position:absolute;top:12px;left:12px;background:#141414;color:#e50914;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
-.new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
+body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; padding:0; }
+.container { max-width:1200px; margin:auto; padding:20px; }
+.item { background:#1e1e1e; padding:15px; margin-bottom:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); }
+.item img { float:left; width:120px; height:auto; margin-right:15px; border-radius:5px; }
+.item h2 { margin:0 0 5px; }
+.item p { margin:5px 0; }
+.button { display:inline-block; padding:5px 10px; background:#ff4500; color:#fff; border:none; border-radius:5px; margin:3px 3px 3px 0; cursor:pointer; text-decoration:none; }
+.clearfix::after { content:""; clear:both; display:table; }
 </style>
 </head>
 <body>
-<header>🎬 CineNube Gallery</header>
-<div class="topbar">
-  <input id="search" class="search" placeholder="Buscar título, género, año..." />
-</div>
-<nav>
-  <button data-filter="all" class="active">Todos</button>
-  <button data-filter="movie">Películas</button>
-  <button data-filter="series">Series</button>
-</nav>
-<div class="grid" id="catalog">Cargando catálogo...</div>
+<div class="container" id="lista"></div>
 
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
 
-let allItems = [];
-let filteredItems = [];
-
-function parseSeasonLinks(str){
-  if(!str) return [];
-  let seasons=[];
-  str = str.replace(/\s+/g,'');
-  let parts = str.split(/[;,]/);
-  parts.forEach(p=>{
-    let match = p.match(/T?(\d+)=((https?:\/\/)[^\s]+)/i);
-    if(match){
-      seasons.push({season: parseInt(match[1]), link: match[2]});
-    }
-  });
+function parseSeasons(raw){
+  if(!raw) return [];
+  raw = raw.toString().trim();
+  let seasons = [];
+  if(raw.indexOf('T')===0){
+    let parts = raw.split(';');
+    parts.forEach(p=>{
+      let m = p.match(/^T(\d+)\s*=?\s*(.*)$/);
+      if(m) seasons.push({season:m[1], link:m[2]});
+    });
+  } else if(raw.indexOf(',')!==-1){
+    let parts = raw.split(',');
+    parts.forEach((p,i)=> seasons.push({season:i+1, link:p.trim()}));
+  } else {
+    seasons.push({season:1, link:raw});
+  }
   return seasons;
 }
 
-async function fetchItems(){
-  try{
-    const res = await fetch(WEBAPP_URL);
-    let data = await res.json();
-    allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
-    filteredItems = allItems.slice();
-    renderCatalog(filteredItems);
-  }catch(err){
-    console.error("Error cargando catálogo:",err);
-    document.getElementById('catalog').innerHTML='<p style="text-align:center;color:#aaa;">Error cargando catálogo</p>';
-  }
-}
-
-function renderCatalog(list){
-  const now = Date.now();
-  const catalog = document.getElementById('catalog');
-  catalog.innerHTML='';
-  if(!list.length){ catalog.innerHTML='<p style="text-align:center;color:#aaa;">No hay resultados</p>'; return; }
-
-  list.forEach(it=>{
-    const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
-    const div=document.createElement('div');
-    div.className='item';
-    let contentHTML = `
-      <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
-      <div class="content">
-        <div class="title">${it.title}</div>
-        <div class="overview">${it.overview||''}</div>
-        <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
-    `;
-
-    if(it.type==='series' && it.season_links){
-      let seasons = parseSeasonLinks(it.season_links);
-      let seasonButtons = '';
-      seasons.forEach(s=>{
-        if(s.link) seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+function cargarItems(){
+  fetch(WEBAPP_URL)
+    .then(res=>res.json())
+    .then(data=>{
+      const container = document.getElementById('lista');
+      container.innerHTML='';
+      data.forEach(item=>{
+        const div = document.createElement('div');
+        div.className='item clearfix';
+        let html='';
+        html+='<img src="'+item.poster+'" alt="'+item.title+'">';
+        html+='<h2>'+item.title+'</h2>';
+        html+='<p>'+item.overview+'</p>';
+        html+='<p>⭐ '+(item.rating||'N/A')+' | 📅 '+(item.year||'')+'</p>';
+        if(item.type.toLowerCase()==='series'){
+          const seasons = parseSeasons(item.season_links);
+          if(seasons.length>0){
+            seasons.forEach(s=>{
+              if(s.link) html+='<a class="button" href="'+s.link+'" target="_blank">Temporada '+s.season+'</a>';
+            });
+          } else {
+            html+='<p>Sin temporadas disponibles</p>';
+          }
+        }
+        if(item.type.toLowerCase()==='movie' && item.terabox){
+          let linkMatch = item.terabox.toString().match(/https?:\/\/[^\s"]+/);
+          if(linkMatch) html+='<a class="button" href="'+linkMatch[0]+'" target="_blank">Ver ahora</a>';
+        }
+        div.innerHTML=html;
+        container.appendChild(div);
       });
-      if(!seasonButtons) seasonButtons = '<span class="btn disabled">Sin temporadas disponibles</span>';
-      contentHTML += seasonButtons;
-    } else if(it.type==='movie'){
-      contentHTML += `<a class="btn ${it.terabox?'':'disabled'}" href="${it.terabox||'#'}" target="_blank">🎥 Ver Película</a>`;
-    }
-
-    contentHTML += '</div>';
-    div.innerHTML = contentHTML;
-    div.innerHTML += `<span class="tag">${it.type==='series'?'Series':'Película'}</span>${isNew?'<span class="new">🆕 Nuevo</span>':''}`;
-    catalog.appendChild(div);
-  });
+    })
+    .catch(err=>console.error('Error cargando items:',err));
 }
 
-function applyFilters(){
-  const q=document.getElementById('search').value.toLowerCase();
-  const activeBtn=document.querySelector('nav button.active');
-  const filter=activeBtn?activeBtn.getAttribute('data-filter'):'all';
-  filteredItems=allItems.filter(it=>{
-    if(filter==='movie' && it.type!=='movie') return false;
-    if(filter==='series' && it.type!=='series') return false;
-    if(!q) return true;
-    const hay=(it.title+' '+it.overview+' '+(it.generos||'')+' '+it.year).toLowerCase();
-    return q.split(' ').every(tok=>hay.includes(tok));
-  });
-  renderCatalog(filteredItems);
-}
-
-document.querySelectorAll('nav button').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    applyFilters();
-  });
-});
-
-document.getElementById('search').addEventListener('input',()=>{ applyFilters(); });
-
-fetchItems();
+cargarItems();
 </script>
 </body>
 </html>
