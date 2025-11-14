@@ -42,9 +42,7 @@ nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
 
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
-
-let allItems = [];
-let filteredItems = [];
+let allItems = [], filteredItems = [];
 
 async function fetchItems(){
   try{
@@ -54,7 +52,7 @@ async function fetchItems(){
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
   }catch(err){
-    console.error("Error cargando catálogo:",err);
+    console.error("Error:",err);
     document.getElementById('catalog').innerHTML='<p style="text-align:center;color:#aaa;">Error cargando catálogo</p>';
   }
 }
@@ -66,8 +64,8 @@ function renderCatalog(list){
   if(!list.length){ catalog.innerHTML='<p style="text-align:center;color:#aaa;">No hay resultados</p>'; return; }
 
   list.forEach(it=>{
-    const isNew = (now - it.published_ts) <= (1000*60*60*24*7);
-    const div = document.createElement('div');
+    const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
+    const div=document.createElement('div');
     div.className='item';
     let contentHTML = `
       <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
@@ -77,23 +75,23 @@ function renderCatalog(list){
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
 
-    if(it.type==='series'){
-      let seasonButtons = '';
-      if(Array.isArray(it.season_links) && it.season_links.length){
-        it.season_links.forEach(s=>{
-          if(s && s.link && s.link.trim()!==''){
-            seasonButtons += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
-          }
+    if(it.type==='series' && it.season_links){
+      const seasons = it.season_links.split(';').map(s=>{
+        const p = s.split('='); return p.length===2?{season:p[0].trim(),link:p[1].trim()}:null;
+      }).filter(x=>x!==null);
+
+      if(seasons.length){
+        seasons.forEach(s=>{
+          if(s.link) contentHTML += `<a class="btn-season" href="${s.link}" target="_blank">${s.season}</a>`;
         });
-      }
-      if(!seasonButtons) seasonButtons = '<span class="btn disabled">Sin temporadas disponibles</span>';
-      contentHTML += seasonButtons;
+      } else contentHTML += '<span class="btn disabled">Sin temporadas disponibles</span>';
+
     } else if(it.type==='movie'){
       const primary = it.terabox||'#';
       contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
     }
 
-    contentHTML += '</div>'; // cierre content
+    contentHTML += '</div>';
     div.innerHTML = contentHTML;
     div.innerHTML += `<span class="tag">${it.type==='series'?'Series':'Película'}</span>${isNew?'<span class="new">🆕 Nuevo</span>':''}`;
     catalog.appendChild(div);
@@ -121,8 +119,7 @@ document.querySelectorAll('nav button').forEach(b=>{
     applyFilters();
   });
 });
-
-document.getElementById('search').addEventListener('input',()=>{ applyFilters(); });
+document.getElementById('search').addEventListener('input',()=>applyFilters());
 
 fetchItems();
 </script>
