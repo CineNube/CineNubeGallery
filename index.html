@@ -65,11 +65,12 @@ function renderCatalog(list){
   const catalog = document.getElementById('catalog');
   catalog.innerHTML='';
   if(!list.length){ catalog.innerHTML='<p style="text-align:center;color:#aaa;">No hay resultados</p>'; return; }
+  
   list.forEach(it=>{
     const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
     const div=document.createElement('div');
     div.className='item';
-
+    
     let contentHTML = `
       <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
       <div class="content">
@@ -77,37 +78,30 @@ function renderCatalog(list){
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
-
-    // Películas: botón normal
-    if(it.type==='movie'){
-      const link = it.terabox && it.terabox.trim()!=='' ? it.terabox : '#';
-      contentHTML += `<a class="btn ${link==='#'?'disabled':''}" href="${link}" target="_blank">🎥 Ver Película</a>`;
-    }
-
-    // Series: botón por temporada
+    
     if(it.type==='series' && it.season_links){
       let seasons = [];
-      if(typeof it.season_links === 'string'){
-        try{
-          const cleaned = it.season_links.replace(/\n/g,'').trim();
-          if(cleaned && cleaned!=='""'){
-            seasons = JSON.parse(cleaned);
-            if(!Array.isArray(seasons)) seasons = [];
-          }
-        } catch(e){ seasons=[]; }
-      } else if(Array.isArray(it.season_links)){
-        seasons = it.season_links;
-      }
+      try {
+        let str = typeof it.season_links==='string' ? it.season_links : JSON.stringify(it.season_links);
+        str = str.replace(/\n/g,'').replace(/""/g,'"').trim();
+        seasons = JSON.parse(str);
+        if(!Array.isArray(seasons)) seasons = [];
+      } catch(e){ seasons = []; }
 
+      let hasLink = false;
       seasons.forEach(s=>{
         if(s && s.link && s.link.trim()!==''){
+          hasLink = true;
           contentHTML += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
         }
       });
 
-      if(seasons.filter(s=>s.link && s.link.trim()!=='').length===0){
+      if(!hasLink){
         contentHTML += `<span class="btn disabled">Sin temporadas disponibles</span>`;
       }
+    } else if(it.type==='movie'){
+      const primaryLink = it.terabox && it.terabox.trim()!=='' ? it.terabox : '#';
+      contentHTML += `<a class="btn ${primaryLink==='#'?'disabled':''}" href="${primaryLink}" target="_blank">${it.type==='series'?'📺 Ver Serie':'🎥 Ver Película'}</a>`;
     }
 
     contentHTML += '</div>'; // cierre content
