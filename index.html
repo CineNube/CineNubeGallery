@@ -50,7 +50,6 @@ async function fetchItems(){
   try{
     const res = await fetch(WEBAPP_URL);
     let data = await res.json();
-    // Orden descendente por fecha publicada
     allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
@@ -65,7 +64,7 @@ function renderCatalog(list){
   const catalog = document.getElementById('catalog');
   catalog.innerHTML='';
   if(!list.length){ catalog.innerHTML='<p style="text-align:center;color:#aaa;">No hay resultados</p>'; return; }
-  
+
   list.forEach(it=>{
     const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
     const div=document.createElement('div');
@@ -79,29 +78,32 @@ function renderCatalog(list){
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
     
-    if(it.type==='series' && it.season_links){
+    if(it.type==='series'){
       let seasons = [];
       try {
-        let str = typeof it.season_links==='string' ? it.season_links : JSON.stringify(it.season_links);
-        str = str.replace(/\n/g,'').replace(/""/g,'"').trim();
-        seasons = JSON.parse(str);
-        if(!Array.isArray(seasons)) seasons = [];
+        if(typeof it.season_links === 'string'){
+          // limpiar saltos de línea y comillas dobles dobles
+          let cleanStr = it.season_links.replace(/\n/g,'').replace(/""/g,'"').trim();
+          if(cleanStr) seasons = JSON.parse(cleanStr);
+        } else if(Array.isArray(it.season_links)){
+          seasons = it.season_links;
+        }
       } catch(e){ seasons = []; }
 
-      let hasLink = false;
+      let hasButton = false;
       seasons.forEach(s=>{
         if(s && s.link && s.link.trim()!==''){
-          hasLink = true;
+          hasButton = true;
           contentHTML += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
         }
       });
-
-      if(!hasLink){
+      if(!hasButton){
         contentHTML += `<span class="btn disabled">Sin temporadas disponibles</span>`;
       }
+
     } else if(it.type==='movie'){
       const primaryLink = it.terabox && it.terabox.trim()!=='' ? it.terabox : '#';
-      contentHTML += `<a class="btn ${primaryLink==='#'?'disabled':''}" href="${primaryLink}" target="_blank">${it.type==='series'?'📺 Ver Serie':'🎥 Ver Película'}</a>`;
+      contentHTML += `<a class="btn ${primaryLink==='#'?'disabled':''}" href="${primaryLink}" target="_blank">🎥 Ver Película</a>`;
     }
 
     contentHTML += '</div>'; // cierre content
