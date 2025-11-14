@@ -1,81 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CineNube</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineNube Gallery</title>
 <style>
-body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; padding:0; }
-.container { max-width:1200px; margin:auto; padding:20px; }
-.item { background:#1e1e1e; padding:15px; margin-bottom:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); }
-.item img { float:left; width:120px; height:auto; margin-right:15px; border-radius:5px; }
-.item h2 { margin:0 0 5px; }
-.item p { margin:5px 0; }
-.button { display:inline-block; padding:5px 10px; background:#ff4500; color:#fff; border:none; border-radius:5px; margin:3px 3px 3px 0; cursor:pointer; text-decoration:none; }
-.clearfix::after { content:""; clear:both; display:table; }
+  body { font-family: Arial, sans-serif; background:#111; color:#eee; margin:0; padding:0;}
+  .container { max-width:1000px; margin:auto; padding:20px;}
+  .item { display:flex; background:#222; margin-bottom:15px; border-radius:8px; overflow:hidden; }
+  .poster { flex-shrink:0; width:150px; height:225px; object-fit:cover; }
+  .content { padding:15px; flex:1; }
+  .title { font-size:18px; font-weight:bold; margin-bottom:5px; }
+  .overview { font-size:14px; margin-bottom:5px; }
+  .rating-year { font-size:13px; color:#ccc; margin-bottom:5px; }
+  .buttons { margin-top:10px; }
+  .buttons a { display:inline-block; margin:2px; padding:5px 10px; background:#ff5722; color:#fff; text-decoration:none; border-radius:4px; font-size:13px; }
+  .buttons a:hover { background:#e64a19; }
 </style>
 </head>
 <body>
-<div class="container" id="lista"></div>
+<div class="container" id="itemsContainer">
+  <h1>CineNube Gallery</h1>
+</div>
 
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
 
-function parseSeasons(raw){
-  if(!raw) return [];
-  raw = raw.toString().trim();
-  let seasons = [];
-  if(raw.indexOf('T')===0){
-    let parts = raw.split(';');
-    parts.forEach(p=>{
-      let m = p.match(/^T(\d+)\s*=?\s*(.*)$/);
-      if(m) seasons.push({season:m[1], link:m[2]});
-    });
-  } else if(raw.indexOf(',')!==-1){
-    let parts = raw.split(',');
-    parts.forEach((p,i)=> seasons.push({season:i+1, link:p.trim()}));
-  } else {
-    seasons.push({season:1, link:raw});
-  }
-  return seasons;
-}
-
-function cargarItems(){
+function fetchItems(){
   fetch(WEBAPP_URL)
     .then(res=>res.json())
     .then(data=>{
-      const container = document.getElementById('lista');
-      container.innerHTML='';
+      const container = document.getElementById("itemsContainer");
+      container.innerHTML = "<h1>CineNube Gallery</h1>";
       data.forEach(item=>{
-        const div = document.createElement('div');
-        div.className='item clearfix';
-        let html='';
-        html+='<img src="'+item.poster+'" alt="'+item.title+'">';
-        html+='<h2>'+item.title+'</h2>';
-        html+='<p>'+item.overview+'</p>';
-        html+='<p>⭐ '+(item.rating||'N/A')+' | 📅 '+(item.year||'')+'</p>';
-        if(item.type.toLowerCase()==='series'){
-          const seasons = parseSeasons(item.season_links);
-          if(seasons.length>0){
-            seasons.forEach(s=>{
-              if(s.link) html+='<a class="button" href="'+s.link+'" target="_blank">Temporada '+s.season+'</a>';
+        const div = document.createElement("div");
+        div.className = "item";
+        let posterHtml = item.poster ? `<img src="${item.poster}" class="poster">` : "";
+        let buttonsHtml = "";
+        
+        if(item.type && item.type.toLowerCase()==='series'){
+          if(item.season_links && item.season_links.length>0){
+            buttonsHtml = '<div class="buttons">';
+            item.season_links.forEach(s=>{
+              buttonsHtml += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
             });
+            buttonsHtml += '</div>';
           } else {
-            html+='<p>Sin temporadas disponibles</p>';
+            buttonsHtml = '<div class="buttons">Sin temporadas disponibles</div>';
           }
         }
-        if(item.type.toLowerCase()==='movie' && item.terabox){
-          let linkMatch = item.terabox.toString().match(/https?:\/\/[^\s"]+/);
-          if(linkMatch) html+='<a class="button" href="'+linkMatch[0]+'" target="_blank">Ver ahora</a>';
+        if(item.type && item.type.toLowerCase()==='movie' && item.terabox){
+          buttonsHtml = '<div class="buttons"><a href="'+item.terabox+'" target="_blank">Ver ahora</a></div>';
         }
-        div.innerHTML=html;
+
+        div.innerHTML = `
+          ${posterHtml}
+          <div class="content">
+            <div class="title">${item.title}</div>
+            <div class="overview">${item.overview||''}</div>
+            <div class="rating-year">⭐ ${item.rating||'N/A'} | ${item.year||''}</div>
+            ${buttonsHtml}
+          </div>
+        `;
         container.appendChild(div);
       });
     })
-    .catch(err=>console.error('Error cargando items:',err));
+    .catch(err=>console.error(err));
 }
 
-cargarItems();
+fetchItems();
 </script>
 </body>
 </html>
