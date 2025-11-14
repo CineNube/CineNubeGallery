@@ -25,7 +25,6 @@ nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
 .btn.disabled{background:#333;cursor:default;}
 .tag{position:absolute;top:12px;left:12px;background:#141414;color:#e50914;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
 .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
-.btn-season{margin:2px 2px 0 0;padding:4px 6px;font-size:0.8em;background:#e50914;color:#fff;text-decoration:none;border-radius:4px;display:inline-block;}
 </style>
 </head>
 <body>
@@ -50,7 +49,7 @@ async function fetchItems(){
   try{
     const res = await fetch(WEBAPP_URL);
     allItems = await res.json();
-    // Ordenar por fecha publicada (lo más nuevo primero)
+    // Ordenar por fecha de publicación descendente (lo más nuevo primero)
     allItems.sort((a,b)=>b.published_ts - a.published_ts);
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
@@ -68,34 +67,29 @@ function renderCatalog(list){
   list.forEach(it=>{
     const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
     
-    const div=document.createElement('div');
-    div.className='item';
-    
-    let btnSeasonsHTML = '';
-    if(it.type==='series' && it.season_links){
-      try{
+    // Determinar el link principal
+    let primary = '#';
+    if(it.type==='movie') {
+      primary = it.terabox || '#';
+    } else if(it.type==='series' && it.season_links) {
+      try {
         const seasons = JSON.parse(it.season_links);
-        const validSeasons = seasons.filter(s=>s.link && s.link.trim()!=='');
-        // Botón principal “Ver Serie” al menos con # si no hay link
-        const firstLink = validSeasons.length ? validSeasons[0].link : '#';
-        btnSeasonsHTML += `<a class="btn" href="${firstLink}" target="_blank">📺 Ver Serie</a>`;
-        // Botones individuales por temporada con link
-        btnSeasonsHTML += validSeasons.map(s=>`<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`).join(' ');
-      }catch(e){}
+        const firstValid = seasons.find(s => s.link && s.link.trim()!=='');
+        if(firstValid) primary = firstValid.link;
+      } catch(e){ console.error('Error parsing season_links', e); }
     }
 
-    const primaryMovie = it.type==='movie'?it.terabox:'#';
-
+    const div=document.createElement('div');
+    div.className='item';
     div.innerHTML=`
       <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
       <div class="content">
         <div class="title">${it.title}</div>
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
-        ${it.type==='movie'
-          ? `<a class="btn ${primaryMovie==='#'?'disabled':''}" href="${primaryMovie}" target="_blank">🎥 Ver Película</a>`
-          : btnSeasonsHTML
-        }
+        <a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">
+          ${it.type==='series'?'📺 Ver Serie':'🎥 Ver Película'}
+        </a>
       </div>
       <span class="tag">${it.type==='series'?'Series':'Película'}</span>
       ${isNew?'<span class="new">🆕 Nuevo</span>':''}
@@ -127,10 +121,6 @@ document.querySelectorAll('nav button').forEach(b=>{
 });
 
 document.getElementById('search').addEventListener('input',()=>{ applyFilters(); });
-
-// Observador simple para refrescar catálogo si cambia allItems (actualizaciones)
-const observerInterval = 5000; // 5 segundos
-setInterval(()=>{ allItems.sort((a,b)=>b.published_ts - a.published_ts); renderCatalog(filteredItems); }, observerInterval);
 
 fetchItems();
 </script>
