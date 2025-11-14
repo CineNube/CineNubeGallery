@@ -1,5 +1,5 @@
 {
-  "sheetName": "Hoja 1",
+  "sheetName": "prueba12",
   "checkColumn": "Enviar",
   "statusColumn": "Enviado",
   "tmdbColumn": "TMDB_ID",
@@ -8,15 +8,10 @@
   "posterColumn": "poster",
   "overviewColumn": "overview",
   "ratingColumn": "rating",
+  "yearColumn": "year",
   "seasonLinksColumn": "season_links",
   "teraboxColumn": "terabox",
-  "languageColumn": "Idioma",
-  "githubRepository": "CineNube/CineNubeGallery",
-  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
-  "telegram": {
-    "channel": "@estrenos_online_25",
-    "topic_series": 3,
-    "topic_movies": 2
-  },
-  "notes": "Archivo de configuración para procesos automáticos. Ajusta sheetName si cambias el nombre de la hoja."
+  "idiomaColumn": "Idioma",
+  "updateColumn": "Actualizar",
+  "publishedColumn": "published_at"
 }
