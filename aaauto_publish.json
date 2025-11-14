@@ -1,0 +1,13 @@
+{
+  "auto_publish_enabled": true,
+  "publish_interval_minutes": 1440,
+  "last_publish_timestamp": null,
+  "channels": {
+    "peliculas": "@estrenos_online_25",
+    "series": "@estrenos_online_25"
+  },
+  "topics": {
+    "peliculas": 2,
+    "series": 3
+  }
+}
