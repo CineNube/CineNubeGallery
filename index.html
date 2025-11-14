@@ -46,23 +46,21 @@ const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRg
 let allItems = [];
 let filteredItems = [];
 
-// Función para parsear season_links robustamente
+// Parse robusto de season_links
 function parseSeasons(seasonData){
   let seasons = [];
   if(!seasonData) return seasons;
-  if(typeof seasonData==='string'){
-    try{
-      let s = seasonData.trim();
-      // Ignorar dobles corchetes y comillas exteriores
-      if(s.startsWith('"') && s.endsWith('"')) s = s.slice(1,-1);
-      if(s.startsWith('[[') && s.endsWith(']]')) s = s.slice(1,-1);
-      s = s.replace(/\\"/g,'"'); // limpiar comillas dobles mal
-      seasons = JSON.parse(s);
-      if(!Array.isArray(seasons)) seasons = [];
-    }catch(e){ seasons = []; }
-  } else if(Array.isArray(seasonData)){
-    seasons = seasonData;
-  }
+  try{
+    let s = seasonData.toString().trim();
+    // eliminar dobles comillas externas
+    if(s.startsWith('"') && s.endsWith('"')) s = s.slice(1,-1);
+    // eliminar doble corchete externo [[ ... ]]
+    if(s.startsWith('[[') && s.endsWith(']]')) s = s.slice(1,-1);
+    // limpiar escapes de comillas
+    s = s.replace(/\\"/g,'"');
+    seasons = JSON.parse(s);
+    if(!Array.isArray(seasons)) seasons = [];
+  }catch(e){ seasons = []; }
   return seasons;
 }
 
@@ -70,7 +68,6 @@ async function fetchItems(){
   try{
     const res = await fetch(WEBAPP_URL);
     let data = await res.json();
-    // Orden descendente por fecha publicada
     allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
     filteredItems = allItems.slice();
     renderCatalog(filteredItems);
@@ -114,7 +111,7 @@ function renderCatalog(list){
       contentHTML += `<a class="btn ${primary==='#'?'disabled':''}" href="${primary}" target="_blank">🎥 Ver Película</a>`;
     }
 
-    contentHTML += '</div>'; // cierre content
+    contentHTML += '</div>';
     div.innerHTML = contentHTML;
     div.innerHTML += `<span class="tag">${it.type==='series'?'Series':'Película'}</span>${isNew?'<span class="new">🆕 Nuevo</span>':''}`;
     catalog.appendChild(div);
