@@ -69,6 +69,7 @@ function renderCatalog(list){
     const isNew=(now-it.published_ts)<=(1000*60*60*24*7);
     const div=document.createElement('div');
     div.className='item';
+
     let contentHTML = `
       <div class="thumb"><img src="${it.poster}" alt="${it.title}"></div>
       <div class="content">
@@ -76,32 +77,38 @@ function renderCatalog(list){
         <div class="overview">${it.overview||''}</div>
         <div class="meta">${it.rating?'⭐ '+it.rating:''} ${it.year? '| '+it.year:''}</div>
     `;
-   if(it.type==='series' && it.season_links){
-  let seasons = [];
-  // Intentar parsear robustamente
-  if(typeof it.season_links === 'string'){
-    try {
-      // Limpiar comillas dobles dobles y espacios
-      const cleaned = it.season_links.replace(/\n/g,'').trim();
-      if(cleaned && cleaned!=='""'){
-        seasons = JSON.parse(cleaned);
-        if(!Array.isArray(seasons)) seasons = [];
-      }
-    } catch(e){
-      seasons = [];
-    }
-  } else if(Array.isArray(it.season_links)){
-    seasons = it.season_links;
-  }
 
-  let seasonButtons = '';
-  seasons.forEach(s=>{
-    if(s && s.link && s.link.trim()!==''){
-      seasonButtons += `<a class="btn" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+    // Películas: botón normal
+    if(it.type==='movie'){
+      const link = it.terabox && it.terabox.trim()!=='' ? it.terabox : '#';
+      contentHTML += `<a class="btn ${link==='#'?'disabled':''}" href="${link}" target="_blank">🎥 Ver Película</a>`;
     }
-  });
-  contentHTML += seasonButtons || `<span class="btn disabled">Sin temporadas disponibles</span>`;
-}
+
+    // Series: botón por temporada
+    if(it.type==='series' && it.season_links){
+      let seasons = [];
+      if(typeof it.season_links === 'string'){
+        try{
+          const cleaned = it.season_links.replace(/\n/g,'').trim();
+          if(cleaned && cleaned!=='""'){
+            seasons = JSON.parse(cleaned);
+            if(!Array.isArray(seasons)) seasons = [];
+          }
+        } catch(e){ seasons=[]; }
+      } else if(Array.isArray(it.season_links)){
+        seasons = it.season_links;
+      }
+
+      seasons.forEach(s=>{
+        if(s && s.link && s.link.trim()!==''){
+          contentHTML += `<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+        }
+      });
+
+      if(seasons.filter(s=>s.link && s.link.trim()!=='').length===0){
+        contentHTML += `<span class="btn disabled">Sin temporadas disponibles</span>`;
+      }
+    }
 
     contentHTML += '</div>'; // cierre content
     div.innerHTML = contentHTML;
