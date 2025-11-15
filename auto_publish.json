@@ -1,11 +1,6 @@
 {
-  "intervalMinutes": 15,
-  "sheetId": "1fHOhQ9ZtU-JlVPWhH_3_th_PdNP9CL57tT_pI1NNil4",
-  "sheetName": "prueba12",
-  "telegram": {
-    "botToken": "7673638131:AAEzvIDXZv9B8W52FJXPxc36WnnxgpA3lyI",
-    "channelId": "@estrenos_online_25",
-    "topicPeliculas": 2,
-    "topicSeries": 3
-  }
+  "url": "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec",
+  "type": "webapp",
+  "description": "JSON de la WebApp para CineNube Gallery",
+  "updated": "2025-11-15T00:00:00Z"
 }
