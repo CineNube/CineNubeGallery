@@ -1,51 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catalogo CineNube</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    body { font-family: Arial, sans-serif; background:#0f0f0f; color:#fff; margin:0; padding:0; }
-    .header { padding:20px; text-align:center; background:#1c1c1c; font-size:2em; font-weight:bold; }
-    .container { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
-    .card { background:#222; border-radius:10px; overflow:hidden; width:200px; display:flex; flex-direction:column; }
-    .card img { width:100%; height:300px; object-fit:cover; }
-    .card .info { padding:10px; flex:1; display:flex; flex-direction:column; }
-    .card .title { font-weight:bold; font-size:1.1em; margin-bottom:5px; }
-    .card .overview { font-size:0.9em; color:#ccc; flex:1; }
-    .card .btn { display:block; margin-top:10px; text-align:center; padding:5px; background:#ff4500; color:#fff; text-decoration:none; border-radius:5px; }
-  </style>
+<meta charset="UTF-8">
+<title>Catálogo CineNube</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<style>
+body{background:#121212;color:#fff;font-family:sans-serif;margin:0;padding:0;}
+.header{padding:1rem;text-align:center;background:#1f1f1f;}
+.container{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;padding:1rem;}
+.card{background:#1f1f1f;border-radius:10px;width:200px;overflow:hidden;}
+.card img{width:100%;height:300px;object-fit:cover;}
+.card-body{padding:0.5rem;}
+.card-title{font-size:1rem;font-weight:bold;margin:0;}
+.card-text{font-size:0.8rem;color:#ccc;}
+.btn-season{display:block;margin-top:0.3rem;padding:0.2rem 0.4rem;background:#ff3f3f;color:#fff;text-align:center;border-radius:5px;text-decoration:none;font-size:0.75rem;}
+</style>
 </head>
 <body>
-  <div class="header">Catalogo CineNube</div>
-  <div class="container" id="content"></div>
+<div class="header"><h2>Catálogo CineNube</h2></div>
+<div class="container" id="catalog"></div>
+<script>
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+let catalogItems = [];
+const catalogEl = document.getElementById('catalog');
 
-  <script>
-    const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+function truncateText(text,maxLength=120){return text.length>maxLength?text.slice(0,maxLength)+'...':text;}
 
-    async function loadData() {
-      const res = await fetch(SHEET_JSON_URL);
-      const items = await res.json();
-      const container = document.getElementById("content");
+function renderCatalog(){
+  catalogEl.innerHTML='';
+  catalogItems.forEach(i=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`<img src="${i.poster}" alt="${i.title}">
+      <div class="card-body">
+      <div class="card-title">${i.title}</div>
+      <div class="card-text">${truncateText(i.overview)}</div>
+      ${i.type==='series' && i.season_links.length>0
+        ? i.season_links.map(s=>`<a class="btn-season" href="${s.link}" target="_blank">Temporada ${s.season}</a>`).join('')
+        : i.type==='movie' && i.terabox ? `<a class="btn-season" href="${i.terabox}" target="_blank">Ver ahora</a>` : ''}
+      </div>`;
+    catalogEl.appendChild(card);
+  });
+}
 
-      items.forEach(i => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${i.poster}" alt="${i.title}">
-          <div class="info">
-            <div class="title">${i.title} (${i.year || ""})</div>
-            <div class="overview">${i.overview.length > 120 ? i.overview.substring(0,120)+"..." : i.overview}</div>
-            ${i.type === "movie" && i.terabox ? `<a class="btn" href="${i.terabox}" target="_blank">Ver ahora</a>` : ""}
-            ${i.type === "series" && i.season_links?.length ? i.season_links.map(s => `<a class="btn" href="${s.link}" target="_blank">Temporada ${s.season}</a>`).join("") : ""}
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    loadData();
-  </script>
+fetch(SHEET_JSON_URL).then(r=>r.json()).then(data=>{
+  catalogItems=data.sort((a,b)=>b.published_ts - a.published_ts);
+  renderCatalog();
+});
+</script>
 </body>
 </html>
