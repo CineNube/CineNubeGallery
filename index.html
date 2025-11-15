@@ -5,19 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0; }
-  header { text-align: center; padding: 2rem; background: #1f1f1f; }
-  h1 { margin: 0; font-size: 2rem; }
-  #catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; padding: 2rem; }
-  .item { background: #1e1e1e; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; text-align: center; transition: transform 0.2s; }
-  .item:hover { transform: scale(1.05); }
-  .poster { width: 100%; height: 330px; object-fit: cover; }
-  .info { padding: 1rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-  .title { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem; }
-  .overview { font-size: 0.85rem; margin-bottom: 0.5rem; color: #ccc; }
-  .rating { margin-bottom: 0.5rem; }
-  .votes { display: flex; justify-content: center; gap: 1rem; font-size: 0.9rem; margin-top: 0.5rem; }
-  .votes span { display: flex; align-items: center; gap: 0.3rem; }
+  body { font-family: Arial, sans-serif; background:#121212; color:#fff; margin:0; padding:0; }
+  header { text-align:center; padding:20px; background:#1f1f1f; }
+  h1 { margin:0; font-size:2em; }
+  .controls { text-align:center; margin:15px; }
+  .controls input[type=text] { padding:5px 10px; width:200px; font-size:1em; }
+  .controls button { margin:0 5px; padding:5px 10px; cursor:pointer; font-size:1em; }
+  .gallery { display:flex; flex-wrap:wrap; justify-content:center; margin:20px; gap:15px; }
+  .card { background:#1e1e1e; border-radius:10px; overflow:hidden; width:220px; display:flex; flex-direction:column; }
+  .card img { width:100%; height:auto; }
+  .card-content { padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; }
+  .title { font-weight:bold; font-size:1em; margin-bottom:5px; }
+  .overview { font-size:0.9em; margin-bottom:5px; line-height:1.2em; max-height:3.6em; overflow:hidden; }
+  .info { font-size:0.85em; margin-bottom:5px; }
+  .votes { margin-top:5px; font-size:0.9em; }
+  .vote-btn { cursor:pointer; padding:2px 6px; margin-right:5px; border:none; border-radius:5px; }
+  .vote-up { background:green; color:#fff; }
+  .vote-down { background:red; color:#fff; }
+  .btn-update { margin-top:5px; padding:3px 6px; font-size:0.8em; cursor:pointer; background:#444; border:none; border-radius:5px; color:#fff; }
 </style>
 </head>
 <body>
@@ -26,52 +31,79 @@
   <h1>CineNube Gallery</h1>
 </header>
 
-<div id="catalog"></div>
+<div class="controls">
+  <input type="text" id="searchBox" placeholder="Buscar...">
+  <button data-filter="all">Todo</button>
+  <button data-filter="movie">Películas</button>
+  <button data-filter="series">Series</button>
+</div>
+
+<div class="gallery" id="gallery"></div>
 
 <script>
-// URL de tu webapp JSON de Apps Script
-const API_URL = 'https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec';
+const WEBAPP_URL = "TU_WEBAPP_URL"; // Cambiar por tu URL del Google Apps Script
+let items = [];
+let filteredItems = [];
 
-async function fetchData() {
+async function fetchItems() {
   try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    displayCatalog(data);
-  } catch(e) {
-    console.error("Error cargando datos:", e);
-    document.getElementById('catalog').innerHTML = '<p style="text-align:center;">Error al cargar los títulos</p>';
+    const res = await fetch(WEBAPP_URL);
+    items = await res.json();
+    // Orden descendente por fecha publicada
+    items.sort((a,b) => b.published_ts - a.published_ts);
+    filteredItems = [...items];
+    renderGallery();
+  } catch(err) {
+    document.getElementById('gallery').innerHTML = "<p style='text-align:center;'>Error al cargar los títulos</p>";
+    console.error(err);
   }
 }
 
-function displayCatalog(items) {
-  const catalog = document.getElementById('catalog');
-  catalog.innerHTML = '';
-  
-  items.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'item';
-    
-    div.innerHTML = `
-      <img class="poster" src="${item.poster || 'https://via.placeholder.com/600x900?text=No+Image'}" alt="${item.title}">
-      <div class="info">
-        <div>
-          <div class="title">${item.title}</div>
-          <div class="overview">${item.overview ? item.overview.substring(0,100)+'...' : ''}</div>
-          <div class="rating">⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
-        </div>
+function renderGallery() {
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  filteredItems.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${item.poster}" alt="${item.title}">
+      <div class="card-content">
+        <div class="title">${item.title}</div>
+        <div class="overview">${item.overview}</div>
+        <div class="info">⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
         <div class="votes">
-          <span>👍 ${item.votes_up || 0}</span>
-          <span>👎 ${item.votes_down || 0}</span>
+          <button class="vote-btn vote-up">👍 ${item.votes_up || 0}</button>
+          <button class="vote-btn vote-down">👎 ${item.votes_down || 0}</button>
         </div>
+        ${item.type==='series'?'<button class="btn-update">Actualizar Serie</button>':''}
       </div>
     `;
-    
-    catalog.appendChild(div);
+    gallery.appendChild(card);
+
+    // Actualización de serie (solo frontend, puedes conectar con Apps Script si quieres que haga algo)
+    if(item.type==='series'){
+      const btnUpdate = card.querySelector('.btn-update');
+      btnUpdate.addEventListener('click', () => alert(`Actualizar serie: ${item.title}`));
+    }
   });
 }
 
-// Cargar datos al inicio
-fetchData();
+document.getElementById('searchBox').addEventListener('input', (e)=>{
+  const q = e.target.value.toLowerCase();
+  filteredItems = items.filter(i => i.title.toLowerCase().includes(q));
+  renderGallery();
+});
+
+document.querySelectorAll('.controls button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const filter = btn.getAttribute('data-filter');
+    filteredItems = filter==='all' ? [...items] : items.filter(i=>i.type===filter);
+    renderGallery();
+  });
+});
+
+// Cargar todo al entrar
+fetchItems();
 </script>
 
 </body>
