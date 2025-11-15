@@ -1,180 +1,188 @@
-/* Reset básico */
+/* Reset básico y fuente */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Body */
 body {
-  background-color: #111;
-  color: #fff;
-  line-height: 1.4;
-  padding: 20px;
+    font-family: 'Roboto', sans-serif;
+    background-color: #111;
+    color: #fff;
+    line-height: 1.4;
 }
 
-/* Header */
 header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: #1c1c1c;
+    text-align: center;
 }
 
 header h1 {
-  font-size: 2em;
-  margin-bottom: 10px;
+    font-size: 2rem;
+    margin-bottom: 10px;
 }
 
-#searchInput {
-  width: 100%;
-  max-width: 500px;
-  padding: 10px;
-  font-size: 1em;
-  border-radius: 5px;
-  border: none;
-  margin-bottom: 10px;
+header input#search {
+    width: 90%;
+    max-width: 400px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    margin-bottom: 10px;
+    font-size: 1rem;
 }
 
-#filterButtons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+header nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
-#filterButtons button {
-  padding: 8px 15px;
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.2s;
+header nav button {
+    background-color: #e50914;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-#filterButtons button:hover {
-  background-color: #555;
+header nav button:hover {
+    background-color: #b0060f;
 }
 
-/* Catalogo */
-#catalogo {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
-  justify-items: center;
+/* Contenedor principal */
+main#catalogo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+    padding: 20px;
 }
 
-/* Tarjetas */
+/* Tarjetas de películas/series */
 .card {
-  background-color: #1c1c1c;
-  border-radius: 10px;
-  overflow: hidden;
-  width: 100%;
-  max-width: 220px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transition: transform 0.2s;
+    background-color: #1c1c1c;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s;
 }
 
 .card:hover {
-  transform: scale(1.03);
+    transform: scale(1.03);
 }
 
-/* Imagen */
 .card img {
-  width: 100%;
-  height: auto;
-  border-bottom: 1px solid #333;
+    width: 100%;
+    height: auto;
+    display: block;
+    border-bottom: 1px solid #333;
+    object-fit: cover;
 }
 
-/* Título */
-.card h2 {
-  font-size: 1.1em;
-  margin: 10px 5px;
-  min-height: 40px;
+/* Información debajo de la imagen */
+.card-content {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-/* Overview */
-.card p {
-  font-size: 0.85em;
-  padding: 5px 10px;
-  color: #ddd;
+.card-content h2 {
+    font-size: 1rem;
+    font-weight: 700;
 }
 
-/* Info y votos */
-.card p:nth-of-type(2),
-.card p:nth-of-type(3) {
-  font-size: 0.8em;
-  color: #aaa;
+.card-content p {
+    font-size: 0.85rem;
+    color: #ccc;
+    max-height: 3em;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Botones */
-.btn {
-  display: inline-block;
-  text-decoration: none;
-  color: #fff;
-  background-color: #e50914;
-  padding: 7px 12px;
-  border-radius: 5px;
-  margin: 5px 0;
-  font-size: 0.9em;
-  transition: 0.2s;
+.card-content .rating {
+    font-weight: bold;
+    margin-top: 5px;
 }
 
-.btn:hover {
-  background-color: #f40612;
+/* Botones dentro de la tarjeta */
+.card-content .btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 8px 0;
+    margin-top: 8px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    color: #fff;
+    background-color: #e50914;
+    transition: background-color 0.3s;
 }
 
-/* Responsivo */
-@media (max-width: 768px) {
-  #catalogo {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-  }
-
-  .card {
-    max-width: 160px;
-  }
-
-  .card h2 {
-    font-size: 1em;
-    min-height: 35px;
-  }
-
-  .card p {
-    font-size: 0.8em;
-  }
-
-  .btn {
-    font-size: 0.8em;
-    padding: 5px 10px;
-  }
+.card-content .btn:hover {
+    background-color: #b0060f;
 }
 
-@media (max-width: 480px) {
-  #catalogo {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 8px;
-  }
+/* Votos */
+.card-content .votes {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
 
-  .card {
-    max-width: 140px;
-  }
+/* Media queries para móviles y tablets */
+@media screen and (max-width: 768px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+    header input#search {
+        width: 95%;
+    }
+    main#catalogo {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        padding: 15px;
+    }
+    .card-content h2 {
+        font-size: 0.9rem;
+    }
+    .card-content p {
+        font-size: 0.8rem;
+    }
+    .card-content .btn {
+        padding: 6px 0;
+        font-size: 0.9rem;
+    }
+}
 
-  .card h2 {
-    font-size: 0.9em;
-    min-height: 30px;
-  }
-
-  .card p {
-    font-size: 0.75em;
-  }
-
-  .btn {
-    font-size: 0.75em;
-    padding: 4px 8px;
-  }
+@media screen and (max-width: 480px) {
+    header h1 {
+        font-size: 1.2rem;
+    }
+    main#catalogo {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+        padding: 10px;
+    }
+    .card-content h2 {
+        font-size: 0.85rem;
+    }
+    .card-content p {
+        font-size: 0.75rem;
+    }
+    .card-content .btn {
+        font-size: 0.85rem;
+    }
 }
