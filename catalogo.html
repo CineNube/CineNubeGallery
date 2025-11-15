@@ -4,61 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Catalogo</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  body { font-family: 'Roboto', sans-serif; margin:0; padding:0; background:#121212; color:#fff; }
-  main { display:flex; flex-wrap:wrap; justify-content:center; margin:10px; }
-  .item-card { background:#1f1f1f; border-radius:8px; margin:10px; width:180px; overflow:hidden; display:flex; flex-direction:column; }
-  .item-card img { width:100%; height:270px; object-fit:cover; }
-  .item-info { padding:10px; flex:1; display:flex; flex-direction:column; justify-content:space-between; }
-  .item-title { font-weight:bold; font-size:1em; margin-bottom:5px; }
-  .item-overview { font-size:0.85em; color:#ccc; flex:1; margin-bottom:5px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
-  .season-buttons a, .movie-button a { display:block; background:#ff3d00; color:#fff; text-decoration:none; text-align:center; margin-top:3px; padding:5px; border-radius:5px; font-size:0.85em; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main id="itemsContainer"></main>
+<header>
+  <h1>CineNube Catalogo</h1>
+</header>
+<div class="grid" id="grid"></div>
 <script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
-
-async function fetchItems() {
-  try {
-    const res = await fetch(WEBAPP_URL);
-    const data = await res.json();
-    data.sort((a,b)=>b.published_ts - a.published_ts);
-    renderItems(data);
-  } catch(err) {
-    console.error(err);
-    document.getElementById('itemsContainer').innerHTML = '<p style="color:red;">No se pudo cargar el contenido.</p>';
-  }
-}
-
-function renderItems(items){
-  const container = document.getElementById('itemsContainer');
-  container.innerHTML = '';
-  items.forEach(item=>{
-    const card = document.createElement('div');
-    card.className = 'item-card';
-    card.innerHTML = `
-      <img src="${item.poster||'https://via.placeholder.com/180x270?text=No+Image'}" alt="${item.title}">
-      <div class="item-info">
-        <div class="item-title">${item.title}</div>
-        <div class="item-overview">${item.overview}</div>
-        <div class="item-meta">⭐ ${item.rating||'N/A'} | 📅 ${item.year||'N/A'}</div>
-        <div class="season-buttons">
-          ${item.type==='series' && item.season_links?.length
-            ? item.season_links.map(s=>s.link?`<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`:'').join('') : ''}
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+fetch(SHEET_JSON_URL)
+  .then(res=>res.json())
+  .then(items=>{
+    items.sort((a,b)=>b.published_ts-a.published_ts);
+    const grid=document.getElementById('grid');
+    items.forEach(i=>{
+      let card=document.createElement('div');
+      card.className='card';
+      card.innerHTML=`
+        <img src="${i.poster}" alt="${i.title}">
+        <div class="card-content">
+          <div class="card-title">${i.title}</div>
+          <div class="card-overview">${i.overview.length>120 ? i.overview.slice(0,120)+'...' : i.overview}</div>
+          <div class="card-meta">⭐ ${i.rating || 'N/A'} | 📅 ${i.year || ''}</div>
+          <div class="votes">
+            <span class="up">👍 ${i.vote_count && i.vote_average ? Math.round(i.vote_count*(i.vote_average/10)) : 0}</span>
+            <span class="down">👎 ${i.vote_count && i.vote_average ? i.vote_count-Math.round(i.vote_count*(i.vote_average/10)) : 0}</span>
+          </div>
+          <div class="seasons">
+            ${i.season_links && i.season_links.length>0 ? i.season_links.map(s=>s.link?`<a href="${s.link}" target="_blank" class="season-btn">Temporada ${s.season}</a>`:'').join('') : ''}
+          </div>
         </div>
-        <div class="movie-button">
-          ${item.type==='movie' && item.terabox ? `<a href="${item.terabox}" target="_blank">Ver ahora</a>` : ''}
-        </div>
-      </div>
-    `;
-    container.appendChild(card);
+      `;
+      grid.appendChild(card);
+    });
   });
-}
-
-fetchItems();
 </script>
 </body>
 </html>
