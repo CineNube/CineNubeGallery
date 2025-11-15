@@ -5,221 +5,210 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #121212;
-  color: #fff;
-  margin: 0;
-  padding: 0;
-}
-header {
-  text-align: center;
-  padding: 20px;
-  background: #1e1e1e;
-}
-h1 {
-  margin: 0;
-  font-size: 2em;
-}
-#searchBar {
-  display: block;
-  margin: 10px auto;
-  padding: 10px;
-  width: 90%;
-  max-width: 400px;
-  border-radius: 8px;
-  border: none;
-}
-nav {
-  text-align: center;
-  margin: 20px 0;
-}
-nav button {
-  margin: 0 5px;
-  padding: 8px 15px;
-  background-color: #ff3d00;
-  border: none;
-  border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-}
-nav button.active {
-  background-color: #ff7043;
-}
-.gallery {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-  padding: 10px;
-}
-.item {
-  background-color: #1e1e1e;
-  border-radius: 10px;
-  width: 180px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s;
-}
-.item:hover {
-  transform: scale(1.05);
-}
-.item img {
-  width: 100%;
-  height: 270px;
-  object-fit: cover;
-}
-.item-content {
-  padding: 10px;
-  flex: 1;
-}
-.item-title {
-  font-weight: bold;
-  font-size: 1em;
-  margin: 0 0 5px 0;
-}
-.item-overview {
-  font-size: 0.85em;
-  color: #ccc;
-}
-.item-overview::after {
-  content: '...';
-}
-.button-season {
-  display: block;
-  margin: 5px 0;
-  padding: 5px 8px;
-  background-color: #2979ff;
-  color: #fff;
-  text-decoration: none;
-  text-align: center;
-  border-radius: 5px;
-  font-size: 0.85em;
-}
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #121212;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    text-align: center;
+    padding: 20px;
+    background-color: #1f1f1f;
+  }
+  h1 { margin: 0; font-size: 2em; }
+  #search-bar {
+    margin-top: 10px;
+    width: 80%;
+    max-width: 500px;
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+  }
+  nav {
+    text-align: center;
+    margin: 15px 0;
+  }
+  nav button {
+    margin: 0 5px;
+    padding: 8px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    background-color: #1f1f1f;
+    color: #fff;
+    transition: 0.2s;
+  }
+  nav button.active {
+    background-color: #ff3d00;
+  }
+  #gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 15px;
+  }
+  .item {
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .item img {
+    width: 100%;
+    height: 270px;
+    object-fit: cover;
+  }
+  .content {
+    padding: 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .title {
+    font-weight: bold;
+    font-size: 1em;
+    margin-bottom: 5px;
+  }
+  .overview {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+  }
+  .info {
+    font-size: 0.8em;
+    margin-bottom: 5px;
+  }
+  .buttons {
+    margin-top: auto;
+  }
+  .buttons a {
+    display: inline-block;
+    margin: 2px 2px 2px 0;
+    padding: 5px 8px;
+    font-size: 0.8em;
+    text-decoration: none;
+    border-radius: 5px;
+    background-color: #ff3d00;
+    color: #fff;
+  }
+  .rating button {
+    margin: 3px 3px 3px 0;
+    padding: 4px 8px;
+    font-size: 0.8em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .rating .up { background-color: #1b5e20; color: #fff; }
+  .rating .down { background-color: #b71c1c; color: #fff; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>CineNube Gallery</h1>
-  <input type="text" id="searchBar" placeholder="Buscar...">
+  <input type="text" id="search-bar" placeholder="Buscar...">
   <nav>
-    <button id="btnAll" class="active">Todo</button>
-    <button id="btnMovies">Películas</button>
-    <button id="btnSeries">Series</button>
+    <button class="active" data-filter="all">Todo</button>
+    <button data-filter="movie">Películas</button>
+    <button data-filter="series">Series</button>
   </nav>
 </header>
 
-<div class="gallery" id="gallery"></div>
+<main id="gallery"></main>
 
 <script>
 const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec';
-
 let allItems = [];
-const gallery = document.getElementById('gallery');
-const searchInput = document.getElementById('searchBar');
 
-async function fetchItems() {
-  try {
-    const res = await fetch(SHEET_JSON_URL);
-    allItems = await res.json();
-
-    // Orden descendente por fecha de publicación
-    allItems.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
-
-    renderItems(allItems);
-  } catch (e) {
-    gallery.innerHTML = "<p>Error cargando contenido.</p>";
-  }
+async function fetchData() {
+  const res = await fetch(SHEET_JSON_URL);
+  const data = await res.json();
+  allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
+  renderItems(allItems);
 }
 
-function truncateText(text, maxLength = 100) {
-  if (!text) return '';
-  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+function truncate(text, max=120) {
+  if(!text) return '';
+  return text.length>max? text.slice(0,max)+'...': text;
 }
 
 function renderItems(items) {
+  const gallery = document.getElementById('gallery');
   gallery.innerHTML = '';
-  items.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'item';
-
-    const poster = document.createElement('img');
-    poster.src = item.poster || '';
-    poster.alt = item.title;
-
-    const content = document.createElement('div');
-    content.className = 'item-content';
-
-    const title = document.createElement('div');
-    title.className = 'item-title';
-    title.textContent = item.title;
-
-    const overview = document.createElement('div');
-    overview.className = 'item-overview';
-    overview.textContent = truncateText(item.overview, 120);
-
-    content.appendChild(title);
-    content.appendChild(overview);
-
-    // Botones para temporadas
-    if (item.type === 'series' && item.season_links && item.season_links.length > 0) {
-      item.season_links.forEach(s => {
-        if (s.link) {
-          const btn = document.createElement('a');
-          btn.className = 'button-season';
-          btn.href = s.link;
-          btn.target = '_blank';
-          btn.textContent = 'Temporada ' + s.season;
-          content.appendChild(btn);
-        }
-      });
+  items.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'item';
+    card.innerHTML = `
+      <img src="${item.poster}" alt="${item.title}">
+      <div class="content">
+        <div class="title">${item.title}</div>
+        <div class="overview">${truncate(item.overview, 120)}</div>
+        <div class="info">⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
+        <div class="buttons"></div>
+        <div class="rating"></div>
+      </div>
+    `;
+    const buttonsDiv = card.querySelector('.buttons');
+    // Película
+    if(item.type==='movie' && item.terabox){
+      try{
+        const links = JSON.parse(item.terabox);
+        links.forEach((l,i)=>{
+          if(l.link) buttonsDiv.innerHTML += `<a href="${l.link}" target="_blank">Ver ahora</a>`;
+        });
+      }catch(e){}
     }
-
-    // Botón de película
-    if (item.type === 'movie' && item.terabox) {
-      const btn = document.createElement('a');
-      btn.className = 'button-season';
-      btn.href = item.terabox;
-      btn.target = '_blank';
-      btn.textContent = 'Ver ahora';
-      content.appendChild(btn);
+    // Serie
+    if(item.type==='series' && item.season_links){
+      try{
+        item.season_links.forEach(s=>{
+          if(s.link) buttonsDiv.innerHTML += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+        });
+      }catch(e){}
     }
+    // Valoraciones
+    const ratingDiv = card.querySelector('.rating');
+    const key = 'rating_' + item.TMDB_ID;
+    let votes = JSON.parse(localStorage.getItem(key)||'{"up":0,"down":0}');
+    const upBtn = document.createElement('button');
+    upBtn.className = 'up';
+    upBtn.textContent = `👍 ${votes.up}`;
+    upBtn.onclick = ()=>{ votes.up++; localStorage.setItem(key, JSON.stringify(votes)); upBtn.textContent = `👍 ${votes.up}`; };
+    const downBtn = document.createElement('button');
+    downBtn.className = 'down';
+    downBtn.textContent = `👎 ${votes.down}`;
+    downBtn.onclick = ()=>{ votes.down++; localStorage.setItem(key, JSON.stringify(votes)); downBtn.textContent = `👎 ${votes.down}`; };
+    ratingDiv.appendChild(upBtn);
+    ratingDiv.appendChild(downBtn);
 
-    div.appendChild(poster);
-    div.appendChild(content);
-    gallery.appendChild(div);
+    gallery.appendChild(card);
   });
 }
 
-// Filtrado por botones
-document.getElementById('btnAll').addEventListener('click', () => {
-  setActiveButton('btnAll');
-  renderItems(allItems);
-});
-document.getElementById('btnMovies').addEventListener('click', () => {
-  setActiveButton('btnMovies');
-  renderItems(allItems.filter(i => i.type === 'movie'));
-});
-document.getElementById('btnSeries').addEventListener('click', () => {
-  setActiveButton('btnSeries');
-  renderItems(allItems.filter(i => i.type === 'series'));
+// Filtros
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    renderItems(filter==='all'? allItems : allItems.filter(i=>i.type===filter));
+  });
 });
 
-function setActiveButton(id) {
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// Búsqueda
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.toLowerCase();
-  renderItems(allItems.filter(i => i.title.toLowerCase().includes(q)));
+// Buscador
+document.getElementById('search-bar').addEventListener('input', (e)=>{
+  const q = e.target.value.toLowerCase();
+  renderItems(allItems.filter(i=>i.title.toLowerCase().includes(q)));
 });
 
 // Inicial
-fetchItems();
+fetchData();
 </script>
+
 </body>
 </html>
