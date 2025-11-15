@@ -2,71 +2,51 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
-<style>
-  body { font-family: Arial, sans-serif; background: #f0f0f0; margin:0; padding:0; }
-  .container { max-width: 1000px; margin: auto; padding: 20px; }
-  .item { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
-  .item img { width: 200px; float: left; margin-right: 15px; border-radius: 4px; }
-  .info { overflow: hidden; }
-  .title { font-size: 1.3em; font-weight: bold; }
-  .overview { margin: 10px 0; }
-  .buttons { margin-top: 10px; }
-  .buttons a { display: inline-block; padding: 6px 12px; margin: 2px; background: #007bff; color: #fff; text-decoration: none; border-radius: 4px; font-size: 0.9em; }
-</style>
-</head>
-<body>
-<div class="container" id="gallery"></div>
-
+<link rel="stylesheet" href="catalogo.css">
 <script>
-const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec'; // Cambia al URL de tu WebApp
-
-async function loadItems() {
-  const container = document.getElementById('gallery');
-  container.innerHTML = 'Cargando...';
-
+const SHEET_JSON_URL = "TU_WEBAPP_URL"; // <-- Cambia por tu WebApp
+async function loadCatalog() {
   try {
     const res = await fetch(SHEET_JSON_URL);
     const data = await res.json();
-
-    container.innerHTML = '';
-    if(!data || data.length === 0) {
-      container.innerHTML = 'No hay items disponibles.';
-      return;
-    }
-
+    const container = document.getElementById("catalogo");
+    container.innerHTML = "";
     data.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'item';
-
-      const poster = item.poster ? `<img src="${item.poster}" alt="${item.title}">` : '';
-      const overview = item.overview ? `<div class="overview">${item.overview}</div>` : '';
-      const yearRating = `<div>⭐ ${item.rating || 'N/A'} | ${item.year || ''}</div>`;
-      const title = `<div class="title">${item.title}</div>`;
-
-      let buttonsHTML = '';
-      if(item.season_links && item.season_links.length > 0){
-        buttonsHTML = '<div class="buttons">';
+      const div = document.createElement("div");
+      div.className = "item";
+      let html = `<img src="${item.poster}" alt="${item.title}">
+                  <h3>${item.title}</h3>
+                  <p>${item.overview}</p>
+                  <p>⭐ ${item.rating} | ${item.year}</p>`;
+      if(item.type === "series" && item.season_links && item.season_links.length > 0){
+        html += "<div class='botones'>";
         item.season_links.forEach(s => {
-          if(s.link && s.link.includes('terabox')){
-            buttonsHTML += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
-          }
+          html += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
         });
-        buttonsHTML += '</div>';
+        html += "</div>";
+      } else if(item.type === "movie" && item.terabox){
+        html += `<div class='botones'><a href="${item.terabox}" target="_blank">Ver ahora</a></div>`;
       }
-
-      div.innerHTML = poster + '<div class="info">' + title + overview + yearRating + buttonsHTML + '</div>';
+      div.innerHTML = html;
       container.appendChild(div);
     });
-
-  } catch(err) {
-    container.innerHTML = 'Error al cargar los datos.';
-    console.error(err);
+  } catch (err) {
+    console.error("Error cargando catalogo:", err);
   }
 }
-
-window.onload = loadItems;
+window.onload = loadCatalog;
 </script>
+<style>
+body {font-family: Arial; margin:0; padding:0;}
+#catalogo {display: flex; flex-wrap: wrap; gap: 20px; padding:20px;}
+.item {border:1px solid #ccc; padding:10px; width:250px; box-sizing:border-box;}
+.item img {width:100%; height:auto;}
+.botones a {display:block; margin:5px 0; padding:5px; background:#f60; color:#fff; text-decoration:none; text-align:center;}
+</style>
+</head>
+<body>
+<h1>CineNube Gallery</h1>
+<div id="catalogo"></div>
 </body>
 </html>
