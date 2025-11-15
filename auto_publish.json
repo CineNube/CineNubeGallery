@@ -1,14 +1,22 @@
 {
-  "spreadsheet_id": "1fHOhQ9ZtU-JlVPWhH_3_th_PdNP9CL57tT_pI1NNil4",
-  "sheet_name": "prueba12",
-  "telegram_bot_token": "7673638131:AAEzvIDXZv9f06f8684c4d104861d52b",
-  "telegram_channel_id": "@estrenos_online_25",
-  "topics": {
-    "movie": 2,
-    "series": 3
+  "sheetName": "Hoja 1",
+  "checkColumn": "Enviar",
+  "statusColumn": "Enviado",
+  "tmdbColumn": "TMDB_ID",
+  "typeColumn": "type",
+  "titleColumn": "title",
+  "posterColumn": "poster",
+  "overviewColumn": "overview",
+  "ratingColumn": "rating",
+  "seasonLinksColumn": "season_links",
+  "teraboxColumn": "terabox",
+  "languageColumn": "Idioma",
+  "githubRepository": "CineNube/CineNubeGallery",
+  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
+  "telegram": {
+    "channel": "@estrenos_online_25",
+    "topic_series": 3,
+    "topic_movies": 2
   },
-  "publish_on_edit": true,
-  "publish_on_schedule": false,
-  "check_interval_minutes": 10,
-  "season_link_format": "T1=https://link1;T2=https://link2"
+  "notes": "Archivo de configuración para procesos automáticos. Ajusta sheetName si cambias el nombre de la hoja."
 }
