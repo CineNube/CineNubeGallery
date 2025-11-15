@@ -2,51 +2,61 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
-<link rel="stylesheet" href="catalogo.css">
-<script>
-const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec"; // <-- Cambia por tu WebApp
-async function loadCatalog() {
-  try {
-    const res = await fetch(SHEET_JSON_URL);
-    const data = await res.json();
-    const container = document.getElementById("catalogo");
-    container.innerHTML = "";
-    data.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      let html = `<img src="${item.poster}" alt="${item.title}">
-                  <h3>${item.title}</h3>
-                  <p>${item.overview}</p>
-                  <p>⭐ ${item.rating} | ${item.year}</p>`;
-      if(item.type === "series" && item.season_links && item.season_links.length > 0){
-        html += "<div class='botones'>";
-        item.season_links.forEach(s => {
-          html += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
-        });
-        html += "</div>";
-      } else if(item.type === "movie" && item.terabox){
-        html += `<div class='botones'><a href="${item.terabox}" target="_blank">Ver ahora</a></div>`;
-      }
-      div.innerHTML = html;
-      container.appendChild(div);
-    });
-  } catch (err) {
-    console.error("Error cargando catalogo:", err);
-  }
-}
-window.onload = loadCatalog;
-</script>
-<style>
-body {font-family: Arial; margin:0; padding:0;}
-#catalogo {display: flex; flex-wrap: wrap; gap: 20px; padding:20px;}
-.item {border:1px solid #ccc; padding:10px; width:250px; box-sizing:border-box;}
-.item img {width:100%; height:auto;}
-.botones a {display:block; margin:5px 0; padding:5px; background:#f60; color:#fff; text-decoration:none; text-align:center;}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<h1>CineNube Gallery</h1>
-<div id="catalogo"></div>
+<header>
+  <h1>CineNube Gallery</h1>
+  <nav>
+    <button id="btn-todo">Todo</button>
+    <button id="btn-peliculas">Películas</button>
+    <button id="btn-series">Series</button>
+  </nav>
+</header>
+<main id="catalogo"></main>
+<script src="catalogo.html.js"></script>
+<script>
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+
+async function cargarCatalogo(filtro='todo') {
+  const res = await fetch(SHEET_JSON_URL);
+  const data = await res.json();
+  let items = data;
+  if(filtro==='movie') items = data.filter(d=>d.type==='movie');
+  if(filtro==='series') items = data.filter(d=>d.type==='series');
+  mostrarItems(items);
+}
+
+function mostrarItems(items){
+  const container = document.getElementById('catalogo');
+  container.innerHTML='';
+  items.forEach(item=>{
+    const card=document.createElement('div');
+    card.className='card';
+    let seasonsHTML='';
+    if(item.season_links && item.season_links.length>0){
+      item.season_links.forEach(s=>{
+        seasonsHTML+='<a href="'+s.link+'" target="_blank">Temporada '+s.season+'</a> ';
+      });
+    } else if(item.type==='series') seasonsHTML='Sin temporadas';
+    card.innerHTML=`
+      <img src="${item.poster}" alt="${item.title}">
+      <h2>${item.title}</h2>
+      <p>${item.overview}</p>
+      <p>⭐ ${item.rating} | ${item.year}</p>
+      <div>${seasonsHTML}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+document.getElementById('btn-todo').addEventListener('click',()=>cargarCatalogo('todo'));
+document.getElementById('btn-peliculas').addEventListener('click',()=>cargarCatalogo('movie'));
+document.getElementById('btn-series').addEventListener('click',()=>cargarCatalogo('series'));
+
+cargarCatalogo();
+</script>
 </body>
 </html>
