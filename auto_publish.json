@@ -1,5 +1,5 @@
 {
-  "sheetName": "Hoja 1",
+  "sheetName": "prueba12",
   "checkColumn": "Enviar",
   "statusColumn": "Enviado",
   "tmdbColumn": "TMDB_ID",
@@ -18,5 +18,5 @@
     "topic_series": 3,
     "topic_movies": 2
   },
-  "notes": "Archivo de configuración para procesos automáticos. Ajusta sheetName si cambias el nombre de la hoja."
+  "notes": "Archivo de configuración para procesos automáticos. Ajustado a hoja 'prueba12'."
 }
