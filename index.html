@@ -1,23 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CineNube Gallery</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineNube Gallery</title>
+
+    <!-- Enlace al CSS externo -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Opcional: fuente y estilos base -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
 </head>
 <body>
-  <header>
-    <h1>CineNube Gallery</h1>
-    <input type="text" id="searchInput" placeholder="Buscar...">
-    <div id="filterButtons">
-      <button data-type="all">Todo</button>
-      <button data-type="movie">Películas</button>
-      <button data-type="series">Series</button>
-    </div>
-  </header>
-  <main id="catalogo"></main>
-  <script src="catalogo.js"></script>
-  <script src="auto_publish.js"></script>
+
+    <header>
+        <h1>CineNube Gallery</h1>
+        <input type="text" id="search" placeholder="Buscar...">
+        <nav>
+            <button id="all">Todo</button>
+            <button id="movies">Películas</button>
+            <button id="series">Series</button>
+        </nav>
+    </header>
+
+    <main id="catalogo">
+        <!-- Aquí se cargarán las películas y series desde catalogo.js -->
+    </main>
+
+    <!-- Scripts de la web -->
+    <script src="catalogo.js"></script>
+    <script src="auto_publish.js"></script>
+
 </body>
 </html>
