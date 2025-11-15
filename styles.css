@@ -1,0 +1,180 @@
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Body */
+body {
+  background-color: #111;
+  color: #fff;
+  line-height: 1.4;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+#searchInput {
+  width: 100%;
+  max-width: 500px;
+  padding: 10px;
+  font-size: 1em;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+#filterButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#filterButtons button {
+  padding: 8px 15px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#filterButtons button:hover {
+  background-color: #555;
+}
+
+/* Catalogo */
+#catalogo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+  justify-items: center;
+}
+
+/* Tarjetas */
+.card {
+  background-color: #1c1c1c;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+/* Imagen */
+.card img {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #333;
+}
+
+/* Título */
+.card h2 {
+  font-size: 1.1em;
+  margin: 10px 5px;
+  min-height: 40px;
+}
+
+/* Overview */
+.card p {
+  font-size: 0.85em;
+  padding: 5px 10px;
+  color: #ddd;
+}
+
+/* Info y votos */
+.card p:nth-of-type(2),
+.card p:nth-of-type(3) {
+  font-size: 0.8em;
+  color: #aaa;
+}
+
+/* Botones */
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  color: #fff;
+  background-color: #e50914;
+  padding: 7px 12px;
+  border-radius: 5px;
+  margin: 5px 0;
+  font-size: 0.9em;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background-color: #f40612;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  #catalogo {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .card {
+    max-width: 160px;
+  }
+
+  .card h2 {
+    font-size: 1em;
+    min-height: 35px;
+  }
+
+  .card p {
+    font-size: 0.8em;
+  }
+
+  .btn {
+    font-size: 0.8em;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  #catalogo {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .card {
+    max-width: 140px;
+  }
+
+  .card h2 {
+    font-size: 0.9em;
+    min-height: 30px;
+  }
+
+  .card p {
+    font-size: 0.75em;
+  }
+
+  .btn {
+    font-size: 0.75em;
+    padding: 4px 8px;
+  }
+}
