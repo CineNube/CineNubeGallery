@@ -7,18 +7,17 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="header">
+  <header>
     <h1>CineNube Gallery</h1>
-    <input type="text" id="search" placeholder="Buscar...">
-    <div id="filter">
-      <button id="btnAll">Todo</button>
-      <button id="btnMovies">Películas</button>
-      <button id="btnSeries">Series</button>
+    <input type="text" id="searchInput" placeholder="Buscar...">
+    <div id="filterButtons">
+      <button data-type="all">Todo</button>
+      <button data-type="movie">Películas</button>
+      <button data-type="series">Series</button>
     </div>
-  </div>
-
-  <div id="catalog"></div>
-
+  </header>
+  <main id="catalogo"></main>
   <script src="catalogo.js"></script>
+  <script src="auto_publish.js"></script>
 </body>
 </html>
