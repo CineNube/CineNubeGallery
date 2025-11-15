@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec"; // Pon aquí el URL de tu WebApp de Sheets
+const API_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec"; // tu WebApp JSON
 
 let items = [];
 
@@ -22,6 +22,8 @@ function renderGallery(data) {
 
   // Orden descendente por published_ts
   data.sort((a,b) => b.published_ts - a.published_ts);
+
+  const fragment = document.createDocumentFragment(); // para optimizar render
 
   data.forEach(item => {
     const card = document.createElement("div");
@@ -80,8 +82,10 @@ function renderGallery(data) {
     card.appendChild(info);
     card.appendChild(btns);
 
-    container.appendChild(card);
+    fragment.appendChild(card);
   });
+
+  container.appendChild(fragment);
 }
 
 // Filtros
