@@ -5,160 +5,221 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
 <style>
-  body { font-family: 'Roboto', sans-serif; margin:0; padding:0; background:#121212; color:#fff; }
-  
-  /* Header y buscador centrados */
-  header {
-    background:#1f1f1f;
-    padding:10px 20px;
-    display:flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  header h1 { margin:0 0 10px 0; font-size:1.5em; color:#ff3d00; }
-  #searchInput { padding:5px 10px; width:220px; border-radius:5px; border:none; }
-
-  nav {
-    margin:10px 0;
-    display:flex;
-    justify-content:center;
-  }
-  nav button {
-    background:#2c2c2c;
-    color:#fff;
-    border:none;
-    padding:8px 15px;
-    margin:0 5px;
-    cursor:pointer;
-    border-radius:5px;
-  }
-  nav button.active { background:#ff3d00; }
-
-  main {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    margin:10px;
-  }
-
-  .item-card {
-    background:#1f1f1f;
-    border-radius:8px;
-    margin:10px;
-    width:180px;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-  }
-  .item-card img { width:100%; height:270px; object-fit:cover; }
-  .item-info {
-    padding:10px;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-  }
-  .item-title { font-weight:bold; font-size:1em; margin-bottom:5px; }
-  .item-overview {
-    font-size:0.85em;
-    color:#ccc;
-    flex:1;
-    margin-bottom:5px;
-    overflow:hidden;
-    display:-webkit-box;
-    -webkit-line-clamp:4;
-    -webkit-box-orient:vertical;
-  }
-  .item-meta { font-size:0.8em; color:#aaa; margin-bottom:5px; }
-  .season-buttons a, .movie-button a {
-    display:block;
-    background:#ff3d00;
-    color:#fff;
-    text-decoration:none;
-    text-align:center;
-    margin-top:3px;
-    padding:5px;
-    border-radius:5px;
-    font-size:0.85em;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+header {
+  text-align: center;
+  padding: 20px;
+  background: #1e1e1e;
+}
+h1 {
+  margin: 0;
+  font-size: 2em;
+}
+#searchBar {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 8px;
+  border: none;
+}
+nav {
+  text-align: center;
+  margin: 20px 0;
+}
+nav button {
+  margin: 0 5px;
+  padding: 8px 15px;
+  background-color: #ff3d00;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+}
+nav button.active {
+  background-color: #ff7043;
+}
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+}
+.item {
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  width: 180px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s;
+}
+.item:hover {
+  transform: scale(1.05);
+}
+.item img {
+  width: 100%;
+  height: 270px;
+  object-fit: cover;
+}
+.item-content {
+  padding: 10px;
+  flex: 1;
+}
+.item-title {
+  font-weight: bold;
+  font-size: 1em;
+  margin: 0 0 5px 0;
+}
+.item-overview {
+  font-size: 0.85em;
+  color: #ccc;
+}
+.item-overview::after {
+  content: '...';
+}
+.button-season {
+  display: block;
+  margin: 5px 0;
+  padding: 5px 8px;
+  background-color: #2979ff;
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 5px;
+  font-size: 0.85em;
+}
 </style>
 </head>
 <body>
 
 <header>
   <h1>CineNube Gallery</h1>
-  <input type="text" id="searchInput" placeholder="Buscar...">
+  <input type="text" id="searchBar" placeholder="Buscar...">
   <nav>
-    <button class="filter-btn active" data-type="all">Todo</button>
-    <button class="filter-btn" data-type="movie">Películas</button>
-    <button class="filter-btn" data-type="series">Series</button>
+    <button id="btnAll" class="active">Todo</button>
+    <button id="btnMovies">Películas</button>
+    <button id="btnSeries">Series</button>
   </nav>
 </header>
 
-<main id="gallery"></main>
+<div class="gallery" id="gallery"></div>
 
 <script>
-const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec';
 
 let allItems = [];
-const gallery = document.getElementById("gallery");
-const searchInput = document.getElementById("searchInput");
-const filterButtons = document.querySelectorAll(".filter-btn");
+const gallery = document.getElementById('gallery');
+const searchInput = document.getElementById('searchBar');
 
-async function fetchItems(){
+async function fetchItems() {
   try {
     const res = await fetch(SHEET_JSON_URL);
     allItems = await res.json();
+
+    // Orden descendente por fecha de publicación
+    allItems.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
+
     renderItems(allItems);
-  } catch(e){
+  } catch (e) {
     gallery.innerHTML = "<p>Error cargando contenido.</p>";
   }
 }
 
-function renderItems(items){
-  gallery.innerHTML = "";
+function truncateText(text, maxLength = 100) {
+  if (!text) return '';
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+}
+
+function renderItems(items) {
+  gallery.innerHTML = '';
   items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "item-card";
-    card.innerHTML = `
-      <img src="${item.poster||''}" alt="${item.title}">
-      <div class="item-info">
-        <div class="item-title">${item.title}</div>
-        <div class="item-overview">${item.overview||''}</div>
-        <div class="item-meta">⭐ ${item.rating||'N/A'} | ${item.year||''}</div>
-        <div class="season-buttons">
-          ${(item.type==='series' && item.season_links?.length>0) ? item.season_links.map(s=>s.link?`<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`:'').join('') : ''}
-        </div>
-        <div class="movie-button">
-          ${(item.type==='movie' && item.terabox) ? `<a href="${item.terabox}" target="_blank">Ver ahora</a>` : ''}
-        </div>
-      </div>
-    `;
-    gallery.appendChild(card);
+    const div = document.createElement('div');
+    div.className = 'item';
+
+    const poster = document.createElement('img');
+    poster.src = item.poster || '';
+    poster.alt = item.title;
+
+    const content = document.createElement('div');
+    content.className = 'item-content';
+
+    const title = document.createElement('div');
+    title.className = 'item-title';
+    title.textContent = item.title;
+
+    const overview = document.createElement('div');
+    overview.className = 'item-overview';
+    overview.textContent = truncateText(item.overview, 120);
+
+    content.appendChild(title);
+    content.appendChild(overview);
+
+    // Botones para temporadas
+    if (item.type === 'series' && item.season_links && item.season_links.length > 0) {
+      item.season_links.forEach(s => {
+        if (s.link) {
+          const btn = document.createElement('a');
+          btn.className = 'button-season';
+          btn.href = s.link;
+          btn.target = '_blank';
+          btn.textContent = 'Temporada ' + s.season;
+          content.appendChild(btn);
+        }
+      });
+    }
+
+    // Botón de película
+    if (item.type === 'movie' && item.terabox) {
+      const btn = document.createElement('a');
+      btn.className = 'button-season';
+      btn.href = item.terabox;
+      btn.target = '_blank';
+      btn.textContent = 'Ver ahora';
+      content.appendChild(btn);
+    }
+
+    div.appendChild(poster);
+    div.appendChild(content);
+    gallery.appendChild(div);
   });
 }
 
-// Filtrar por tipo
-filterButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    filterButtons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const type = btn.dataset.type;
-    let filtered = allItems;
-    if(type !== 'all') filtered = allItems.filter(i=>i.type===type);
-    renderItems(filtered);
-  });
+// Filtrado por botones
+document.getElementById('btnAll').addEventListener('click', () => {
+  setActiveButton('btnAll');
+  renderItems(allItems);
+});
+document.getElementById('btnMovies').addEventListener('click', () => {
+  setActiveButton('btnMovies');
+  renderItems(allItems.filter(i => i.type === 'movie'));
+});
+document.getElementById('btnSeries').addEventListener('click', () => {
+  setActiveButton('btnSeries');
+  renderItems(allItems.filter(i => i.type === 'series'));
 });
 
-// Filtrar por búsqueda
-searchInput.addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  const filtered = allItems.filter(i => i.title.toLowerCase().includes(q));
-  renderItems(filtered);
+function setActiveButton(id) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// Búsqueda
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase();
+  renderItems(allItems.filter(i => i.title.toLowerCase().includes(q)));
 });
 
+// Inicial
 fetchItems();
 </script>
-
 </body>
 </html>
