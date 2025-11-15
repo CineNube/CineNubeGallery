@@ -1,44 +1,73 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CineNube Catalogo</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<header>
-  <h1>CineNube Catalogo</h1>
-</header>
-<div class="grid" id="grid"></div>
-<script>
-const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
-fetch(SHEET_JSON_URL)
-  .then(res=>res.json())
-  .then(items=>{
-    items.sort((a,b)=>b.published_ts-a.published_ts);
-    const grid=document.getElementById('grid');
-    items.forEach(i=>{
-      let card=document.createElement('div');
-      card.className='card';
-      card.innerHTML=`
-        <img src="${i.poster}" alt="${i.title}">
-        <div class="card-content">
-          <div class="card-title">${i.title}</div>
-          <div class="card-overview">${i.overview.length>120 ? i.overview.slice(0,120)+'...' : i.overview}</div>
-          <div class="card-meta">⭐ ${i.rating || 'N/A'} | 📅 ${i.year || ''}</div>
-          <div class="votes">
-            <span class="up">👍 ${i.vote_count && i.vote_average ? Math.round(i.vote_count*(i.vote_average/10)) : 0}</span>
-            <span class="down">👎 ${i.vote_count && i.vote_average ? i.vote_count-Math.round(i.vote_count*(i.vote_average/10)) : 0}</span>
-          </div>
-          <div class="seasons">
-            ${i.season_links && i.season_links.length>0 ? i.season_links.map(s=>s.link?`<a href="${s.link}" target="_blank" class="season-btn">Temporada ${s.season}</a>`:'').join('') : ''}
-          </div>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // Pon tu URL de WebApp
+
+let items = [];
+
+async function fetchItems() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    // Orden descendente por published_ts
+    items = data.sort((a,b)=>b.published_ts - a.published_ts);
+    renderItems();
+  } catch (err) {
+    document.getElementById("catalogo").innerHTML = "<p>Error al cargar los títulos</p>";
+    console.error(err);
+  }
+}
+
+function renderItems() {
+  const container = document.getElementById("catalogo");
+  const searchText = document.getElementById("searchBox").value.toLowerCase();
+  const activeType = document.querySelector(".filter-btn.active")?.dataset.type || "all";
+
+  container.innerHTML = "";
+
+  items.forEach(item => {
+    if (activeType !== "all" && item.type !== activeType) return;
+    if (searchText && !item.title.toLowerCase().includes(searchText)) return;
+
+    const div = document.createElement("div");
+    div.classList.add("item");
+
+    let seasonsHTML = "";
+    if (item.type === "series" && item.season_links && item.season_links.length) {
+      seasonsHTML = item.season_links.map(s => 
+        `<a href="${s.link}" target="_blank" class="season-btn">Temporada ${s.season}</a>`
+      ).join(" ");
+    }
+
+    let movieButton = "";
+    if (item.type === "movie" && item.terabox) {
+      movieButton = `<a href="${item.terabox}" target="_blank" class="movie-btn">Ver película</a>`;
+    }
+
+    div.innerHTML = `
+      <img src="${item.poster}" alt="${item.title}">
+      <h2>${item.title}</h2>
+      <p>${item.overview}</p>
+      <p>⭐ ${item.rating || "N/A"} | 📅 ${item.year || ""}</p>
+      <p>👍 ${item.votes_up || 0} | 👎 ${item.votes_down || 0}</p>
+      <div class="buttons">
+        ${movieButton}
+        ${seasonsHTML}
+      </div>
+    `;
+
+    container.appendChild(div);
   });
-</script>
-</body>
-</html>
+}
+
+// Filtros
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderItems();
+  });
+});
+
+// Buscador
+document.getElementById("searchBox").addEventListener("input", renderItems);
+
+// Cargar inicial
+fetchItems();
