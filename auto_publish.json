@@ -1,5 +1,5 @@
 {
-  "sheetName": "prueba12",
+  "sheetName": "Hoja 1",
   "checkColumn": "Enviar",
   "statusColumn": "Enviado",
   "tmdbColumn": "TMDB_ID",
@@ -12,7 +12,7 @@
   "teraboxColumn": "terabox",
   "languageColumn": "Idioma",
   "githubRepository": "CineNube/CineNubeGallery",
-  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.html",
+  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
   "telegram": {
     "channel": "@estrenos_online_25",
     "topic_series": 3,
