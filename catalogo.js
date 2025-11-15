@@ -1,107 +1,152 @@
-// Catalogo.js
-const catalogoContainer = document.getElementById("catalogo");
-let catalogoData = [];
+// catalogo.js
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+
+const container = document.getElementById('catalogo');
+const searchInput = document.getElementById('searchInput');
+const filterButtons = document.querySelectorAll('#filterButtons button');
+
+let items = [];
+let activeFilter = 'all';
 
 async function fetchData() {
-    try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec");
-        catalogoData = await res.json();
-        renderCatalog(catalogoData);
-    } catch (err) {
-        catalogoContainer.innerHTML = `<p>Error al cargar los títulos</p>`;
-        console.error(err);
+  try {
+    const res = await fetch(SHEET_JSON_URL);
+    if(!res.ok) throw new Error('Respuesta no OK');
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('JSON inválido');
+    items = data.sort((a,b)=> (b.published_ts||0) - (a.published_ts||0));
+    render(items);
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `<div class="empty">Error al cargar los títulos</div>`;
+  }
+}
+
+function render(list) {
+  const q = (searchInput.value||'').toLowerCase().trim();
+  const filtered = list.filter(i=>{
+    if(activeFilter !== 'all' && i.type !== activeFilter) return false;
+    if(q && (!i.title || i.title.toLowerCase().indexOf(q)===-1)) return false;
+    return true;
+  });
+
+  if(filtered.length === 0) {
+    container.innerHTML = `<div class="empty">No hay títulos</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  const fragment = document.createDocumentFragment();
+
+  filtered.forEach(item => {
+    const card = document.createElement('article');
+    card.className = 'card';
+
+    // Poster
+    const posterWrap = document.createElement('div');
+    posterWrap.className = 'poster';
+    const img = document.createElement('img');
+    img.src = item.poster || 'https://via.placeholder.com/300x450?text=No+Image';
+    img.alt = item.title || '';
+    posterWrap.appendChild(img);
+    card.appendChild(posterWrap);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'card-content';
+
+    const h2 = document.createElement('h2');
+    h2.textContent = item.title || '';
+    content.appendChild(h2);
+
+    const ov = document.createElement('p');
+    ov.className = 'overview';
+    ov.textContent = item.overview || '';
+    content.appendChild(ov);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = `⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}`;
+    content.appendChild(meta);
+
+    const votes = document.createElement('div');
+    votes.className = 'votes';
+    votes.innerHTML = `<span>👍 ${item.votes_up||0}</span> <span>👎 ${item.votes_down||0}</span>`;
+    content.appendChild(votes);
+
+    // Buttons container
+    const seasonsRow = document.createElement('div');
+    seasonsRow.className = 'season-row';
+
+    // If movie: show ver ahora if terabox present (works with array or raw link)
+    if(item.type === 'movie') {
+      const link = extractTeraboxLink(item.terabox);
+      if(link) {
+        const btn = document.createElement('a');
+        btn.href = link;
+        btn.className = 'btn';
+        btn.target = '_blank';
+        btn.textContent = 'Ver ahora';
+        content.appendChild(btn);
+      }
     }
-}
 
-function renderCatalog(data) {
-    catalogoContainer.innerHTML = "";
-    // Orden descendente por fecha publicada
-    data.sort((a,b)=>b.published_ts - a.published_ts);
-    
-    data.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        // Imagen
-        const img = document.createElement("img");
-        img.src = item.poster;
-        img.alt = item.title;
-        card.appendChild(img);
-
-        // Título
-        const title = document.createElement("h2");
-        title.textContent = item.title;
-        card.appendChild(title);
-
-        // Overview
-        const overview = document.createElement("p");
-        overview.textContent = item.overview;
-        card.appendChild(overview);
-
-        // Rating y año
-        const info = document.createElement("p");
-        info.innerHTML = `⭐ ${item.rating} | 📅 ${item.year}`;
-        card.appendChild(info);
-
-        // Votos
-        const votes = document.createElement("p");
-        votes.innerHTML = `👍 ${item.votes_up || 0} &nbsp; 👎 ${item.votes_down || 0}`;
-        card.appendChild(votes);
-
-        // Botón película o serie
-        if(item.type === "movie") {
-            if(item.terabox) {
-                const btn = document.createElement("a");
-                btn.href = item.terabox;
-                btn.textContent = "Ver Película";
-                btn.className = "btn";
-                btn.target = "_blank";
-                card.appendChild(btn);
-            }
-        } else if(item.type === "series") {
-            // Si tiene season_links, mostrar cada temporada
-            if(item.season_links && item.season_links.length > 0) {
-                item.season_links.forEach(s => {
-                    if(s.link) {
-                        const tBtn = document.createElement("a");
-                        tBtn.href = s.link;
-                        tBtn.textContent = "Temporada " + s.season;
-                        tBtn.className = "btn";
-                        tBtn.target = "_blank";
-                        card.appendChild(tBtn);
-                    }
-                });
-            } 
-            // Si no tiene season_links pero sí terabox, mostrar botón como película
-            else if(item.terabox) {
-                const btn = document.createElement("a");
-                btn.href = item.terabox;
-                btn.textContent = "Ver Serie";
-                btn.className = "btn";
-                btn.target = "_blank";
-                card.appendChild(btn);
-            }
+    // If series: show season buttons if present OR if not present but terabox exists show single Ver Serie
+    if(item.type === 'series') {
+      const seasons = Array.isArray(item.season_links) ? item.season_links : [];
+      const validSeasons = seasons.filter(s=>s && s.link && String(s.link).trim()!=='');
+      if(validSeasons.length > 0) {
+        validSeasons.forEach(s=>{
+          const btn = document.createElement('a');
+          btn.href = s.link;
+          btn.className = 'btn secondary';
+          btn.target = '_blank';
+          btn.textContent = 'Temporada ' + s.season;
+          seasonsRow.appendChild(btn);
+        });
+        content.appendChild(seasonsRow);
+      } else {
+        // fallback to terabox as single button
+        const link = extractTeraboxLink(item.terabox);
+        if(link) {
+          const btn = document.createElement('a');
+          btn.href = link;
+          btn.className = 'btn';
+          btn.target = '_blank';
+          btn.textContent = 'Ver Serie';
+          content.appendChild(btn);
         }
+      }
+    }
 
-        catalogoContainer.appendChild(card);
-    });
+    card.appendChild(content);
+    fragment.appendChild(card);
+  });
+
+  container.appendChild(fragment);
 }
 
-// Filtro de búsqueda
-document.getElementById("searchInput").addEventListener("input", e => {
-    const term = e.target.value.toLowerCase();
-    const filtered = catalogoData.filter(i => i.title.toLowerCase().includes(term));
-    renderCatalog(filtered);
+function extractTeraboxLink(raw) {
+  if(!raw) return '';
+  try {
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
+  } catch(e){}
+  // fallback regex
+  const match = String(raw).match(/https?:\/\/[^\s"]+/);
+  return match ? match[0] : '';
+}
+
+/* Search and filters */
+searchInput.addEventListener('input', ()=> render(items));
+filterButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    filterButtons.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.type || 'all';
+    render(items);
+  });
 });
 
-// Filtro de tipo
-document.querySelectorAll("#filterButtons button").forEach(btn => {
-    btn.addEventListener("click", () => {
-        const type = btn.dataset.type;
-        const filtered = type === "all" ? catalogoData : catalogoData.filter(i => i.type === type);
-        renderCatalog(filtered);
-    });
-});
-
-// Inicializar
+/* Auto init */
 fetchData();
