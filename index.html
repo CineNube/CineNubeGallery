@@ -4,234 +4,98 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
+<link rel="stylesheet" href="style.css">
 <style>
-  body {
-    font-family: 'Arial', sans-serif;
-    background: #121212;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    text-align: center;
-    padding: 20px;
-    background-color: #1f1f1f;
-  }
-  h1 { margin: 0; font-size: 2em; }
-  #search-bar {
-    margin-top: 10px;
-    width: 80%;
-    max-width: 500px;
-    padding: 10px;
-    font-size: 1em;
-    border-radius: 5px;
-    border: none;
-  }
-  nav {
-    text-align: center;
-    margin: 15px 0;
-  }
-  nav button {
-    margin: 0 5px;
-    padding: 8px 15px;
-    font-size: 1em;
-    cursor: pointer;
-    border-radius: 5px;
-    border: none;
-    background-color: #1f1f1f;
-    color: #fff;
-    transition: 0.2s;
-  }
-  nav button.active {
-    background-color: #ff3d00;
-  }
-  #gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-  .item {
-    background-color: #1e1e1e;
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-  }
-  .item img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-  }
-  .content {
-    padding: 10px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  .title {
-    font-weight: bold;
-    font-size: 1.1em;
-    margin-bottom: 5px;
-  }
-  .overview {
-    font-size: 0.9em;
-    margin-bottom: 5px;
-    line-height: 1.2em;
-  }
-  .info {
-    font-size: 0.85em;
-    margin-bottom: 5px;
-    color: #ccc;
-  }
-  .buttons {
-    margin-top: auto;
-  }
-  .buttons a {
-    display: inline-block;
-    margin: 2px 2px 2px 0;
-    padding: 5px 8px;
-    font-size: 0.8em;
-    text-decoration: none;
-    border-radius: 5px;
-    background-color: #ff3d00;
-    color: #fff;
-    transition: 0.2s;
-  }
-  .buttons a:hover { background-color: #ff5722; }
-  .rating {
-    margin-top: 5px;
-  }
-  .rating button {
-    margin: 3px 3px 3px 0;
-    padding: 4px 8px;
-    font-size: 0.8em;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .rating .up { background-color: #1b5e20; color: #fff; }
-  .rating .down { background-color: #b71c1c; color: #fff; }
-  .rating button:hover { opacity: 0.8; }
+  body { font-family: Arial, sans-serif; background: #121212; color: #f5f5f5; margin:0; padding:0;}
+  header { text-align:center; padding: 20px 0; background:#1f1f1f; }
+  header h1 { margin:0; font-size:2rem; color:#00bfa5; }
+  #search { width:80%; max-width:500px; padding:10px; margin:10px auto; display:block; border-radius:5px; border:none;}
+  .tabs { text-align:center; margin:20px 0; }
+  .tab { display:inline-block; padding:10px 20px; margin:0 5px; cursor:pointer; background:#1f1f1f; border-radius:5px; color:#f5f5f5; }
+  .tab.active { background:#00bfa5; color:#121212; font-weight:bold; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:20px; padding:20px; }
+  .card { background:#1f1f1f; border-radius:10px; overflow:hidden; display:flex; flex-direction:column; }
+  .card img { width:100%; height:330px; object-fit:cover; }
+  .card-content { padding:10px; flex:1; display:flex; flex-direction:column; }
+  .card-title { font-weight:bold; font-size:1.1rem; margin-bottom:5px; }
+  .card-overview { flex:1; font-size:0.9rem; margin-bottom:5px; }
+  .card-overview::after { content:"..."; }
+  .card-meta { font-size:0.85rem; margin-bottom:5px; }
+  .seasons { margin-top:5px; display:flex; flex-wrap:wrap; gap:5px; }
+  .season-btn { background:#00bfa5; color:#121212; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:0.8rem; }
+  .votes { display:flex; gap:10px; font-size:0.9rem; margin-top:5px; }
+  .up { color:#4caf50; }
+  .down { color:#f44336; }
 </style>
 </head>
 <body>
-
 <header>
   <h1>CineNube Gallery</h1>
-  <input type="text" id="search-bar" placeholder="Buscar...">
-  <nav>
-    <button class="active" data-filter="all">Todo</button>
-    <button data-filter="movie">Películas</button>
-    <button data-filter="series">Series</button>
-  </nav>
 </header>
-
-<main id="gallery"></main>
+<input type="text" id="search" placeholder="Buscar...">
+<div class="tabs">
+  <span class="tab active" data-type="all">Todo</span>
+  <span class="tab" data-type="movie">Películas</span>
+  <span class="tab" data-type="series">Series</span>
+</div>
+<div class="grid" id="grid"></div>
 
 <script>
-const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec';
-let allItems = [];
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+let items = [];
 
-async function fetchData() {
-  const res = await fetch(SHEET_JSON_URL);
-  const data = await res.json();
-  allItems = data.sort((a,b)=>b.published_ts - a.published_ts);
-  renderItems(allItems);
+function truncate(text, maxLength=120){
+  if(!text) return "";
+  return text.length>maxLength ? text.slice(0,maxLength) + "..." : text;
 }
 
-function truncate(text, max=120) {
-  if(!text) return '';
-  return text.length>max? text.slice(0,max)+'...': text;
-}
-
-function renderItems(items) {
-  const gallery = document.getElementById('gallery');
-  gallery.innerHTML = '';
-  items.forEach(item=>{
-    const card = document.createElement('div');
-    card.className = 'item';
-
-    const uniqueID = item.TMDB_ID || (item.type + '_' + btoa(item.title).slice(0,8));
-    card.dataset.id = uniqueID;
-
+function renderCards(type='all',filterText=''){
+  const grid = document.getElementById('grid');
+  grid.innerHTML='';
+  let filtered = items;
+  if(type!=='all') filtered = filtered.filter(i=>i.type===type);
+  if(filterText) filtered = filtered.filter(i=>i.title.toLowerCase().includes(filterText.toLowerCase()));
+  // Orden descendente por published_ts
+  filtered.sort((a,b)=>b.published_ts - a.published_ts);
+  
+  filtered.forEach(i=>{
+    let card = document.createElement('div');
+    card.className='card';
     card.innerHTML = `
-      <img src="${item.poster}" alt="${item.title}">
-      <div class="content">
-        <div class="title">${item.title}</div>
-        <div class="overview">${truncate(item.overview, 120)}</div>
-        <div class="info">⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
-        <div class="buttons"></div>
-        <div class="rating"></div>
+      <img src="${i.poster}" alt="${i.title}">
+      <div class="card-content">
+        <div class="card-title">${i.title}</div>
+        <div class="card-overview">${truncate(i.overview)}</div>
+        <div class="card-meta">⭐ ${i.rating || 'N/A'} | 📅 ${i.year || ''}</div>
+        <div class="votes">
+          <span class="up">👍 ${i.vote_count && i.vote_average ? Math.round(i.vote_count*(i.vote_average/10)) : 0}</span>
+          <span class="down">👎 ${i.vote_count && i.vote_average ? i.vote_count-Math.round(i.vote_count*(i.vote_average/10)) : 0}</span>
+        </div>
+        <div class="seasons">
+          ${i.season_links && i.season_links.length>0 ? i.season_links.map(s=>s.link?`<a href="${s.link}" target="_blank" class="season-btn">Temporada ${s.season}</a>`:'').join('') : ''}
+        </div>
       </div>
     `;
-    const buttonsDiv = card.querySelector('.buttons');
-    // Película
-    if(item.type==='movie' && item.terabox){
-      try{
-        const links = JSON.parse(item.terabox);
-        links.forEach((l,i)=>{
-          if(l.link) buttonsDiv.innerHTML += `<a href="${l.link}" target="_blank">Ver ahora</a>`;
-        });
-      }catch(e){}
-    }
-    // Serie
-    if(item.type==='series' && item.season_links){
-      try{
-        item.season_links.forEach(s=>{
-          if(s.link) buttonsDiv.innerHTML += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
-        });
-      }catch(e){}
-    }
-
-    // Valoraciones independientes
-    const ratingDiv = card.querySelector('.rating');
-    const key = 'rating_' + uniqueID;
-    let votes = JSON.parse(localStorage.getItem(key)||'{"up":0,"down":0}');
-    const upBtn = document.createElement('button');
-    upBtn.className = 'up';
-    upBtn.textContent = `👍 ${votes.up}`;
-    upBtn.onclick = ()=>{
-      votes.up++; localStorage.setItem(key, JSON.stringify(votes)); upBtn.textContent = `👍 ${votes.up}`;
-    };
-    const downBtn = document.createElement('button');
-    downBtn.className = 'down';
-    downBtn.textContent = `👎 ${votes.down}`;
-    downBtn.onclick = ()=>{
-      votes.down++; localStorage.setItem(key, JSON.stringify(votes)); downBtn.textContent = `👎 ${votes.down}`;
-    };
-    ratingDiv.appendChild(upBtn);
-    ratingDiv.appendChild(downBtn);
-
-    gallery.appendChild(card);
+    grid.appendChild(card);
   });
 }
 
-// Filtros
-document.querySelectorAll('nav button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const filter = btn.dataset.filter;
-    renderItems(filter==='all'? allItems : allItems.filter(i=>i.type===filter));
+fetch(SHEET_JSON_URL)
+  .then(res=>res.json())
+  .then(data=>{ items=data; renderCards(); });
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    renderCards(tab.dataset.type,document.getElementById('search').value);
   });
 });
 
-// Buscador
-document.getElementById('search-bar').addEventListener('input', (e)=>{
-  const q = e.target.value.toLowerCase();
-  renderItems(allItems.filter(i=>i.title.toLowerCase().includes(q)));
+document.getElementById('search').addEventListener('input',(e)=>{
+  const active = document.querySelector('.tab.active').dataset.type;
+  renderCards(active,e.target.value);
 });
-
-// Inicial
-fetchData();
 </script>
-
 </body>
 </html>
