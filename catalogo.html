@@ -3,97 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catálogo | CineNube</title>
-
+<title>CineNube Catálogo</title>
 <style>
-body { font-family:'Segoe UI',Arial,sans-serif; background:#0e0e0e; color:#fff; margin:0; }
-header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#00aaff; font-weight:bold; }
-#catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); padding:20px; }
-.item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; transition:.2s; display:flex; flex-direction:column; height:420px; }
-.item:hover { transform:scale(1.05); }
-.item img { width:100%; height:260px; object-fit:cover; border-bottom:3px solid #00aaff }
-.item .content { padding:10px; display:flex; flex-direction:column; flex:1; }
-.item h3 { margin:0 0 6px; font-size:17px; color:#00aaff; }
-.item p { font-size:14px; color:#ccc; flex:1; margin:0 0 8px; overflow:hidden; }
-.item a { background:#00aaff; padding:8px 10px; color:white; text-decoration:none; border-radius:8px; font-weight:700; }
-.meta { color:#9aaebf; font-size:13px; margin-bottom:8px; }
-.empty { padding:40px; text-align:center; color:#aaa; }
+  body { font-family: Arial, sans-serif; background: #f9f9f9; margin:0; padding:0; }
+  .container { max-width: 1200px; margin: auto; padding: 20px; display:grid; grid-template-columns: repeat(auto-fill,minmax(250px,1fr)); grid-gap: 20px; }
+  .card { background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1); display:flex; flex-direction:column; }
+  .card img { width:100%; height:auto; }
+  .card-body { padding:10px; flex-grow:1; display:flex; flex-direction:column; }
+  .title { font-weight:bold; margin-bottom:5px; }
+  .overview { flex-grow:1; font-size:0.9em; margin-bottom:5px; }
+  .buttons a { display:inline-block; padding:5px 10px; margin:2px; background:#007bff; color:#fff; text-decoration:none; border-radius:4px; font-size:0.85em; }
 </style>
 </head>
-
 <body>
-
-<header>Catálogo CineNube</header>
-
-<div id="catalog"></div>
+<div class="container" id="catalog"></div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbxxxxxxx/exec'; // Cambia al URL de tu WebApp
 
-function escapeHtml(s){ return s ? s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") : ""; }
+async function loadCatalog() {
+  const container = document.getElementById('catalog');
+  container.innerHTML = 'Cargando catálogo...';
 
-function getPrimaryLink(it){
-    try {
-        const arr = JSON.parse(it.terabox);
-        if (Array.isArray(arr) && arr[0]?.link) return arr[0].link;
-    } catch {}
-    const m = String(it.terabox||"").match(/https?:\/\/[^\s"']+/);
-    return m ? m[0] : "#";
-}
+  try {
+    const res = await fetch(SHEET_JSON_URL);
+    const data = await res.json();
 
-async function loadCatalog(){
-    try {
-        const res = await fetch(SHEET_URL);
-        const data = await res.json();
-
-        if (!Array.isArray(data)){
-            document.getElementById("catalog").innerHTML = "<div class='empty'>Respuesta inválida.</div>";
-            return;
-        }
-
-        // ORDENAR → más reciente primero
-        data.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
-
-        renderCatalog(data);
-
-    } catch(e){
-        document.getElementById("catalog").innerHTML = "<div class='empty'>Error cargando catálogo</div>";
-    }
-}
-
-function renderCatalog(list){
-    const catalog = document.getElementById("catalog");
-    catalog.innerHTML = "";
-
-    if (!list.length){
-        catalog.innerHTML = "<div class='empty'>No hay resultados</div>";
-        return;
+    container.innerHTML = '';
+    if(!data || data.length === 0){
+      container.innerHTML = 'No hay items disponibles.';
+      return;
     }
 
-    list.forEach(it => {
-        const poster = it.poster?.startsWith("http")
-            ? it.poster
-            : "https://via.placeholder.com/500x750?text=Sin+imagen";
+    data.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card';
 
-        const div = document.createElement("div");
-        div.className = "item";
+      const posterHTML = item.poster ? `<img src="${item.poster}" alt="${item.title}">` : '';
+      const titleHTML = `<div class="title">${item.title}</div>`;
+      const overviewHTML = item.overview ? `<div class="overview">${item.overview}</div>` : '';
+      
+      let buttonsHTML = '';
+      if(item.season_links && item.season_links.length>0){
+        buttonsHTML = '<div class="buttons">';
+        item.season_links.forEach(s=>{
+          if(s.link && s.link.includes('terabox')){
+            buttonsHTML += `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`;
+          }
+        });
+        buttonsHTML += '</div>';
+      }
 
-        div.innerHTML = `
-            <img src="${poster}">
-            <div class="content">
-                <h3>${escapeHtml(it.title)}</h3>
-                <p>${escapeHtml(it.overview || "")}</p>
-                <div class="meta">${it.year || ""}</div>
-                <a href="${getPrimaryLink(it)}" target="_blank">🎬 Ver</a>
-            </div>
-        `;
-
-        catalog.appendChild(div);
+      card.innerHTML = posterHTML + '<div class="card-body">' + titleHTML + overviewHTML + buttonsHTML + '</div>';
+      container.appendChild(card);
     });
+
+  } catch(err) {
+    container.innerHTML = 'Error al cargar el catálogo.';
+    console.error(err);
+  }
 }
 
-loadCatalog();
+window.onload = loadCatalog;
 </script>
-
 </body>
 </html>
