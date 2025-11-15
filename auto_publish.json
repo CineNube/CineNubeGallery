@@ -1,22 +1,8 @@
 {
-  "sheetName": "prueba12",
-  "checkColumn": "Enviar",
-  "statusColumn": "Enviado",
-  "tmdbColumn": "TMDB_ID",
-  "typeColumn": "type",
-  "titleColumn": "title",
-  "posterColumn": "poster",
-  "overviewColumn": "overview",
-  "ratingColumn": "rating",
-  "seasonLinksColumn": "season_links",
-  "teraboxColumn": "terabox",
-  "languageColumn": "Idioma",
-  "githubRepository": "CineNube/CineNubeGallery",
-  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
-  "telegram": {
-    "channel": "@estrenos_online_25",
-    "topic_series": 3,
-    "topic_movies": 2
-  },
-  "notes": "Archivo de configuración para procesos automáticos. Ajustado a hoja 'prueba12'."
+  "sheet_name": "prueba12",
+  "endpoint": "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec",
+  "publish_field": "published_at",
+  "sort_field": "updated",
+  "sort_order": "desc",
+  "autopublish": true
 }
