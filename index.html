@@ -7,16 +7,18 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>CineNube Gallery</h1>
+<div class="container">
+  <h1>CineNube Gallery</h1>
+  <div class="search-container">
     <input type="text" id="searchBox" placeholder="Buscar...">
-    <div class="filters">
-      <button class="filter-btn active" data-type="all">Todo</button>
-      <button class="filter-btn" data-type="movie">Películas</button>
-      <button class="filter-btn" data-type="series">Series</button>
-    </div>
-    <div id="catalogo" class="catalogo"></div>
   </div>
-  <script src="catalogo.js"></script>
+  <div class="filter-container">
+    <button class="filter-btn active" data-type="all">Todo</button>
+    <button class="filter-btn" data-type="movie">Películas</button>
+    <button class="filter-btn" data-type="series">Series</button>
+  </div>
+  <div id="catalogo" class="catalogo"></div>
+</div>
+<script src="catalogo.js"></script>
 </body>
 </html>
