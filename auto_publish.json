@@ -1,4 +1,12 @@
 {
-  "SHEET_JSON_URL": "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec",
-  "TRUNCATE_LENGTH": 150
+  "sheet_id": "1fHOhQ9ZtU-JlVPWhH_3_th_PdNP9CL57tT_pI1NNil4",
+  "sheet_name": "prueba12",
+  "telegram_bot_token": "7673638131:AAEzvIDXZv9B8W52FJXPxc36WnnxgpA3lyI",
+  "telegram_channel": "@estrenos_online_25",
+  "topics": {
+    "movie": 2,
+    "series": 3
+  },
+  "truncate_length": 120,
+  "webapp_url": "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec"
 }
