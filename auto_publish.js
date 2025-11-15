@@ -1,4 +1,5 @@
-// Recarga automática cada 2 minutos (120000ms)
+// auto_publish.js
+// Recarga automática cada 60 segundos
 setInterval(() => {
-  fetchItems(); // recarga datos
-}, 120000);
+    fetchData();
+}, 60000);
