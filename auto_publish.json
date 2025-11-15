@@ -12,7 +12,7 @@
   "teraboxColumn": "terabox",
   "languageColumn": "Idioma",
   "githubRepository": "CineNube/CineNubeGallery",
-  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.json",
+  "githubCatalogRawUrl": "https://raw.githubusercontent.com/CineNube/CineNubeGallery/main/catalogo.html",
   "telegram": {
     "channel": "@estrenos_online_25",
     "topic_series": 3,
