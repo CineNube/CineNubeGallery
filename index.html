@@ -22,7 +22,7 @@ nav button.active, nav button:hover{background:#e50914;border-color:#fff;}
 .title{font-size:1em;font-weight:bold;color:#e50914;margin:6px 0 4px;overflow:hidden;height:40px;}
 .overview{font-size:0.85em;color:#ccc;line-height:1.2;height:66px;overflow:hidden;margin-bottom:8px;}
 .meta{font-size:0.8em;color:#999;margin-bottom:6px;}
-.btn{margin-top:auto;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
+.btn{margin-top:6px;display:block;background:#e50914;color:#fff;text-decoration:none;padding:8px;border-radius:6px;font-weight:700;text-align:center;font-size:0.9em;}
 .btn.disabled{background:#333;cursor:default;}
 .tag{position:absolute;top:12px;left:12px;background:#141414;color:#e50914;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
 .new{position:absolute;top:12px;right:12px;background:#ff2d55;color:#fff;padding:4px 8px;border-radius:6px;font-size:0.75em;font-weight:700;}
@@ -56,7 +56,6 @@ async function fetchItems() {
 
         if (!Array.isArray(data)) return [];
 
-        // ORDENAR → más nuevo primero
         return data.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
 
     } catch (err) {
@@ -67,6 +66,36 @@ async function fetchItems() {
 
 let allItems = [];
 let filteredItems = [];
+
+// 🔥 NUEVA FUNCIÓN: genera botones por temporada
+function generateSeriesButtons(it) {
+    if (!it.season_links) {
+        return `<span class="btn disabled">Sin temporadas</span>`;
+    }
+
+    let buttonsHTML = "";
+
+    try {
+        const seasons = JSON.parse(it.season_links);
+
+        // Filtrar solo temporadas que tienen link
+        const available = seasons.filter(s => s.link && s.link.trim() !== "");
+
+        if (available.length === 0) {
+            return `<span class="btn disabled">Sin temporadas disponibles</span>`;
+        }
+
+        // Generar botones (T1, T2, T10...)
+        buttonsHTML = available
+            .map(s => `<a class="btn" href="${s.link}" target="_blank">📺 T${s.season}</a>`)
+            .join("");
+
+    } catch (e) {
+        buttonsHTML = `<span class="btn disabled">Error al leer temporadas</span>`;
+    }
+
+    return buttonsHTML;
+}
 
 function renderCatalog(list) {
     const now = Date.now();
@@ -80,7 +109,23 @@ function renderCatalog(list) {
 
     list.forEach(it => {
         const isNew = (now - (it.published_ts || 0)) <= 7 * 24 * 60 * 60 * 1000;
-        const primary = it.terabox || "#";
+
+        let buttonsHTML = "";
+
+        // 🔥 Series → usar temporadas
+        if (it.type === "series") {
+            buttonsHTML = generateSeriesButtons(it);
+        }
+
+        // 🎬 Películas → botón normal
+        else {
+            const primary = it.terabox || "#";
+            buttonsHTML = `
+                <a class="btn ${primary === "#" ? "disabled" : ""}" href="${primary}" target="_blank">
+                    🎥 Ver Película
+                </a>
+            `;
+        }
 
         const div = document.createElement("div");
         div.className = "item";
@@ -89,14 +134,14 @@ function renderCatalog(list) {
             <div class="thumb">
                 <img src="${it.poster}" alt="${it.title}">
             </div>
+
             <div class="content">
                 <div class="title">${it.title}</div>
                 <div class="overview">${it.overview || ""}</div>
                 <div class="meta">${it.rating ? "⭐ " + it.rating : ""} ${it.year ? "| " + it.year : ""}</div>
-                <a class="btn ${primary === "#" ? "disabled" : ""}" href="${primary}" target="_blank">
-                    ${it.type === "series" ? "📺 Ver Serie" : "🎥 Ver Película"}
-                </a>
+                ${buttonsHTML}
             </div>
+
             <span class="tag">${it.type === "series" ? "Series" : "Película"}</span>
             ${isNew ? '<span class="new">🆕 Nuevo</span>' : ""}
         `;
