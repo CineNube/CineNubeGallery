@@ -4,143 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #121212;
-  color: #fff;
-  margin: 0;
-  padding: 0;
-}
-header {
-  text-align: center;
-  padding: 20px;
-}
-h1 {
-  margin: 0;
-  font-size: 2rem;
-}
-#search-container {
-  text-align: center;
-  margin: 10px 0 20px;
-}
-#search-input {
-  padding: 10px;
-  width: 80%;
-  max-width: 400px;
-  border-radius: 5px;
-  border: none;
-  font-size: 1rem;
-}
-#filters {
-  text-align: center;
-  margin-bottom: 20px;
-}
-.filter-btn {
-  background: #1e1e1e;
-  color: #fff;
-  padding: 8px 16px;
-  margin: 0 5px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-}
-.filter-btn:hover {
-  background: #333;
-}
-#gallery-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
-  padding: 0 10px 30px;
-}
-.item-card {
-  background: #1e1e1e;
-  border-radius: 10px;
-  overflow: hidden;
-  width: 220px; /* reducido para imágenes más pequeñas */
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s;
-}
-.item-card:hover {
-  transform: scale(1.02);
-}
-.item-card img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.info {
-  padding: 10px;
-}
-.info h3 {
-  margin: 5px 0;
-  font-size: 1.1rem;
-}
-.overview {
-  font-size: 0.85rem;
-  height: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.meta {
-  font-size: 0.8rem;
-  margin: 5px 0;
-}
-.votes {
-  margin: 5px 0;
-  font-size: 0.85rem;
-}
-.btn {
-  display: block;
-  text-align: center;
-  margin: 10px auto 0 auto;
-  padding: 8px 15px;
-  background: #ff6f61;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  width: 80%; /* para que se vea más grande */
-}
-.btn:hover {
-  background: #ff4a3a;
-}
-.season-btn.disabled {
-  background: #555 !important;
-  cursor: not-allowed;
-}
-.error {
-  color: red;
-  text-align: center;
-  padding: 20px;
-}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="header">
+    <h1>CineNube Gallery</h1>
+    <input type="text" id="search" placeholder="Buscar...">
+    <div id="filter">
+      <button id="btnAll">Todo</button>
+      <button id="btnMovies">Películas</button>
+      <button id="btnSeries">Series</button>
+    </div>
+  </div>
 
-<header>
-  <h1>CineNube Gallery</h1>
-</header>
+  <div id="catalog"></div>
 
-<div id="search-container">
-  <input type="text" id="search-input" placeholder="Buscar...">
-</div>
-
-<div id="filters">
-  <button class="filter-btn" data-type="all">Todo</button>
-  <button class="filter-btn" data-type="movie">Películas</button>
-  <button class="filter-btn" data-type="series">Series</button>
-</div>
-
-<div id="gallery-container">
-  <!-- Items cargados dinámicamente -->
-</div>
-
-<script src="catalogo.js"></script>
-<script src="auto_publish.js"></script>
-
+  <script src="catalogo.js"></script>
 </body>
 </html>
