@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catálogo | CineNube</title>
 
 <style>
-body { font-family: 'Segoe UI', Arial, sans-serif; background:#0e0e0e; color:#fff; margin:0; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#0e0e0e; color:#fff; margin:0; }
 header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; color:#00aaff; font-weight:bold; }
-#catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); padding:20px; }
-.item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; transition:transform 0.2s; display:flex;flex-direction:column;height:420px; }
+#catalog { display:grid; gap:15px; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); padding:20px; }
+.item { background:#1a1a1a; border-radius:10px; overflow:hidden; text-align:center; transition:.2s; display:flex; flex-direction:column; height:420px; }
 .item:hover { transform:scale(1.05); }
-.item img { width:100%; height:260px; object-fit:cover; display:block; border-bottom:3px solid #00aaff }
+.item img { width:100%; height:260px; object-fit:cover; border-bottom:3px solid #00aaff }
 .item .content { padding:10px; display:flex; flex-direction:column; flex:1; }
-.item h3 { margin:0 0 6px 0; font-size:17px; color:#00aaff; }
-.item p { font-size:14px; color:#ccc; flex:1; margin:0 0 8px 0; overflow:hidden; }
-.item a { display:inline-block; background:#00aaff; padding:8px 10px; color:white; text-decoration:none; border-radius:8px; font-weight:700; }
-.item .meta { color:#9aaebf; font-size:13px; margin-bottom:8px; }
-.empty{padding:40px;text-align:center;color:#aaa}
+.item h3 { margin:0 0 6px; font-size:17px; color:#00aaff; }
+.item p { font-size:14px; color:#ccc; flex:1; margin:0 0 8px; overflow:hidden; }
+.item a { background:#00aaff; padding:8px 10px; color:white; text-decoration:none; border-radius:8px; font-weight:700; }
+.meta { color:#9aaebf; font-size:13px; margin-bottom:8px; }
+.empty { padding:40px; text-align:center; color:#aaa; }
 </style>
 </head>
 
@@ -30,65 +30,61 @@ header { background:#1c1c1c; padding:15px; text-align:center; font-size:24px; co
 <script>
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
 
-function escapeHtml(s) {
-    return s ? String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") : "";
-}
+function escapeHtml(s){ return s ? s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") : ""; }
 
-function getPrimaryLink(it) {
-    if (!it.terabox) return "#";
-
+function getPrimaryLink(it){
     try {
         const arr = JSON.parse(it.terabox);
         if (Array.isArray(arr) && arr[0]?.link) return arr[0].link;
     } catch {}
-
-    const m = String(it.terabox).match(/https?:\/\/[^\s"']+/);
+    const m = String(it.terabox||"").match(/https?:\/\/[^\s"']+/);
     return m ? m[0] : "#";
 }
 
-async function loadCatalog() {
+async function loadCatalog(){
     try {
         const res = await fetch(SHEET_URL);
         const data = await res.json();
 
-        if (!Array.isArray(data)) {
-            document.getElementById("catalog").innerHTML =
-                '<div class="empty">Respuesta inválida del WebApp.</div>';
+        if (!Array.isArray(data)){
+            document.getElementById("catalog").innerHTML = "<div class='empty'>Respuesta inválida.</div>";
             return;
         }
 
+        // ORDENAR → más reciente primero
+        data.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
+
         renderCatalog(data);
-    } catch (e) {
-        console.error(e);
-        document.getElementById("catalog").innerHTML =
-            '<div class="empty">Error cargando el catálogo</div>';
+
+    } catch(e){
+        document.getElementById("catalog").innerHTML = "<div class='empty'>Error cargando catálogo</div>";
     }
 }
 
-function renderCatalog(list) {
+function renderCatalog(list){
     const catalog = document.getElementById("catalog");
     catalog.innerHTML = "";
 
-    if (!list || list.length === 0) {
-        catalog.innerHTML = '<div class="empty">No hay resultados</div>';
+    if (!list.length){
+        catalog.innerHTML = "<div class='empty'>No hay resultados</div>";
         return;
     }
 
     list.forEach(it => {
-        const title = escapeHtml(it.title);
-        const posterUrl = it.poster?.startsWith("http") ? it.poster : "https://via.placeholder.com/500x750?text=Sin+imagen";
-        const href = getPrimaryLink(it);
+        const poster = it.poster?.startsWith("http")
+            ? it.poster
+            : "https://via.placeholder.com/500x750?text=Sin+imagen";
 
         const div = document.createElement("div");
         div.className = "item";
 
         div.innerHTML = `
-            <img src="${posterUrl}" alt="${title}">
+            <img src="${poster}">
             <div class="content">
-                <h3>${title}</h3>
+                <h3>${escapeHtml(it.title)}</h3>
                 <p>${escapeHtml(it.overview || "")}</p>
                 <div class="meta">${it.year || ""}</div>
-                <a href="${href}" target="_blank">🎬 Ver</a>
+                <a href="${getPrimaryLink(it)}" target="_blank">🎬 Ver</a>
             </div>
         `;
 
