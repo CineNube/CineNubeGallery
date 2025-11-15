@@ -1,105 +1,78 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CineNube Gallery</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<style>
-  body { font-family: Arial, sans-serif; margin: 0; background: #111; color: #eee; }
-  header { padding: 1rem; background: #222; display: flex; justify-content: space-between; align-items: center; }
-  header h1 { margin: 0; font-size: 1.5rem; color: #fff; }
-  nav button { margin-left: 0.5rem; padding: 0.5rem 1rem; border:none; border-radius:5px; cursor:pointer; background:#444; color:#fff; }
-  nav button.active { background:#f04; }
-  #searchInput { padding:0.5rem; border-radius:5px; border:none; width:200px; }
-  main { display:flex; flex-wrap:wrap; justify-content:center; margin:1rem; gap:1rem; }
-  .card { background:#222; border-radius:10px; overflow:hidden; width:200px; flex-shrink:0; display:flex; flex-direction:column; }
-  .card img { width:100%; height:300px; object-fit:cover; }
-  .card-content { padding:0.5rem; flex-grow:1; display:flex; flex-direction:column; }
-  .title { font-weight:bold; font-size:1rem; margin:0.2rem 0; }
-  .overview { font-size:0.85rem; flex-grow:1; margin-bottom:0.3rem; }
-  .meta { font-size:0.8rem; margin-bottom:0.3rem; }
-  .buttons a { display:block; text-align:center; margin:0.2rem 0; padding:0.3rem; background:#f04; color:#fff; border-radius:5px; text-decoration:none; font-size:0.85rem; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineNube</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f0f0f; color:#fff; margin:0; padding:0; }
+    .header { padding:20px; text-align:center; background:#1c1c1c; font-size:2em; font-weight:bold; }
+    .tabs { display:flex; justify-content:center; margin:20px 0; }
+    .tab { padding:10px 20px; margin:0 5px; background:#333; cursor:pointer; border-radius:5px; }
+    .tab.active { background:#ff4500; color:#fff; }
+    .container { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
+    .card { background:#222; border-radius:10px; overflow:hidden; width:200px; display:flex; flex-direction:column; }
+    .card img { width:100%; height:300px; object-fit:cover; }
+    .card .info { padding:10px; flex:1; display:flex; flex-direction:column; }
+    .card .title { font-weight:bold; font-size:1.1em; margin-bottom:5px; }
+    .card .overview { font-size:0.9em; color:#ccc; flex:1; }
+    .card .btn { display:block; margin-top:10px; text-align:center; padding:5px; background:#ff4500; color:#fff; text-decoration:none; border-radius:5px; }
+  </style>
 </head>
 <body>
-
-<header>
-  <h1>CineNube Gallery</h1>
-  <div>
-    <input type="text" id="searchInput" placeholder="Buscar...">
-    <button id="btnAll" class="active">Todo</button>
-    <button id="btnMovies">Películas</button>
-    <button id="btnSeries">Series</button>
+  <div class="header">CineNube</div>
+  <div class="tabs">
+    <div class="tab active" data-type="all">Todo</div>
+    <div class="tab" data-type="movie">Películas</div>
+    <div class="tab" data-type="series">Series</div>
   </div>
-</header>
+  <div class="container" id="content"></div>
 
-<main id="catalog"></main>
+  <script>
+    const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
+    let items = [];
 
-<script src="auto_publish.json"></script>
-<script>
-const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec";
-const TRUNCATE_LENGTH = 150;
+    async function loadData() {
+      const res = await fetch(SHEET_JSON_URL);
+      items = await res.json();
+      renderItems("all");
+    }
 
-let items = [];
-let filter = "all";
+    function truncate(text, max = 120) {
+      if (!text) return "";
+      return text.length > max ? text.substring(0, max) + "..." : text;
+    }
 
-async function fetchData() {
-  const res = await fetch(SHEET_JSON_URL);
-  items = await res.json();
-  render();
-}
+    function renderItems(type) {
+      const container = document.getElementById("content");
+      container.innerHTML = "";
+      const filtered = type === "all" ? items : items.filter(i => i.type === type);
+      filtered.forEach(i => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${i.poster}" alt="${i.title}">
+          <div class="info">
+            <div class="title">${i.title} (${i.year || ""})</div>
+            <div class="overview">${truncate(i.overview)}</div>
+            ${i.type === "movie" && i.terabox ? `<a class="btn" href="${i.terabox}" target="_blank">Ver ahora</a>` : ""}
+            ${i.type === "series" && i.season_links?.length ? i.season_links.map(s => `<a class="btn" href="${s.link}" target="_blank">Temporada ${s.season}</a>`).join("") : ""}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-function truncate(text) {
-  if(!text) return "";
-  return text.length > TRUNCATE_LENGTH ? text.substring(0, TRUNCATE_LENGTH) + "..." : text;
-}
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        renderItems(tab.dataset.type);
+      });
+    });
 
-function render() {
-  const catalog = document.getElementById("catalog");
-  catalog.innerHTML = "";
-  const filtered = items.filter(i => filter==="all" || normalize(i.type)===filter);
-  filtered.forEach(i => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${i.poster}" alt="${i.title}">
-      <div class="card-content">
-        <div class="title">${i.title}</div>
-        <div class="overview">${truncate(i.overview)}</div>
-        <div class="meta">⭐ ${i.rating || "N/A"} | ${i.year || ""}</div>
-        <div class="buttons">
-          ${i.type==="series" && i.season_links.length>0 ? i.season_links.map(s => `<a href="${s.link}" target="_blank">Temporada ${s.season}</a>`).join("") : ""}
-          ${i.type==="movie" && i.terabox ? `<a href="${i.terabox}" target="_blank">Ver ahora</a>` : ""}
-        </div>
-      </div>
-    `;
-    catalog.appendChild(card);
-  });
-}
-
-function normalize(str){ return str?str.toLowerCase():""; }
-
-document.getElementById("btnAll").addEventListener("click", () => {filter="all"; setActive("btnAll"); render();});
-document.getElementById("btnMovies").addEventListener("click", () => {filter="movie"; setActive("btnMovies"); render();});
-document.getElementById("btnSeries").addEventListener("click", () => {filter="series"; setActive("btnSeries"); render();});
-
-function setActive(id) {
-  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-document.getElementById("searchInput").addEventListener("input", (e)=>{
-  const term = e.target.value.toLowerCase();
-  items = items.map(i=>{
-    i.visible = i.title.toLowerCase().includes(term) || (i.overview && i.overview.toLowerCase().includes(term));
-    return i;
-  });
-  render();
-});
-
-fetchData();
-</script>
-
+    loadData();
+  </script>
 </body>
 </html>
