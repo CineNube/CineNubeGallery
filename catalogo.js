@@ -1,107 +1,92 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec"; // tu WebApp JSON
+const SHEET_URL = "https://script.google.com/macros/s/tu_webapp_url/exec";
+let catalog = [];
+let filterType = "all";
 
-let items = [];
-
-async function fetchItems() {
+async function fetchData() {
   try {
-    const res = await fetch(API_URL);
-    items = await res.json();
-
-    if (!Array.isArray(items)) throw new Error("Formato JSON inválido");
-
-    renderGallery(items);
+    const res = await fetch(SHEET_URL);
+    catalog = await res.json();
+    catalog.sort((a,b)=>b.published_ts - a.published_ts); // últimas primero
+    renderCatalog();
   } catch (err) {
-    document.getElementById("gallery-container").innerHTML = `<div class="error">Error al cargar los títulos</div>`;
-    console.error(err);
+    document.getElementById("catalog").innerHTML = "<p>Error al cargar los títulos</p>";
   }
 }
 
-function renderGallery(data) {
-  const container = document.getElementById("gallery-container");
+function renderCatalog() {
+  const searchText = document.getElementById("search").value.toLowerCase();
+  const container = document.getElementById("catalog");
   container.innerHTML = "";
 
-  // Orden descendente por published_ts
-  data.sort((a,b) => b.published_ts - a.published_ts);
+  catalog
+    .filter(item => {
+      if(filterType !== "all" && item.type !== filterType) return false;
+      if(searchText && !item.title.toLowerCase().includes(searchText)) return false;
+      return true;
+    })
+    .forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-  const fragment = document.createDocumentFragment(); // para optimizar render
+      const img = document.createElement("img");
+      img.src = item.poster || "placeholder.jpg";
+      img.alt = item.title;
+      card.appendChild(img);
 
-  data.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "item-card";
+      const title = document.createElement("h3");
+      title.textContent = item.title;
+      card.appendChild(title);
 
-    const poster = document.createElement("img");
-    poster.src = item.poster || "";
-    poster.alt = item.title;
+      const overview = document.createElement("p");
+      overview.textContent = item.overview;
+      card.appendChild(overview);
 
-    const info = document.createElement("div");
-    info.className = "info";
+      const rating = document.createElement("p");
+      rating.innerHTML = `⭐ ${item.rating || "N/A"} | 📅 ${item.year || ""}`;
+      card.appendChild(rating);
 
-    const title = document.createElement("h3");
-    title.textContent = item.title;
+      // Botón: Películas
+      if(item.type === "movie" && item.terabox) {
+        const btn = document.createElement("a");
+        btn.href = item.terabox;
+        btn.textContent = "Ver Película";
+        btn.className = "btn";
+        btn.target = "_blank";
+        card.appendChild(btn);
+      }
 
-    const overview = document.createElement("div");
-    overview.className = "overview";
-    overview.textContent = item.overview || "";
+      // Botón: Series
+      if(item.type === "series") {
+        const btn = document.createElement("a");
+        btn.className = "btn";
+        btn.target = "_blank";
 
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = `⭐ ${item.rating || "N/A"} | 📅 ${item.year || ""}`;
+        // Si tiene season_links, mostrar cada temporada
+        if(item.season_links && item.season_links.length > 0) {
+          item.season_links.forEach(s => {
+            const tBtn = document.createElement("a");
+            tBtn.href = s.link || "#";
+            tBtn.textContent = "Temporada " + s.season;
+            tBtn.className = "btn";
+            tBtn.target = "_blank";
+            card.appendChild(tBtn);
+          });
+        } 
+        // Si no tiene season_links pero sí terabox, mostrar como película
+        else if(item.terabox) {
+          btn.href = item.terabox;
+          btn.textContent = "Ver Serie";
+          card.appendChild(btn);
+        }
+      }
 
-    const votes = document.createElement("div");
-    votes.className = "votes";
-    votes.textContent = `👍 ${item.votes_up || 0} 👎 ${item.votes_down || 0}`;
-
-    info.appendChild(title);
-    info.appendChild(overview);
-    info.appendChild(meta);
-    info.appendChild(votes);
-
-    const btns = document.createElement("div");
-
-    if(item.type === "movie" && item.terabox) {
-      const watchBtn = document.createElement("a");
-      watchBtn.href = item.terabox;
-      watchBtn.target = "_blank";
-      watchBtn.className = "btn";
-      watchBtn.textContent = "Ver ahora";
-      btns.appendChild(watchBtn);
-    }
-
-    if(item.type === "series" && Array.isArray(item.season_links)) {
-      item.season_links.forEach(s => {
-        const seasonBtn = document.createElement("a");
-        seasonBtn.href = s.link || "#";
-        seasonBtn.target = "_blank";
-        seasonBtn.className = "btn season-btn" + (!s.link ? " disabled" : "");
-        seasonBtn.textContent = `Temporada ${s.season}`;
-        btns.appendChild(seasonBtn);
-      });
-    }
-
-    card.appendChild(poster);
-    card.appendChild(info);
-    card.appendChild(btns);
-
-    fragment.appendChild(card);
-  });
-
-  container.appendChild(fragment);
+      container.appendChild(card);
+    });
 }
 
-// Filtros
-document.querySelectorAll(".filter-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const type = btn.dataset.type;
-    if(type === "all") renderGallery(items);
-    else renderGallery(items.filter(i => i.type === type));
-  });
-});
+document.getElementById("search").addEventListener("input", renderCatalog);
+document.getElementById("btnAll").addEventListener("click", () => { filterType="all"; renderCatalog(); });
+document.getElementById("btnMovies").addEventListener("click", () => { filterType="movie"; renderCatalog(); });
+document.getElementById("btnSeries").addEventListener("click", () => { filterType="series"; renderCatalog(); });
 
-// Buscador
-document.getElementById("search-input").addEventListener("input", e => {
-  const term = e.target.value.toLowerCase();
-  renderGallery(items.filter(i => i.title.toLowerCase().includes(term)));
-});
-
-// Inicial
-fetchItems();
+fetchData();
