@@ -17,7 +17,7 @@
   .card img { width: 100%; object-fit: cover; height: 300px; }
   .card-content { padding: 10px; flex: 1; display: flex; flex-direction: column; }
   .card h2 { margin: 0; font-size: 1.1rem; color: #ff3c3c; }
-  .card p { font-size: 0.9rem; flex: 1; margin: 5px 0; }
+  .card p { font-size: 0.9rem; flex: 1; margin: 5px 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
   .rating-year { font-size: 0.85rem; margin-bottom: 5px; color: #aaa; }
   .buttons { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
   .buttons a { text-decoration: none; background: #ff3c3c; color: #fff; padding: 5px 8px; border-radius: 5px; font-size: 0.85rem; }
@@ -48,9 +48,8 @@ let currentFilter = 'all';
 async function fetchCatalog() {
   try {
     const res = await fetch(SHEET_JSON_URL);
-    const data = await res.json();
+    let data = await res.json();
     catalogData = data.map(item => {
-      // Filtrar seasons con link válido
       if(item.season_links && Array.isArray(item.season_links)){
         item.season_links = item.season_links.filter(s=>s.link && s.link.includes('terabox'));
       } else {
@@ -58,6 +57,8 @@ async function fetchCatalog() {
       }
       return item;
     });
+    // Ordenar por published_ts descendente
+    catalogData.sort((a,b)=>b.published_ts - a.published_ts);
     renderCatalog();
   } catch (err) {
     console.error("Error cargando catalogo:", err);
