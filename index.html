@@ -47,9 +47,9 @@
   }
   #gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    padding: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
   }
   .item {
     background-color: #1e1e1e;
@@ -57,10 +57,15 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
   }
   .item img {
     width: 100%;
-    height: 270px;
+    height: 300px;
     object-fit: cover;
   }
   .content {
@@ -71,16 +76,18 @@
   }
   .title {
     font-weight: bold;
-    font-size: 1em;
+    font-size: 1.1em;
     margin-bottom: 5px;
   }
   .overview {
     font-size: 0.9em;
     margin-bottom: 5px;
+    line-height: 1.2em;
   }
   .info {
-    font-size: 0.8em;
+    font-size: 0.85em;
     margin-bottom: 5px;
+    color: #ccc;
   }
   .buttons {
     margin-top: auto;
@@ -94,6 +101,11 @@
     border-radius: 5px;
     background-color: #ff3d00;
     color: #fff;
+    transition: 0.2s;
+  }
+  .buttons a:hover { background-color: #ff5722; }
+  .rating {
+    margin-top: 5px;
   }
   .rating button {
     margin: 3px 3px 3px 0;
@@ -102,9 +114,11 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: 0.2s;
   }
   .rating .up { background-color: #1b5e20; color: #fff; }
   .rating .down { background-color: #b71c1c; color: #fff; }
+  .rating button:hover { opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -143,6 +157,10 @@ function renderItems(items) {
   items.forEach(item=>{
     const card = document.createElement('div');
     card.className = 'item';
+
+    const uniqueID = item.TMDB_ID || (item.type + '_' + btoa(item.title).slice(0,8));
+    card.dataset.id = uniqueID;
+
     card.innerHTML = `
       <img src="${item.poster}" alt="${item.title}">
       <div class="content">
@@ -171,18 +189,23 @@ function renderItems(items) {
         });
       }catch(e){}
     }
-    // Valoraciones
+
+    // Valoraciones independientes
     const ratingDiv = card.querySelector('.rating');
-    const key = 'rating_' + item.TMDB_ID;
+    const key = 'rating_' + uniqueID;
     let votes = JSON.parse(localStorage.getItem(key)||'{"up":0,"down":0}');
     const upBtn = document.createElement('button');
     upBtn.className = 'up';
     upBtn.textContent = `👍 ${votes.up}`;
-    upBtn.onclick = ()=>{ votes.up++; localStorage.setItem(key, JSON.stringify(votes)); upBtn.textContent = `👍 ${votes.up}`; };
+    upBtn.onclick = ()=>{
+      votes.up++; localStorage.setItem(key, JSON.stringify(votes)); upBtn.textContent = `👍 ${votes.up}`;
+    };
     const downBtn = document.createElement('button');
     downBtn.className = 'down';
     downBtn.textContent = `👎 ${votes.down}`;
-    downBtn.onclick = ()=>{ votes.down++; localStorage.setItem(key, JSON.stringify(votes)); downBtn.textContent = `👎 ${votes.down}`; };
+    downBtn.onclick = ()=>{
+      votes.down++; localStorage.setItem(key, JSON.stringify(votes)); downBtn.textContent = `👎 ${votes.down}`;
+    };
     ratingDiv.appendChild(upBtn);
     ratingDiv.appendChild(downBtn);
 
