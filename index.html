@@ -4,107 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CineNube Gallery</title>
-<style>
-  body { font-family: Arial, sans-serif; background:#121212; color:#fff; margin:0; padding:0; }
-  header { text-align:center; padding:20px; background:#1f1f1f; }
-  h1 { margin:0; font-size:2em; }
-  .controls { text-align:center; margin:15px; }
-  .controls input[type=text] { padding:5px 10px; width:200px; font-size:1em; }
-  .controls button { margin:0 5px; padding:5px 10px; cursor:pointer; font-size:1em; }
-  .gallery { display:flex; flex-wrap:wrap; justify-content:center; margin:20px; gap:15px; }
-  .card { background:#1e1e1e; border-radius:10px; overflow:hidden; width:220px; display:flex; flex-direction:column; }
-  .card img { width:100%; height:auto; }
-  .card-content { padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; }
-  .title { font-weight:bold; font-size:1em; margin-bottom:5px; }
-  .overview { font-size:0.9em; margin-bottom:5px; line-height:1.2em; max-height:3.6em; overflow:hidden; }
-  .info { font-size:0.85em; margin-bottom:5px; }
-  .votes { margin-top:5px; font-size:0.9em; }
-  .vote-btn { cursor:pointer; padding:2px 6px; margin-right:5px; border:none; border-radius:5px; }
-  .vote-up { background:green; color:#fff; }
-  .vote-down { background:red; color:#fff; }
-  .btn-update { margin-top:5px; padding:3px 6px; font-size:0.8em; cursor:pointer; background:#444; border:none; border-radius:5px; color:#fff; }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<header>
-  <h1>CineNube Gallery</h1>
-</header>
-
-<div class="controls">
-  <input type="text" id="searchBox" placeholder="Buscar...">
-  <button data-filter="all">Todo</button>
-  <button data-filter="movie">Películas</button>
-  <button data-filter="series">Series</button>
-</div>
-
-<div class="gallery" id="gallery"></div>
-
-<script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx1Vq5HqmPMExtgm1PRgct2WRzGex5BTEtDERIKHA20VZNFf-umdHpiKD94Df80S2vO1g/exec"; // Cambiar por tu URL del Google Apps Script
-let items = [];
-let filteredItems = [];
-
-async function fetchItems() {
-  try {
-    const res = await fetch(WEBAPP_URL);
-    items = await res.json();
-    // Orden descendente por fecha publicada
-    items.sort((a,b) => b.published_ts - a.published_ts);
-    filteredItems = [...items];
-    renderGallery();
-  } catch(err) {
-    document.getElementById('gallery').innerHTML = "<p style='text-align:center;'>Error al cargar los títulos</p>";
-    console.error(err);
-  }
-}
-
-function renderGallery() {
-  const gallery = document.getElementById('gallery');
-  gallery.innerHTML = '';
-  filteredItems.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <img src="${item.poster}" alt="${item.title}">
-      <div class="card-content">
-        <div class="title">${item.title}</div>
-        <div class="overview">${item.overview}</div>
-        <div class="info">⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}</div>
-        <div class="votes">
-          <button class="vote-btn vote-up">👍 ${item.votes_up || 0}</button>
-          <button class="vote-btn vote-down">👎 ${item.votes_down || 0}</button>
-        </div>
-        ${item.type==='series'?'<button class="btn-update">Actualizar Serie</button>':''}
-      </div>
-    `;
-    gallery.appendChild(card);
-
-    // Actualización de serie (solo frontend, puedes conectar con Apps Script si quieres que haga algo)
-    if(item.type==='series'){
-      const btnUpdate = card.querySelector('.btn-update');
-      btnUpdate.addEventListener('click', () => alert(`Actualizar serie: ${item.title}`));
-    }
-  });
-}
-
-document.getElementById('searchBox').addEventListener('input', (e)=>{
-  const q = e.target.value.toLowerCase();
-  filteredItems = items.filter(i => i.title.toLowerCase().includes(q));
-  renderGallery();
-});
-
-document.querySelectorAll('.controls button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const filter = btn.getAttribute('data-filter');
-    filteredItems = filter==='all' ? [...items] : items.filter(i=>i.type===filter);
-    renderGallery();
-  });
-});
-
-// Cargar todo al entrar
-fetchItems();
-</script>
-
+  <div class="container">
+    <h1>CineNube Gallery</h1>
+    <input type="text" id="searchBox" placeholder="Buscar...">
+    <div class="filters">
+      <button class="filter-btn active" data-type="all">Todo</button>
+      <button class="filter-btn" data-type="movie">Películas</button>
+      <button class="filter-btn" data-type="series">Series</button>
+    </div>
+    <div id="catalogo" class="catalogo"></div>
+  </div>
+  <script src="catalogo.js"></script>
 </body>
 </html>
