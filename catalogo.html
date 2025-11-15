@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // Pon tu URL de WebApp
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec"; // Cambia por tu WebApp URL
 
 let items = [];
 
@@ -6,8 +6,8 @@ async function fetchItems() {
   try {
     const res = await fetch(API_URL);
     const data = await res.json();
-    // Orden descendente por published_ts
-    items = data.sort((a,b)=>b.published_ts - a.published_ts);
+    // Orden descendente: lo más nuevo/actualizado primero
+    items = data.sort((a,b) => b.published_ts - a.published_ts);
     renderItems();
   } catch (err) {
     document.getElementById("catalogo").innerHTML = "<p>Error al cargar los títulos</p>";
@@ -29,6 +29,7 @@ function renderItems() {
     const div = document.createElement("div");
     div.classList.add("item");
 
+    // Botones de temporadas (series)
     let seasonsHTML = "";
     if (item.type === "series" && item.season_links && item.season_links.length) {
       seasonsHTML = item.season_links.map(s => 
@@ -36,9 +37,10 @@ function renderItems() {
       ).join(" ");
     }
 
+    // Botón “Ver ahora” (películas)
     let movieButton = "";
     if (item.type === "movie" && item.terabox) {
-      movieButton = `<a href="${item.terabox}" target="_blank" class="movie-btn">Ver película</a>`;
+      movieButton = `<a href="${item.terabox}" target="_blank" class="movie-btn">Ver ahora</a>`;
     }
 
     div.innerHTML = `
@@ -69,5 +71,5 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 // Buscador
 document.getElementById("searchBox").addEventListener("input", renderItems);
 
-// Cargar inicial
+// Carga inicial
 fetchItems();
