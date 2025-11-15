@@ -1,14 +1,20 @@
-{
-  "sheet_id": "1fHOhQ9ZtU-JlVPWhH_3_th_PdNP9CL57tT_pI1NNil4",
-  "sheet_name": "prueba12",
-  "telegram_bot_token": "7673638131:AAEzvIDXZv9B8W52FJXPxc36WnnxgpA3lyI",
-  "telegram_channel_id": "@estrenos_online_25",
-  "topics": {
-    "movies": 2,
-    "series": 3
-  },
-  "auto_publish": true,
-  "vote_source": "tmdb",
-  "vote_logic": "likes = vote_count * (vote_average / 10), dislikes = vote_count - likes",
-  "max_description_length": 120
+function autoPublish() {
+  const sheet = SpreadsheetApp.openById("1fHOhQ9ZtU-JlVPWhH_3_th_PdNP9CL57tT_pI1NNil4").getSheetByName("prueba12");
+  const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const rows = sheet.getDataRange().getValues().slice(1);
+
+  rows.forEach((row,i)=>{
+    const enviar = row[headers.indexOf("Enviar")];
+    const enviado = row[headers.indexOf("Enviado")];
+    const actualizar = row[headers.indexOf("Actualizar")];
+    if(String(enviar||'').toLowerCase()==='si' && String(enviado||'').toLowerCase()!=='si'){
+      sheet.getRange(i+2, headers.indexOf("Enviado")+1).setValue('si');
+      sheet.getRange(i+2, headers.indexOf("published_at")+1).setValue(new Date().toISOString());
+    }
+    if(String(actualizar||'').toLowerCase()==='si'){
+      sheet.getRange(i+2, headers.indexOf("Actualizar")+1).setValue('');
+      sheet.getRange(i+2, headers.indexOf("updated")+1).setValue(new Date().toISOString());
+      sheet.getRange(i+2, headers.indexOf("published_at")+1).setValue(new Date().toISOString());
+    }
+  });
 }
