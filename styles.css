@@ -46,6 +46,26 @@ header h1:hover {
   align-items:center;
   justify-content:space-between;
   gap:12px;
+  position: relative; /* para que los iconos absolute funcionen en escritorio */
+}
+
+/* Contenedor de iconos (a la derecha en desktop) */
+.social-header {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 12px;
+}
+
+.social-header a {
+  color: #fff;
+  font-size: 28px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.social-header a:hover {
+  color: #ff6600;
 }
 
 /* ---------------------------------- */
@@ -264,12 +284,35 @@ main#catalogo {
   .card-content h2 { min-height:2em; font-size:0.95rem; }
   .card-content .overview { font-size:0.8rem; height:3.2em; }
 }
+
+/* ---------------------------------- */
+/* MÓVIL: Iconos debajo del título */
+/* ---------------------------------- */
 @media (max-width: 480px) {
   header { gap:8px; }
   header h1 { font-size:1.2rem; }
+
+  /* Ajuste input */
   #searchInput { max-width:320px; font-size:0.95rem; }
+
+  /* Ajuste tarjetas */
   .card { max-width:160px; }
-  .card-content h2 { font-size:0.92rem; min-height:1.9em; }
-  .card-content .overview { font-size:0.75rem; height:2.8em; }
+  .card-content h2 { font-size:0.75rem; min-height:1.9em; }
+  .card-content .overview { font-size:0.72rem; height:2.8em; }
+
+  /* Botones */
   .btn { padding:7px 8px; font-size:0.85rem; }
+
+  /* Iconos sociales debajo del título */
+  .header-row {
+    flex-direction: column;
+    align-items: center;
+    position: relative; /* mantener relativo */
+    gap: 8px;
+  }
+  .social-header {
+    position: static;
+    display: flex;
+    gap: 12px;
+  }
 }
