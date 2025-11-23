@@ -103,6 +103,23 @@ function render(list) {
           btn.target = '_blank';
           btn.textContent = 'Temporada ' + s.season;
           seasonsRow.appendChild(btn);
+
+          // 🔹 NUEVO: si la temporada tiene episodes, generar botones de capítulos
+          if(s.episodes && Array.isArray(s.episodes) && s.episodes.length > 0) {
+            const epsRow = document.createElement('div');
+            epsRow.className = 'eps-row';
+            s.episodes.forEach(ep => {
+              if(ep.link) {
+                const epBtn = document.createElement('a');
+                epBtn.href = ep.link;
+                epBtn.className = 'btn tertiary';
+                epBtn.target = '_blank';
+                epBtn.textContent = 'Cap ' + ep.episode;
+                epsRow.appendChild(epBtn);
+              }
+            });
+            content.appendChild(epsRow); // append debajo de la temporada
+          }
         });
         content.appendChild(seasonsRow);
       } else {
