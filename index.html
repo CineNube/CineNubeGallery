@@ -1,157 +1,483 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CineNube</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineNube</title>
 
-  <!-- CSS PRINCIPAL -->
-  <link rel="stylesheet" href="styles.css">
+<!-- CSS COMPLETO + TEMPORADAS/CAPÍTULOS INTEGRADO -->
+<style>
 
-  <!-- Iconos Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+/* styles.css - versión mejorada estilo Netflix/HBO */
 
-  <!-- Ajustes extras del header -->
-  <style>
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      position: relative;
-      width: 100%;
-      max-width: 1200px;
-    }
+/* ---------------------------------- */
+/* RESET BÁSICO */
+/* ---------------------------------- */
+* { box-sizing: border-box; margin:0; padding:0; }
+html,body { height:100%; }
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background:#0b0b0b;
+  color:#fff;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:16px;
+}
 
-    .social-header {
-      position: absolute;
-      right: 0;
-      display: flex;
-      gap: 12px;
-    }
+/* ---------------------------------- */
+/* BARRA ROTATIVA SUPERIOR */
+/* ---------------------------------- */
+.top-banner {
+    width: 100%;
+    background: #000;
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
 
-    .social-header a {
-      color: #fff;
-      font-size: 26px;
-      text-decoration: none;
-      transition: 0.2s;
-    }
+.top-banner span {
+    display: inline-block;
+    transition: opacity 0.5s ease;
+}
 
-    .social-header a:hover {
-      color: #e50914;
-    }
+.top-banner .fade {
+    opacity: 0;
+}
 
-    /* Barra superior */
-    .top-banner {
-      width: 100%;
-      background: #000;
-      color: white;
-      text-align: center;
-      padding: 12px 0;
-      font-size: 18px;
-      font-weight: 600;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 9999;
-    }
+.top-banner .show {
+    opacity: 1;
+}
 
-    .top-banner span {
-      display: inline-block;
-      transition: opacity 0.5s ease;
-    }
+/* Evita que la barra tape el contenido */
+body {
+    padding-top: 55px;
+}
 
-    .top-banner .fade { opacity: 0; }
-    .top-banner .show { opacity: 1; }
-  </style>
+/* ---------------------------------- */
+/* HEADER */
+/* ---------------------------------- */
+header {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  text-align:center;
+}
+
+header h1 {
+  font-size:1.7rem;
+  font-weight:700;
+  letter-spacing:0.5px;
+  margin-top:4px;
+  text-shadow:0 0 12px rgba(255,255,255,0.25);
+  transition:.3s ease;
+}
+
+header h1:hover {
+  text-shadow:0 0 18px rgba(255,255,255,0.45);
+}
+
+.header-row {
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  position: relative;
+}
+
+/* Contenedor de iconos */
+.social-header {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 12px;
+}
+
+.social-header a {
+  color: #fff;
+  font-size: 28px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.social-header a:hover {
+  color: #ff6600;
+}
+
+/* ---------------------------------- */
+/* BUSCADOR */
+/* ---------------------------------- */
+#searchInput {
+  width:100%;
+  max-width:520px;
+  padding:12px 14px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  background:#141414;
+  color:#fff;
+  font-size:1rem;
+  transition:.25s ease;
+  box-shadow:0 0 10px rgba(0,0,0,0.4) inset;
+}
+
+#searchInput:focus {
+  background:#1b1b1b;
+  box-shadow:0 0 12px rgba(229, 9, 20, 0.4);
+}
+
+/* ---------------------------------- */
+/* FILTROS */
+/* ---------------------------------- */
+#filterButtons {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+#filterButtons button {
+  background:#1c1c1c;
+  color:#fff;
+  border:1px solid #2e2e2e;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:0.9rem;
+  transition:.25s ease;
+}
+
+#filterButtons button:hover {
+  background:#333;
+  border-color:#444;
+}
+
+#filterButtons button.active {
+  background:#e50914;
+  border-color:#e50914;
+  box-shadow:0 0 14px rgba(229,9,20,0.45);
+}
+
+/* ---------------------------------- */
+/* CATÁLOGO */
+/* ---------------------------------- */
+main#catalogo {
+  width:100%;
+  max-width:1200px;
+  margin:14px auto 60px;
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap:16px;
+  align-items:start;
+  justify-items:center;
+  padding:0 6px;
+  transition:.3s ease;
+}
+
+/* ---------------------------------- */
+/* CARD */
+/* ---------------------------------- */
+.card {
+  background:#121212;
+  border-radius:12px;
+  width:100%;
+  max-width:220px;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,0.55);
+  display:flex;
+  flex-direction:column;
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.card:hover { 
+  transform: translateY(-6px) scale(1.03);
+  box-shadow:0 14px 40px rgba(0,0,0,0.85);
+}
+
+/* POSTER */
+.card .poster {
+  width:100%;
+  aspect-ratio: 2/3;
+  overflow:hidden;
+  background:#0f0f0f;
+  position:relative;
+}
+
+.card .poster img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:.3s ease;
+}
+
+.card:hover .poster img {
+  filter:brightness(1.10);
+}
+
+/* ---------------------------------- */
+/* CONTENIDO */
+/* ---------------------------------- */
+.card-content {
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:stretch;
+  text-align:left;
+}
+
+.card-content h2 {
+  font-size:1rem;
+  margin:0;
+  line-height:1.2;
+  min-height:2.4em;
+  overflow:hidden;
+}
+
+.card-content .overview {
+  font-size:0.85rem;
+  color:#ccc;
+  height:3.6em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  opacity:.9;
+}
+
+.card-content .meta {
+  font-size:0.82rem;
+  color:#9e9e9e;
+  opacity:.8;
+}
+
+.card-content .votes {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-size:0.9rem;
+  color:#fff;
+}
+
+/* ---------------------------------- */
+/* BOTONES */
+/* ---------------------------------- */
+.btn {
+  display:inline-block;
+  text-align:center;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#e50914;
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  width:100%;
+  box-sizing:border-box;
+  transition:.25s ease;
+}
+
+.btn:hover {
+  filter:brightness(1.15);
+  box-shadow:0 0 12px rgba(229,9,20,0.55);
+}
+
+.btn.secondary {
+  background:#333;
+  color:#fff;
+}
+
+.btn.secondary:hover {
+  background:#444;
+}
+
+.season-row {
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:6px;
+  justify-content:center;
+}
+
+/* ---------------------------------- */
+/* SERIES – TEMPORADAS + CAPÍTULOS   */
+/* Compacto + iconos 🎬🎞️            */
+/* ---------------------------------- */
+
+.season-block {
+  margin-top: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  background: #151515;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #222;
+  gap: 6px;
+}
+
+.season-label {
+  font-weight: bold;
+  color: #ffcc66;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.season-label::before {
+  content: "🎬";
+  font-size: 15px;
+}
+
+.episode-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn.eps {
+  padding: 3px 7px;
+  font-size: 13px;
+  border-radius: 6px;
+  background: #242424;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn.eps::before {
+  content: "🎞️";
+  font-size: 12px;
+}
+
+.btn.eps:hover {
+  background: #333;
+  border-color: #444;
+  filter: brightness(1.15);
+}
+
+/* ---------------------------------- */
+/* EMPTY STATE */
+/* ---------------------------------- */
+.empty {
+  text-align:center;
+  color:#bbb;
+  padding:30px;
+  font-size:1.1rem;
+  opacity:.8;
+}
+
+/* ---------------------------------- */
+/* RESPONSIVE */
+/* ---------------------------------- */
+@media (max-width: 1024px) {
+  header h1 { font-size:1.5rem; }
+  main#catalogo { gap:14px; }
+}
+
+@media (max-width: 768px) {
+  body { padding:12px; }
+  .card { max-width:180px; }
+  .card-content h2 { min-height:2em; font-size:0.95rem; }
+  .card-content .overview { font-size:0.8rem; height:3.2em; }
+}
+
+@media (max-width: 480px) {
+  header { gap:8px; }
+  header h1 { font-size:1.2rem; }
+  #searchInput { max-width:320px; font-size:0.95rem; }
+  .card { max-width:160px; }
+  .card-content h2 { font-size:0.75rem; min-height:1.9em; }
+  .card-content .overview { font-size:0.72rem; height:2.8em; }
+  .btn { padding:7px 8px; font-size:0.85rem; }
+  .header-row {
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    gap: 8px;
+  }
+  .social-header {
+    position: static;
+    display: flex;
+    gap: 12px;
+  }
+}
+
+</style>
 </head>
-
 <body>
 
-  <!-- ⭐ BARRA ROTATIVA -->
-  <div class="top-banner">
-    <span id="rotating-text"></span>
-  </div>
+<!-- 🌟 BARRA ROTATIVA SUPERIOR -->
+<div class="top-banner">
+  <span id="rotating-text"></span>
+</div>
 
-  <!-- HEADER -->
-  <header>
-    <div class="header-row">
-      <h1>CineNube</h1>
+<header>
+  <h1>CineNube</h1>
+</header>
 
-      <!-- ICONOS SOCIALES -->
-      <div class="social-header">
-        <a href="https://facebook.com/TU_USUARIO" target="_blank"><i class="fab fa-facebook"></i></a>
-        <a href="https://instagram.com/cine_nube" target="_blank"><i class="fab fa-instagram"></i></a>
-        <a href="https://t.me/estrenos_online_25" target="_blank"><i class="fab fa-telegram"></i></a>
-        <a href="https://www.tiktok.com/@cine_nube" target="_blank"><i class="fab fa-tiktok"></i></a>
-      </div>
-    </div>
+<main id="catalogo">
+  <p class="empty">Aquí aparecerá tu catálogo…</p>
+</main>
 
-    <!-- BUSCADOR + FILTROS -->
-    <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
-      <input id="searchInput" type="text" placeholder="Buscar..." />
-      <div id="filterButtons">
-        <button data-type="all" class="active">Todo</button>
-        <button data-type="movie">Películas</button>
-        <button data-type="series">Series</button>
-      </div>
-    </div>
-  </header>
+<!-- ---------------------------------- -->
+<!-- SCRIPT DE TEXTOS ROTATIVOS -->
+<!-- ---------------------------------- -->
+<script>
+const messages = [
+  "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
+  "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
+  "🔥 Canal VIP: acceso completo por solo 1,49€/semana",
+  "✔️ Ve todo sin límites directamente desde Telegram",
+  "💳 Paga aquí por PayPal → https://www.paypal.com/ncp/payment/GFVNT36R7E4TQ",
+  "💬 Escríbeme al privado → @movfrezon",
+  "🚀 Actualizaciones diarias + soporte directo garantizado"
+];
 
-  <!-- CATÁLOGO -->
-  <main id="catalogo" role="main">
-    <p class="empty">Aquí aparecerá tu catálogo…</p>
-  </main>
+let index = 0;
+const textElement = document.getElementById("rotating-text");
 
-  <!-- SCRIPTS PRINCIPALES -->
-  <script src="catalogo.js"></script>
-  <script src="auto_publish.js"></script>
+function updateText() {
+    textElement.classList.remove("show");
+    textElement.classList.add("fade");
 
-  <!-- SCRIPT: BARRA ROTATIVA -->
-  <script>
-    const messages = [
-      "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
-      "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
-      "🔥 Canal VIP: acceso completo por solo 1,49€/semana",
-      "✔️ Ve todo sin límites directamente desde Telegram",
-      "💳 Paga por PayPal → https://www.paypal.com/ncp/payment/GFVNT36R7E4TQ",
-      "💬 Escríbeme al privado → @movfrezon",
-      "🚀 Actualizaciones diarias + soporte directo garantizado"
-    ];
-
-    let index = 0;
-    const textElement = document.getElementById("rotating-text");
-
-    function updateText() {
-      textElement.classList.remove("show");
-      textElement.classList.add("fade");
-
-      setTimeout(() => {
+    setTimeout(() => {
         const msg = messages[index];
 
         if (msg.includes("https://")) {
-          const url = msg.match(/https:\/\/\S+/)[0];
-          textElement.innerHTML =
-            `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else if (msg.includes("@")) {
-          textElement.innerHTML =
-            `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else {
-          textElement.textContent = msg;
+            const url = msg.match(/https:\/\/\S+/)[0];
+            textElement.innerHTML =
+              `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
+        }
+        else if (msg.includes("@")) {
+            textElement.innerHTML =
+              `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
+        }
+        else {
+            textElement.textContent = msg;
         }
 
         textElement.classList.remove("fade");
         textElement.classList.add("show");
 
         index = (index + 1) % messages.length;
-      }, 500);
-    }
+    }, 500);
+}
 
-    textElement.textContent = messages[0];
-    textElement.classList.add("show");
+textElement.textContent = messages[0];
+textElement.classList.add("show");
 
-    setInterval(updateText, 3000);
-  </script>
+setInterval(updateText, 3000);
+</script>
 
 </body>
 </html>
