@@ -1,4 +1,4 @@
-const SHEET_JSON_URL = "TU_URL_DEL_SCRIPT";
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
 const container = document.getElementById('catalogo');
 const searchInput = document.getElementById('searchInput');
