@@ -1,47 +1,22 @@
-/* ---------------------------------- */
 /* RESET */
-/* ---------------------------------- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'Roboto', Arial, sans-serif;
     background: #0b0b0b;
     color: #fff;
     padding: 60px 12px 20px;
-    transition: background .3s, color .3s;
 }
 
-/* ---------------------------------- */
-/* DARK MODE EXTRA */
-/* ---------------------------------- */
-body.dark-mode {
-    background: #ffffff;
-    color: #000;
+/* ESPACIO BAJO EL BANNER */
+header { 
+    margin-top: 60px; 
 }
 
-body.dark-mode .card {
-    background: #f5f5f5;
-    color: #000;
-    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+@media (max-width: 480px) {
+  header { margin-top: 80px; }
 }
 
-body.dark-mode .btn {
-    background: #222;
-    color: #fff;
-}
-
-body.dark-mode .btn.eps {
-    background: #ddd;
-    color: #000;
-}
-
-body.dark-mode .episode-viewed {
-    background: #88ff88 !important;
-    color: #003300 !important;
-}
-
-/* ---------------------------------- */
-/* BARRA ROTATIVA */
-/* ---------------------------------- */
+/* TOP BANNER */
 .top-banner {
     width: 100%;
     background: #000;
@@ -56,52 +31,27 @@ body.dark-mode .episode-viewed {
     z-index: 9999;
 }
 
-.top-banner span {
-    display: inline-block;
-    transition: opacity 0.5s ease;
-}
-
-.top-banner .fade { opacity: 0; }
-.top-banner .show { opacity: 1; }
-
-/* ---------------------------------- */
-/* HEADER */
-/* ---------------------------------- */
-header { text-align: center; margin-bottom: 12px; }
-header h1 { font-size: 1.8rem; font-weight: 700; text-shadow: 0 0 12px rgba(255,255,255,.25); }
-
-/* ---------------------------------- */
 /* BUSCADOR */
-/* ---------------------------------- */
 #searchInput {
     width: 100%;
     max-width: 520px;
     padding: 12px;
-    margin: 12px auto 20px;
-    display: block;
     border-radius: 10px;
-    border: none;
-    outline: none;
     background: #141414;
     color: white;
     font-size: 1rem;
 }
 
-/* ---------------------------------- */
-/* CATÁLOGO */
-/* ---------------------------------- */
+/* GRID */
 main#catalogo {
     max-width: 1200px;
     margin: auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
     gap: 16px;
-    justify-items: center;
 }
 
-/* ---------------------------------- */
 /* CARD */
-/* ---------------------------------- */
 .card {
     width: 100%;
     max-width: 220px;
@@ -125,9 +75,7 @@ main#catalogo {
     object-fit: cover;
 }
 
-/* ---------------------------------- */
-/* CARD CONTENT */
-/* ---------------------------------- */
+/* CONTENT */
 .card-content {
     padding: 12px;
     display: flex;
@@ -135,43 +83,9 @@ main#catalogo {
     gap: 8px;
 }
 
-.card-content h2 {
-    font-size: 1rem;
-    min-height: 2.1em;
-    overflow: hidden;
-}
+.overview { color: #ccc; }
 
-.card-content .overview {
-    font-size: .85rem;
-    height: 3.2em;
-    overflow: hidden;
-    color: #ccc;
-}
-
-.card-content .meta { color: #888; font-size: .82rem; }
-
-.votes { display: flex; justify-content: space-between; }
-
-/* ---------------------------------- */
-/* BOTÓN GENERAL */
-/* ---------------------------------- */
-.btn {
-    display: block;
-    text-decoration: none;
-    padding: 10px;
-    background: #e50914;
-    color: white;
-    border-radius: 10px;
-    text-align: center;
-    font-weight: bold;
-    transition: .2s;
-}
-
-.btn:hover { filter: brightness(1.15); }
-
-/* ---------------------------------- */
-/* TEMPORADAS COMPACTAS */
-/* ---------------------------------- */
+/* EPISODIOS */
 .season-block {
     margin-top: 8px;
     font-size: 14px;
@@ -180,47 +94,28 @@ main#catalogo {
     flex-wrap: wrap;
 }
 
-.season-label {
-    font-weight: bold;
-    margin-right: 6px;
-}
-
-/* FILA DE EPISODIOS */
 .episode-row {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
 }
 
-/* ---------------------------------- */
-/* BOTONES DE EPISODIOS PEQUEÑOS */
-/* ---------------------------------- */
 .btn.eps {
     padding: 4px 8px;
     font-size: 13px;
     border-radius: 6px;
     background: #333;
     color: white;
-    text-decoration: none;
-    display: inline-block;
 }
 
-/* EPISODIO YA VISTO ⭐ */
+/* VISTO */
 .episode-viewed {
     background: #2ecc71 !important;
     color: #000 !important;
 }
 
-/* ❤️ FAVORITO */
-.favorite {
-    background: #ff0066 !important;
-}
-
-/* ---------------------------------- */
-/* RESPONSIVE */
-/* ---------------------------------- */
-@media (max-width: 480px) {
-    .card { max-width: 160px; }
-    .card-content h2 { font-size: .8rem; }
-    .btn.eps { font-size: 12px; padding: 3px 7px; }
+/* FAVORITO */
+.fav-btn {
+    cursor: pointer;
+    font-size: 22px;
 }
