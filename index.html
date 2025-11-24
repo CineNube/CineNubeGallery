@@ -3,15 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CineNube</title>
+  <title>CineNube Gallery</title>
 
-  <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="styles.css">
 
   <!-- Iconos Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <!-- Ajustes extras del header -->
   <style>
     .header-row {
       display: flex;
@@ -40,45 +38,21 @@
     .social-header a:hover {
       color: #e50914;
     }
-
-    /* Barra superior */
-    .top-banner {
-      width: 100%;
-      background: #000;
-      color: white;
-      text-align: center;
-      padding: 12px 0;
-      font-size: 18px;
-      font-weight: 600;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 9999;
-    }
-
-    .top-banner span {
-      display: inline-block;
-      transition: opacity 0.5s ease;
-    }
-
-    .top-banner .fade { opacity: 0; }
-    .top-banner .show { opacity: 1; }
   </style>
+
 </head>
 
 <body>
 
-  <!-- ⭐ BARRA ROTATIVA -->
+  <!-- Banner superior -->
   <div class="top-banner">
-    <span id="rotating-text"></span>
+    Ve todo sin límites directamente desde Telegram
   </div>
 
-  <!-- HEADER -->
   <header>
     <div class="header-row">
-      <h1>CineNube</h1>
+      <h1>CineNube Gallery</h1>
 
-      <!-- ICONOS SOCIALES -->
       <div class="social-header">
         <a href="https://facebook.com/TU_USUARIO" target="_blank"><i class="fab fa-facebook"></i></a>
         <a href="https://instagram.com/cine_nube" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -87,7 +61,6 @@
       </div>
     </div>
 
-    <!-- BUSCADOR + FILTROS -->
     <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
       <input id="searchInput" type="text" placeholder="Buscar..." />
       <div id="filterButtons">
@@ -98,60 +71,10 @@
     </div>
   </header>
 
-  <!-- CATÁLOGO -->
-  <main id="catalogo" role="main">
-    <p class="empty">Aquí aparecerá tu catálogo…</p>
-  </main>
+  <main id="catalogo"></main>
 
-  <!-- SCRIPTS PRINCIPALES -->
   <script src="catalogo.js"></script>
   <script src="auto_publish.js"></script>
-
-  <!-- SCRIPT: BARRA ROTATIVA -->
-  <script>
-    const messages = [
-      "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
-      "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
-      "🔥 Canal VIP: acceso completo por solo 1,49€/semana",
-      "✔️ Ve todo sin límites directamente desde Telegram",
-      "💳 Paga por PayPal → https://www.paypal.com/ncp/payment/GFVNT36R7E4TQ",
-      "💬 Escríbeme al privado → @movfrezon",
-      "🚀 Actualizaciones diarias + soporte directo garantizado"
-    ];
-
-    let index = 0;
-    const textElement = document.getElementById("rotating-text");
-
-    function updateText() {
-      textElement.classList.remove("show");
-      textElement.classList.add("fade");
-
-      setTimeout(() => {
-        const msg = messages[index];
-
-        if (msg.includes("https://")) {
-          const url = msg.match(/https:\/\/\S+/)[0];
-          textElement.innerHTML =
-            `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else if (msg.includes("@")) {
-          textElement.innerHTML =
-            `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else {
-          textElement.textContent = msg;
-        }
-
-        textElement.classList.remove("fade");
-        textElement.classList.add("show");
-
-        index = (index + 1) % messages.length;
-      }, 500);
-    }
-
-    textElement.textContent = messages[0];
-    textElement.classList.add("show");
-
-    setInterval(updateText, 3000);
-  </script>
 
 </body>
 </html>
