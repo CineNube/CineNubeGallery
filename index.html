@@ -3,65 +3,56 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark light" />
   <title>CineNube Gallery</title>
-  
-  <!-- estilos -->
+
   <link rel="stylesheet" href="styles.css">
 
   <!-- Iconos Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    /* Ajustes del header para centrar título y agregar iconos */
     .header-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 20px;
+      position: relative;
       width: 100%;
       max-width: 1200px;
-      margin: 0 auto;
     }
 
     .social-header {
+      position: absolute;
+      right: 0;
       display: flex;
       gap: 12px;
     }
 
-    .top-banner {
-      width: 100%;
-      background: #0a0f1f;
+    .social-header a {
       color: #fff;
-      text-align: center;
-      padding: 12px 0;
-      font-size: 18px;
-      font-weight: 600;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 9999;
+      font-size: 26px;
+      text-decoration: none;
+      transition: 0.2s;
     }
 
-    .top-banner span {
-      display: inline-block;
-      transition: opacity 0.5s ease;
+    .social-header a:hover {
+      color: #e50914;
     }
-    .top-banner .fade { opacity: 0; }
-    .top-banner .show { opacity: 1; }
   </style>
+
 </head>
 
 <body>
-  <!-- BARRA ROTATIVA -->
+
+  <!-- Banner superior -->
   <div class="top-banner">
-    <span id="rotating-text"></span>
+    Ve todo sin límites directamente desde Telegram
   </div>
 
-  <!-- HEADER -->
   <header>
     <div class="header-row">
       <h1>CineNube Gallery</h1>
+
       <div class="social-header">
         <a href="https://facebook.com/TU_USUARIO" target="_blank"><i class="fab fa-facebook"></i></a>
         <a href="https://instagram.com/cine_nube" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -70,54 +61,20 @@
       </div>
     </div>
 
-    <div class="search-filter-row">
+    <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
       <input id="searchInput" type="text" placeholder="Buscar..." />
-      <div id="filterButtons"></div>
+      <div id="filterButtons">
+        <button data-type="all" class="active">Todo</button>
+        <button data-type="movie">Películas</button>
+        <button data-type="series">Series</button>
+      </div>
     </div>
   </header>
 
-  <main id="catalogo" role="main"></main>
+  <main id="catalogo"></main>
 
-  <!-- SCRIPTS -->
   <script src="catalogo.js"></script>
   <script src="auto_publish.js"></script>
 
-  <script>
-    const messages = [
-      "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
-      "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
-      "🔥 Canal VIP: acceso completo por solo 1,49€/semana",
-      "✔️ Ve todo sin límites directamente desde Telegram",
-      "💳 Paga por PayPal → https://www.paypal.com/ncp/payment/GFVNT36R7E4TQ",
-      "💬 Escríbeme al privado → @movfrezon",
-      "🚀 Actualizaciones diarias + soporte directo garantizado"
-    ];
-
-    let idx = 0;
-    const textEl = document.getElementById("rotating-text");
-
-    function updateText() {
-      textEl.classList.remove("show");
-      textEl.classList.add("fade");
-      setTimeout(() => {
-        const msg = messages[idx];
-        if (msg.includes("https://")) {
-          const url = msg.match(/https:\/\/\S+/)[0];
-          textEl.innerHTML = `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else if (msg.includes("@")) {
-          textEl.innerHTML = `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else {
-          textEl.textContent = msg;
-        }
-        textEl.classList.remove("fade");
-        textEl.classList.add("show");
-        idx = (idx + 1) % messages.length;
-      }, 500);
-    }
-
-    textEl.textContent = messages[0];
-    textEl.classList.add("show");
-    setInterval(updateText, 3000);
-  </script>
 </body>
 </html>
