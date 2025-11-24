@@ -18,12 +18,12 @@ let activeFilter = 'all';
 // 📌 SISTEMA DE CAPÍTULOS VISTOS
 // -----------------------------
 function markEpisodeWatched(season, episode, title) {
-  const key = watched_${title}_s${season}_e${episode};
+  const key = `watched_${title}_s${season}_e${episode}`;
   localStorage.setItem(key, "1");
 }
 
 function isEpisodeWatched(season, episode, title) {
-  const key = watched_${title}_s${season}_e${episode};
+  const key = `watched_${title}_s${season}_e${episode}`;
   return localStorage.getItem(key) === "1";
 }
 
@@ -54,7 +54,7 @@ async function fetchData() {
     render(items);
   } catch (err) {
     console.error(err);
-    container.innerHTML = <div class="empty">Error al cargar los títulos</div>;
+    container.innerHTML = `<div class="empty">Error al cargar los títulos</div>`;
   }
 }
 
@@ -70,7 +70,7 @@ function render(list) {
   });
 
   if(filtered.length === 0) {
-    container.innerHTML = <div class="empty">No hay títulos</div>;
+    container.innerHTML = `<div class="empty">No hay títulos</div>`;
     return;
   }
 
@@ -115,12 +115,12 @@ function render(list) {
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.textContent = ⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''};
+    meta.textContent = `⭐ ${item.rating || 'N/A'} | 📅 ${item.year || ''}`;
     content.appendChild(meta);
 
     const votes = document.createElement('div');
     votes.className = 'votes';
-    votes.innerHTML = <span>👍 ${item.votes_up||0}</span> <span>👎 ${item.votes_down||0}</span>;
+    votes.innerHTML = `<span>👍 ${item.votes_up||0}</span> <span>👎 ${item.votes_down||0}</span>`;
     content.appendChild(votes);
 
     // -----------------------------
