@@ -5,54 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CineNube Gallery</title>
 
+  <!-- styles -->
   <link rel="stylesheet" href="styles.css">
 
   <!-- Iconos Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <style>
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      position: relative;
-      width: 100%;
-      max-width: 1200px;
-    }
-
-    .social-header {
-      position: absolute;
-      right: 0;
-      display: flex;
-      gap: 12px;
-    }
-
-    .social-header a {
-      color: #fff;
-      font-size: 26px;
-      text-decoration: none;
-      transition: 0.2s;
-    }
-
-    .social-header a:hover {
-      color: #e50914;
-    }
-  </style>
-
 </head>
 
 <body>
 
-  <!-- Banner superior -->
+  <!-- ⭐ Barra rotativa de anuncios -->
   <div class="top-banner">
-    Ve todo sin límites directamente desde Telegram
+      <span id="bannerText">Cargando...</span>
   </div>
 
   <header>
     <div class="header-row">
       <h1>CineNube Gallery</h1>
 
+      <!-- ⭐ ICONOS DE REDES SOCIALES EN EL HEADER (a la derecha) -->
       <div class="social-header">
         <a href="https://facebook.com/TU_USUARIO" target="_blank"><i class="fab fa-facebook"></i></a>
         <a href="https://instagram.com/cine_nube" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -61,8 +32,9 @@
       </div>
     </div>
 
-    <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
+    <div class="search-block">
       <input id="searchInput" type="text" placeholder="Buscar..." />
+
       <div id="filterButtons">
         <button data-type="all" class="active">Todo</button>
         <button data-type="movie">Películas</button>
@@ -71,10 +43,9 @@
     </div>
   </header>
 
-  <main id="catalogo"></main>
+  <main id="catalogo" role="main"></main>
 
   <script src="catalogo.js"></script>
   <script src="auto_publish.js"></script>
-
 </body>
 </html>
