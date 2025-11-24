@@ -1,141 +1,161 @@
-// ================================
-//   CARGAR DATOS DESDE GOOGLE SHEETS
-// ================================
-async function cargarCatalogo() {
-    const url = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec"; // <-- CAMBIA ESTO
+@@ -1,4 +1,10 @@
+// catalogo.js
+// catalogo.js mejorado con:
+// ⭐ Sistema de capítulos vistos
+// 🔔 Favoritos
+// 🌓 Modo oscuro avanzado
+// 📱 Optimización móvil
+// 🎬 Render completo actualizado
 
-    const res = await fetch(url);
-    const data = await res.json();
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
-    return data;
+const container = document.getElementById('catalogo');
+@@ -8,6 +14,36 @@ const filterButtons = document.querySelectorAll('#filterButtons button');
+let items = [];
+let activeFilter = 'all';
+
+// -----------------------------
+// 📌 SISTEMA DE CAPÍTULOS VISTOS
+// -----------------------------
+function markEpisodeWatched(season, episode, title) {
+  const key = `watched_${title}_s${season}_e${episode}`;
+  localStorage.setItem(key, "1");
 }
 
-// ================================
-//   RENDER DEL CATÁLOGO
-// ================================
-function render(items) {
-    const cont = document.getElementById("catalogo");
-    cont.innerHTML = "";
-
-    items.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        // Poster
-        const posterDiv = document.createElement("div");
-        posterDiv.className = "poster";
-        posterDiv.innerHTML = `<img src="${item.poster}" />`;
-
-        // Contenido
-        const content = document.createElement("div");
-        content.className = "card-content";
-
-        content.innerHTML = `
-            <h2>${item.title}</h2>
-            <p class="overview">${item.overview}</p>
-        `;
-
-        // Película
-        if (item.type === "movie") {
-            const link = document.createElement("a");
-            link.className = "btn";
-            link.href = item.link;
-            link.target = "_blank";
-            link.textContent = "Ver Película";
-            content.appendChild(link);
-        }
-
-        // Series
-        if (item.type === "series") {
-            if (Array.isArray(item.season_links)) {
-                item.season_links.forEach(temp => {
-                    const row = document.createElement("div");
-                    row.className = "season-block";
-
-                    const label = document.createElement("span");
-                    label.className = "season-label";
-                    label.textContent = "T" + temp.season + ":";
-                    row.appendChild(label);
-
-                    const epsRow = document.createElement("span");
-                    epsRow.className = "episode-row";
-
-                    temp.episodes.forEach(ep => {
-                        const btn = document.createElement("a");
-                        btn.href = ep.link;
-                        btn.target = "_blank";
-                        btn.className = "btn eps";
-                        btn.textContent = ep.episode;
-
-                        // ⭐ Episodio visto
-                        if (localStorage.getItem("visto_" + ep.link)) {
-                            btn.classList.add("episode-viewed");
-                        }
-
-                        btn.addEventListener("click", () => {
-                            localStorage.setItem("visto_" + ep.link, "1");
-                            btn.classList.add("episode-viewed");
-                        });
-
-                        epsRow.appendChild(btn);
-                    });
-
-                    row.appendChild(epsRow);
-                    content.appendChild(row);
-                });
-            }
-        }
-
-        card.appendChild(posterDiv);
-        card.appendChild(content);
-
-        cont.appendChild(card);
-    });
+function isEpisodeWatched(season, episode, title) {
+  const key = `watched_${title}_s${season}_e${episode}`;
+  return localStorage.getItem(key) === "1";
 }
 
-// ================================
-//   BÚSQUEDA GLOBAL
-// ================================
-function activarBuscador(items) {
-    const input = document.getElementById("searchInput");
-    const filterBtns = document.querySelectorAll("#filterButtons button");
+// -----------------------------
+// ⭐ FAVORITOS
+// -----------------------------
+function toggleFavorite(title) {
+  const favs = JSON.parse(localStorage.getItem("favorites") || "{}");
+  favs[title] = !favs[title];
+  localStorage.setItem("favorites", JSON.stringify(favs));
+}
 
-    let tipo = "all";
+function isFavorite(title) {
+  const favs = JSON.parse(localStorage.getItem("favorites") || "{}");
+  return !!favs[title];
+}
 
-    filterBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            filterBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            tipo = btn.dataset.type;
-            filtrar();
-        });
-    });
+// -----------------------------
+// FETCH DATA
+// -----------------------------
+async function fetchData() {
+  try {
+    const res = await fetch(SHEET_JSON_URL);
+@@ -22,6 +58,9 @@ async function fetchData() {
+  }
+}
 
-    input.addEventListener("input", filtrar);
+// -----------------------------
+// RENDER PRINCIPAL
+// -----------------------------
+function render(list) {
+  const q = (searchInput.value||'').toLowerCase().trim();
+  const filtered = list.filter(i=>{
+@@ -59,6 +98,16 @@ function render(list) {
+    h2.textContent = item.title || '';
+    content.appendChild(h2);
 
-    function filtrar() {
-        const t = input.value.toLowerCase();
+    // FAVORITO ⭐
+    const favBtn = document.createElement('div');
+    favBtn.className = "fav-btn";
+    favBtn.textContent = isFavorite(item.title) ? "⭐" : "☆";
+    favBtn.onclick = () => {
+      toggleFavorite(item.title);
+      favBtn.textContent = isFavorite(item.title) ? "⭐" : "☆";
+    };
+    content.appendChild(favBtn);
 
-        const filtrado = items.filter(p => {
-            const coincide = p.title.toLowerCase().includes(t);
+    const ov = document.createElement('p');
+    ov.className = 'overview';
+    ov.textContent = item.overview || '';
+@@ -74,15 +123,13 @@ function render(list) {
+    votes.innerHTML = `<span>👍 ${item.votes_up||0}</span> <span>👎 ${item.votes_down||0}</span>`;
+    content.appendChild(votes);
 
-            if (!coincide) return false;
+    // ===========================================
+    // SERIES (compacto por temporadas/capitulos)
+    // ===========================================
+    // -----------------------------
+    // SERIES: TEMPORADAS + EPS
+    // -----------------------------
+    if(item.type === 'series') {
 
-            if (tipo === "all") return true;
-            if (tipo === "movie" && p.type === "movie") return true;
-            if (tipo === "series" && p.type === "series") return true;
+      const seasons = Array.isArray(item.season_links) ? item.season_links : [];
 
-            return false;
-        });
+      if(seasons.length > 0) {
 
-        render(filtrado);
+        seasons.forEach(seasonObj => {
+          const row = document.createElement('div');
+          row.className = "season-block";
+@@ -101,7 +148,17 @@ function render(list) {
+              epBtn.href = ep.link;
+              epBtn.target = "_blank";
+              epBtn.className = "btn eps";
+              epBtn.textContent = ep.episode; 
+              epBtn.textContent = ep.episode;
+
+              if(isEpisodeWatched(seasonObj.season, ep.episode, item.title)) {
+                epBtn.classList.add("watched");
+              }
+
+              epBtn.addEventListener("click", () => {
+                markEpisodeWatched(seasonObj.season, ep.episode, item.title);
+                epBtn.classList.add("watched");
+              });
+
+              epsRow.appendChild(epBtn);
+            });
+          }
+@@ -123,13 +180,29 @@ function render(list) {
+      }
     }
+
+    // MOVIES
+    if(item.type === 'movie') {
+      const link = extractTeraboxLink(item.terabox);
+      if(link) {
+        const btn = document.createElement('a');
+        btn.href = link;
+        btn.className = 'btn';
+        btn.target = '_blank';
+        btn.textContent = 'Ver ahora';
+        content.appendChild(btn);
+      }
+    }
+
+    card.appendChild(content);
+    fragment.appendChild(card);
+  });
+
+  container.appendChild(fragment);
 }
 
-// ================================
-//   INICIO
-// ================================
-cargarCatalogo().then(items => {
-    render(items);
-    activarBuscador(items);
+// -----------------------------
+// EXTRAER LINK TERABOX
+// -----------------------------
+function extractTeraboxLink(raw) {
+  if(!raw) return '';
+  try {
+@@ -140,7 +213,9 @@ function extractTeraboxLink(raw) {
+  return match ? match[0] : '';
+}
+
+/* Search and filters */
+// -----------------------------
+// FILTROS / BÚSQUEDA
+// -----------------------------
+searchInput.addEventListener('input', ()=> render(items));
+filterButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+@@ -151,5 +226,4 @@ filterButtons.forEach(btn=>{
+  });
 });
+
+/* Auto init */
+fetchData();
