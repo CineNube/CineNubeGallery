@@ -1,44 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
   <title>CineNube Gallery</title>
-  <title>CineNube</title>
-
-  <!-- styles -->
-  <!-- CSS PRINCIPAL -->
+  
+  <!-- estilos -->
   <link rel="stylesheet" href="styles.css">
 
   <!-- Iconos Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <!-- Ajustes extras del header -->
   <style>
-    /* ⭐ Ajustes del header para centrar título y agregar iconos */
+    /* Ajustes del header para centrar título y agregar iconos */
     .header-row {
       display: flex;
       align-items: center;
-      justify-content: center; /* Centro el título */
-      justify-content: center;
+      justify-content: space-between;
       gap: 20px;
-      position: relative;
       width: 100%;
       max-width: 1200px;
+      margin: 0 auto;
     }
 
-    /* Contenedor de iconos a la derecha */
     .social-header {
-      position: absolute;
-      right: 0;
-@@ -41,24 +40,54 @@
-    .social-header a:hover {
-      color: #e50914;
+      display: flex;
+      gap: 12px;
     }
 
-    /* Barra superior */
     .top-banner {
       width: 100%;
-      background: #000;
-      color: white;
+      background: #0a0f1f;
+      color: #fff;
       text-align: center;
       padding: 12px 0;
       font-size: 18px;
@@ -53,15 +47,13 @@
       display: inline-block;
       transition: opacity 0.5s ease;
     }
-
     .top-banner .fade { opacity: 0; }
     .top-banner .show { opacity: 1; }
   </style>
 </head>
 
 <body>
-
-  <!-- ⭐ BARRA ROTATIVA -->
+  <!-- BARRA ROTATIVA -->
   <div class="top-banner">
     <span id="rotating-text"></span>
   </div>
@@ -70,38 +62,26 @@
   <header>
     <div class="header-row">
       <h1>CineNube Gallery</h1>
-      <h1>CineNube</h1>
-
-      <!-- ⭐ ICONOS DE REDES SOCIALES EN EL HEADER (a la derecha) -->
-      <!-- ICONOS SOCIALES -->
       <div class="social-header">
         <a href="https://facebook.com/TU_USUARIO" target="_blank"><i class="fab fa-facebook"></i></a>
         <a href="https://instagram.com/cine_nube" target="_blank"><i class="fab fa-instagram"></i></a>
         <a href="https://t.me/estrenos_online_25" target="_blank"><i class="fab fa-telegram"></i></a>
-        <!-- TikTok corregido -->
         <a href="https://www.tiktok.com/@cine_nube" target="_blank"><i class="fab fa-tiktok"></i></a>
       </div>
     </div>
 
-    <!-- BUSCADOR + FILTROS -->
-    <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
+    <div class="search-filter-row">
       <input id="searchInput" type="text" placeholder="Buscar..." />
-      <div id="filterButtons">
-@@ -69,9 +98,60 @@ <h1>CineNube Gallery</h1>
+      <div id="filterButtons"></div>
     </div>
   </header>
 
   <main id="catalogo" role="main"></main>
-  <!-- CATÁLOGO -->
-  <main id="catalogo" role="main">
-    <p class="empty">Aquí aparecerá tu catálogo…</p>
-  </main>
 
-  <!-- SCRIPTS PRINCIPALES -->
+  <!-- SCRIPTS -->
   <script src="catalogo.js"></script>
   <script src="auto_publish.js"></script>
 
-  <!-- SCRIPT: BARRA ROTATIVA -->
   <script>
     const messages = [
       "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
@@ -113,39 +93,31 @@
       "🚀 Actualizaciones diarias + soporte directo garantizado"
     ];
 
-    let index = 0;
-    const textElement = document.getElementById("rotating-text");
+    let idx = 0;
+    const textEl = document.getElementById("rotating-text");
 
     function updateText() {
-      textElement.classList.remove("show");
-      textElement.classList.add("fade");
-
+      textEl.classList.remove("show");
+      textEl.classList.add("fade");
       setTimeout(() => {
-        const msg = messages[index];
-
+        const msg = messages[idx];
         if (msg.includes("https://")) {
           const url = msg.match(/https:\/\/\S+/)[0];
-          textElement.innerHTML =
-            `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
+          textEl.innerHTML = `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
         } else if (msg.includes("@")) {
-          textElement.innerHTML =
-            `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
+          textEl.innerHTML = `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
         } else {
-          textElement.textContent = msg;
+          textEl.textContent = msg;
         }
-
-        textElement.classList.remove("fade");
-        textElement.classList.add("show");
-
-        index = (index + 1) % messages.length;
+        textEl.classList.remove("fade");
+        textEl.classList.add("show");
+        idx = (idx + 1) % messages.length;
       }, 500);
     }
 
-    textElement.textContent = messages[0];
-    textElement.classList.add("show");
-
+    textEl.textContent = messages[0];
+    textEl.classList.add("show");
     setInterval(updateText, 3000);
   </script>
-
 </body>
 </html>
