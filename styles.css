@@ -1,247 +1,121 @@
-/* RESET BÁSICO */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* RESET */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: #0b0b0b;
+    color: #fff;
+    padding: 60px 12px 20px;
 }
 
-html, body {
-  height: 100%;
-  font-family: 'Roboto', Arial, sans-serif;
-  background: #0a0f1f;
-  color: #e1e1e1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  padding-top: 70px; /* para la top-banner */
+/* ESPACIO BAJO EL BANNER */
+header { 
+    margin-top: 60px; 
 }
 
-/* HEADER Y BARRA SUPERIOR */
-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 12px;
-}
-
-.header-row h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #fff;
-  text-shadow: 0 0 8px rgba(0,0,0,0.5);
-}
-
-.social-header a {
-  color: #ccc;
-  font-size: 24px;
-  transition: color 0.2s;
-}
-.social-header a:hover {
-  color: #4da6ff;
-}
-
-.search-filter-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 600px;
-  justify-content: center;
-}
-
-#searchInput {
-  flex: 1;
-  min-width: 200px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
-  background: #1b2035;
-  color: #fff;
-  font-size: 1rem;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
-  transition: background 0.3s;
-}
-#searchInput:focus {
-  background: #242a48;
-}
-
-/* BOTONES DE FILTRO */
-#filterButtons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-#filterButtons button {
-  background: #1f2540;
-  color: #e1e1e1;
-  border: 1px solid #2c345b;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.3s, border-color 0.3s;
-}
-#filterButtons button:hover {
-  background: #2c345b;
-  border-color: #4da6ff;
-}
-#filterButtons button.active {
-  background: #4da6ff;
-  border-color: #4da6ff;
-  color: #fff;
-}
-
-/* CATÁLOGO Y TARJETAS */
-main#catalogo {
-  width: 100%;
-  max-width: 1200px;
-  margin: 20px auto 60px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  padding: 0 12px;
-}
-
-.card {
-  background: #121830;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.22s, box-shadow 0.22s;
-}
-.card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 10px 32px rgba(0,0,0,0.8);
-}
-
-.card .poster {
-  width: 100%;
-  aspect-ratio: 2/3;
-  background: #1b2035;
-  position: relative;
-}
-.card .poster img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: filter 0.3s;
-}
-.card:hover .poster img {
-  filter: brightness(1.1);
-}
-
-.card-content {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.card-content h2 {
-  font-size: 1rem;
-  margin: 0;
-  line-height: 1.2;
-  min-height: 2.2em;
-  color: #fff;
-}
-.card-content .overview {
-  font-size: 0.85rem;
-  color: #c0c0c0;
-  height: 3.2em;
-  overflow: hidden;
-  opacity: 0.9;
-}
-.card-content .meta {
-  font-size: 0.82rem;
-  color: #8a8a8a;
-}
-.card-content .votes {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 0.9rem;
-  color: #fff;
-}
-
-/* BOTONES */
-.btn {
-  display: inline-block;
-  text-align: center;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #4da6ff;
-  color: #fff;
-  text-decoration: none;
-  font-weight: 600;
-  width: 100%;
-  box-sizing: border-box;
-  transition: filter 0.25s, box-shadow 0.25s;
-}
-.btn:hover {
-  filter: brightness(1.2);
-  box-shadow: 0 0 12px rgba(77, 166, 255, 0.6);
-}
-.btn.secondary {
-  background: #2c345b;
-  color: #e1e1e1;
-}
-.season-block {
-  margin-top: 8px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.episode-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.btn.eps {
-  padding: 4px 8px;
-  font-size: 13px;
-  border-radius: 6px;
-  background: #2c345b;
-  color: #e1e11e;
-  text-decoration: none;
-  transition: background 0.25s;
-}
-.btn.eps:hover {
-  background: #4da6ff;
-}
-
-/* EPISODIOS VISTOS */
-.episode-row .watched {
-  background: #28a745 !important;
-  color: #000 !important;
-}
-
-/* EMPTY STATE */
-.empty {
-  text-align: center;
-  color: #888;
-  padding: 30px;
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-  header h1 { font-size: 1.5rem; }
-  main#catalogo { gap: 14px; }
-}
-@media (max-width: 768px) {
-  .card { max-width: 180px; }
-  .card-content h2 { min-height: 2em; font-size: 0.95rem; }
-  .card-content .overview { font-size: 0.8rem; height: 3.2em; }
-  .btn { padding: 7px 8px; font-size: 0.85rem; }
-}
 @media (max-width: 480px) {
-  .episode-row .eps { font-size: 12px; padding: 3px 7px; }
+  header { margin-top: 80px; }
+}
+
+/* TOP BANNER */
+.top-banner {
+    width: 100%;
+    background: #000;
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+/* BUSCADOR */
+#searchInput {
+    width: 100%;
+    max-width: 520px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #141414;
+    color: white;
+    font-size: 1rem;
+}
+
+/* GRID */
+main#catalogo {
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 16px;
+}
+
+/* CARD */
+.card {
+    width: 100%;
+    max-width: 220px;
+    background: #121212;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: .2s;
+    box-shadow: 0 6px 20px rgba(0,0,0,.55);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 40px rgba(0,0,0,.85);
+}
+
+.card .poster img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+/* CONTENT */
+.card-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.overview { color: #ccc; }
+
+/* EPISODIOS */
+.season-block {
+    margin-top: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.episode-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.btn.eps {
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 6px;
+    background: #333;
+    color: white;
+}
+
+/* VISTO */
+.episode-viewed {
+    background: #2ecc71 !important;
+    color: #000 !important;
+}
+
+/* FAVORITO */
+.fav-btn {
+    cursor: pointer;
+    font-size: 22px;
 }
