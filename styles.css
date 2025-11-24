@@ -1,68 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineNube</title>
+
+<!-- Tu CSS completo + barra integrada -->
+<style>
+
+/* styles.css - versión mejorada estilo Netflix/HBO */
+
 /* ---------------------------------- */
+/* RESET BÁSICO */
 /* RESET */
+/* ---------------------------------- */
+* { box-sizing: border-box; margin:0; padding:0; }
+html,body { height:100%; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background:#0b0b0b;
+  color:#fff;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:16px;
     font-family: 'Roboto', Arial, sans-serif;
     background: #0b0b0b;
     color: #fff;
-    padding-top: 60px; /* espacio para la barra */
+    padding: 60px 12px 20px;
+    transition: background .3s, color .3s;
 }
 
 /* ---------------------------------- */
-/* TOP BANNER */
+/* BARRA ROTATIVA SUPERIOR */
+/* DARK MODE EXTRA */
+/* ---------------------------------- */
+body.dark-mode {
+    background: #ffffff;
+    color: #000;
+}
+
+body.dark-mode .card {
+    background: #f5f5f5;
+    color: #000;
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+
+body.dark-mode .btn {
+    background: #222;
+    color: #fff;
+}
+
+body.dark-mode .btn.eps {
+    background: #ddd;
+    color: #000;
+}
+
+body.dark-mode .episode-viewed {
+    background: #88ff88 !important;
+    color: #003300 !important;
+}
+
+/* ---------------------------------- */
+/* BARRA ROTATIVA */
+/* ---------------------------------- */
 .top-banner {
     width: 100%;
-    background: #000;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
-    font-size: 16px;
-    font-weight: 600;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
+@@ -46,383 +61,166 @@ body {
+    transition: opacity 0.5s ease;
 }
+
+.top-banner .fade {
+    opacity: 0;
+}
+
+.top-banner .show {
+    opacity: 1;
+}
+
+/* Evita que la barra tape el contenido */
+body {
+    padding-top: 55px;
+}
+.top-banner .fade { opacity: 0; }
+.top-banner .show { opacity: 1; }
 
 /* ---------------------------------- */
 /* HEADER */
-header { text-align: center; margin-top: 20px; }
-header h1 { font-size: 1.8rem; }
+/* ---------------------------------- */
+header {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  text-align:center;
+}
+
+header h1 {
+  font-size:1.7rem;
+  font-weight:700;
+  letter-spacing:0.5px;
+  margin-top:4px;
+  text-shadow:0 0 12px rgba(255,255,255,0.25);
+  transition:.3s ease;
+}
+
+header h1:hover {
+  text-shadow:0 0 18px rgba(255,255,255,0.45);
+}
 
 .header-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  position: relative;
 }
 
+/* Contenedor de iconos */
 .social-header {
-    position: absolute;
-    right: 0;
-    display: flex;
-    gap: 12px;
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 12px;
 }
+
 .social-header a {
-    color: white;
-    font-size: 26px;
+  color: #fff;
+  font-size: 28px;
+  text-decoration: none;
+  transition: 0.2s;
 }
+
+.social-header a:hover {
+  color: #ff6600;
+}
+header { text-align: center; margin-bottom: 12px; }
+header h1 { font-size: 1.8rem; font-weight: 700; text-shadow: 0 0 12px rgba(255,255,255,.25); }
 
 /* ---------------------------------- */
 /* BUSCADOR */
-.search-block {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
+/* ---------------------------------- */
+#searchInput {
+  width:100%;
+  max-width:520px;
+  padding:12px 14px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  background:#141414;
+  color:#fff;
+  font-size:1rem;
+  transition:.25s ease;
+  box-shadow:0 0 10px rgba(0,0,0,0.4) inset;
 }
 
-#searchInput {
+#searchInput:focus {
+  background:#1b1b1b;
+  box-shadow:0 0 12px rgba(229, 9, 20, 0.4);
+}
+
+/* ---------------------------------- */
+/* FILTROS */
+/* ---------------------------------- */
+#filterButtons {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+#filterButtons button {
+  background:#1c1c1c;
+  color:#fff;
+  border:1px solid #2e2e2e;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:0.9rem;
+  transition:.25s ease;
+}
+
+#filterButtons button:hover {
+  background:#333;
+  border-color:#444;
+}
+
+#filterButtons button.active {
+  background:#e50914;
+  border-color:#e50914;
+  box-shadow:0 0 14px rgba(229,9,20,0.45);
     width: 100%;
-    max-width: 500px;
+    max-width: 520px;
     padding: 12px;
+    margin: 12px auto 20px;
+    display: block;
     border-radius: 10px;
     border: none;
+    outline: none;
     background: #141414;
     color: white;
     font-size: 1rem;
@@ -70,9 +207,20 @@ header h1 { font-size: 1.8rem; }
 
 /* ---------------------------------- */
 /* CATÁLOGO */
+/* ---------------------------------- */
 main#catalogo {
+  width:100%;
+  max-width:1200px;
+  margin:14px auto 60px;
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap:16px;
+  align-items:start;
+  justify-items:center;
+  padding:0 6px;
+  transition:.3s ease;
     max-width: 1200px;
-    margin: 20px auto;
+    margin: auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
     gap: 16px;
@@ -81,67 +229,156 @@ main#catalogo {
 
 /* ---------------------------------- */
 /* CARD */
+/* ---------------------------------- */
 .card {
+  background:#121212;
+  border-radius:12px;
+  width:100%;
+  max-width:220px;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,0.55);
+  display:flex;
+  flex-direction:column;
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.card:hover { 
+  transform: translateY(-6px) scale(1.03);
+  box-shadow:0 14px 40px rgba(0,0,0,0.85);
     width: 100%;
     max-width: 220px;
     background: #121212;
     border-radius: 12px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
     transition: .2s;
+    box-shadow: 0 6px 20px rgba(0,0,0,.55);
 }
 
+/* POSTER */
+.card .poster {
+  width:100%;
+  aspect-ratio: 2/3;
+  overflow:hidden;
+  background:#0f0f0f;
+  position:relative;
 .card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 14px 40px rgba(0,0,0,.85);
 }
 
-.poster img {
+.card .poster img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:.3s ease;
+}
+
+.card:hover .poster img {
+  filter:brightness(1.10);
     width: 100%;
     height: 300px;
     object-fit: cover;
 }
 
 /* ---------------------------------- */
+/* CONTENIDO */
 /* CARD CONTENT */
+/* ---------------------------------- */
 .card-content {
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:stretch;
+  text-align:left;
     padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .card-content h2 {
+  font-size:1rem;
+  margin:0;
+  line-height:1.2;
+  min-height:2.4em;
+  overflow:hidden;
     font-size: 1rem;
     min-height: 2.1em;
-}
-
-.overview {
-    color: #ccc;
-    font-size: .85rem;
-    height: 3.2em;
     overflow: hidden;
 }
 
-.btn {
-    display: block;
-    background: #e50914;
-    padding: 10px;
-    text-align: center;
-    color: white;
-    border-radius: 10px;
-    margin-top: 8px;
+.card-content .overview {
+  font-size:0.85rem;
+  color:#ccc;
+  height:3.6em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  opacity:.9;
+    font-size: .85rem;
+    height: 3.2em;
+    overflow: hidden;
+    color: #ccc;
 }
 
-.btn.eps {
-    background: #333;
-    padding: 4px 8px;
-    font-size: 13px;
-    border-radius: 6px;
+.card-content .meta {
+  font-size:0.82rem;
+  color:#9e9e9e;
+  opacity:.8;
 }
+.card-content .meta { color: #888; font-size: .82rem; }
 
-.episode-viewed {
-    background: #2ecc71 !important;
-    color: #000 !important;
+.card-content .votes {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-size:0.9rem;
+  color:#fff;
 }
+.votes { display: flex; justify-content: space-between; }
 
 /* ---------------------------------- */
-/* TEMPORADAS */
+/* BOTONES */
+/* BOTÓN GENERAL */
+/* ---------------------------------- */
+.btn {
+  display:inline-block;
+  text-align:center;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#e50914;
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  width:100%;
+  box-sizing:border-box;
+  transition:.25s ease;
+    display: block;
+    text-decoration: none;
+    padding: 10px;
+    background: #e50914;
+    color: white;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    transition: .2s;
+}
+
+.btn:hover {
+  filter:brightness(1.15);
+  box-shadow:0 0 12px rgba(229,9,20,0.55);
+}
+.btn:hover { filter: brightness(1.15); }
+
+.btn.secondary {
+  background:#333;
+  color:#fff;
+/* ---------------------------------- */
+/* TEMPORADAS COMPACTAS */
+/* ---------------------------------- */
 .season-block {
     margin-top: 8px;
     font-size: 14px;
@@ -150,11 +387,20 @@ main#catalogo {
     flex-wrap: wrap;
 }
 
+.btn.secondary:hover {
+  background:#444;
 .season-label {
     font-weight: bold;
     margin-right: 6px;
 }
 
+.season-row {
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:6px;
+  justify-content:center;
+/* FILA DE EPISODIOS */
 .episode-row {
     display: flex;
     flex-wrap: wrap;
@@ -162,9 +408,145 @@ main#catalogo {
 }
 
 /* ---------------------------------- */
-/* RESPONSIVE */
-@media (max-width: 480px) {
-    header h1 { font-size: 1.4rem; }
-    .social-header a { font-size: 22px; }
-    .card { max-width: 160px; }
+/* EMPTY STATE */
+/* BOTONES DE EPISODIOS PEQUEÑOS */
+/* ---------------------------------- */
+.empty {
+  text-align:center;
+  color:#bbb;
+  padding:30px;
+  font-size:1.1rem;
+  opacity:.8;
+.btn.eps {
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 6px;
+    background: #333;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
 }
+
+/* ---------------------------------- */
+/* RESPONSIVE */
+/* ---------------------------------- */
+@media (max-width: 1024px) {
+  header h1 { font-size:1.5rem; }
+  main#catalogo { gap:14px; }
+/* EPISODIO YA VISTO ⭐ */
+.episode-viewed {
+    background: #2ecc71 !important;
+    color: #000 !important;
+}
+
+@media (max-width: 768px) {
+  body { padding:12px; }
+  .card { max-width:180px; }
+  .card-content h2 { min-height:2em; font-size:0.95rem; }
+  .card-content .overview { font-size:0.8rem; height:3.2em; }
+/* ❤️ FAVORITO */
+.favorite {
+    background: #ff0066 !important;
+}
+
+/* ---------------------------------- */
+/* RESPONSIVE */
+/* ---------------------------------- */
+@media (max-width: 480px) {
+  header { gap:8px; }
+  header h1 { font-size:1.2rem; }
+  #searchInput { max-width:320px; font-size:0.95rem; }
+  .card { max-width:160px; }
+  .card-content h2 { font-size:0.75rem; min-height:1.9em; }
+  .card-content .overview { font-size:0.72rem; height:2.8em; }
+  .btn { padding:7px 8px; font-size:0.85rem; }
+  .header-row {
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    gap: 8px;
+  }
+  .social-header {
+    position: static;
+    display: flex;
+    gap: 12px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- 🌟 BARRA ROTATIVA SUPERIOR -->
+<div class="top-banner">
+  <span id="rotating-text"></span>
+</div>
+
+<!-- ---------------------------------- -->
+<!-- TU CONTENIDO NORMAL EMPIEZA AQUÍ -->
+<!-- ---------------------------------- -->
+
+<header>
+  <h1>CineNube</h1>
+</header>
+
+<main id="catalogo">
+  <p class="empty">Aquí aparecerá tu catálogo…</p>
+</main>
+
+<!-- ---------------------------------- -->
+<!-- SCRIPT DE TEXTOS ROTATIVOS -->
+<!-- ---------------------------------- -->
+<script>
+const messages = [
+  "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
+  "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
+  "🔥 Canal VIP: acceso completo por solo 1,49€/semana",
+  "✔️ Ve todo sin límites directamente desde Telegram",
+  "💳 Paga aquí por PayPal → https://www.paypal.com/ncp/payment/GFVNT36R7E4TQ",
+  "💬 Escríbeme al privado → @movfrezon",
+  "🚀 Actualizaciones diarias + soporte directo garantizado"
+];
+
+let index = 0;
+const textElement = document.getElementById("rotating-text");
+
+function updateText() {
+    textElement.classList.remove("show");
+    textElement.classList.add("fade");
+
+    setTimeout(() => {
+        const msg = messages[index];
+
+        if (msg.includes("https://")) {
+            const url = msg.match(/https:\/\/\S+/)[0];
+            textElement.innerHTML = `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
+        }
+
+        else if (msg.includes("@")) {
+            textElement.innerHTML =
+              `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
+        }
+
+        else {
+            textElement.textContent = msg;
+        }
+
+        textElement.classList.remove("fade");
+        textElement.classList.add("show");
+
+        index = (index + 1) % messages.length;
+    }, 500);
+    .card { max-width: 160px; }
+    .card-content h2 { font-size: .8rem; }
+    .btn.eps { font-size: 12px; padding: 3px 7px; }
+}
+
+textElement.textContent = messages[0];
+textElement.classList.add("show");
+
+setInterval(updateText, 3000);
+</script>
+
+</body>
+</html>
