@@ -1,157 +1,141 @@
-const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
+// ================================
+//   CARGAR DATOS DESDE GOOGLE SHEETS
+// ================================
+async function cargarCatalogo() {
+    const url = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec"; // <-- CAMBIA ESTO
 
-const container = document.getElementById('catalogo');
-const searchInput = document.getElementById('searchInput');
-const filterButtons = document.querySelectorAll('#filterButtons button');
-
-let items = [];
-let activeFilter = 'all';
-
-function normalize(s) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
-
-/* EPISODIOS VISTOS */
-function markEpisodeWatched(season, episode, title) {
-  localStorage.setItem(`watched_${title}_s${season}_e${episode}`, "1");
-}
-
-function isEpisodeWatched(season, episode, title) {
-  return localStorage.getItem(`watched_${title}_s${season}_e${episode}`) === "1";
-}
-
-/* FAVORITOS */
-function toggleFavorite(title) {
-  const favs = JSON.parse(localStorage.getItem("favorites") || "{}");
-  favs[title] = !favs[title];
-  localStorage.setItem("favorites", JSON.stringify(favs));
-}
-
-function isFavorite(title) {
-  const favs = JSON.parse(localStorage.getItem("favorites") || "{}");
-  return !!favs[title];
-}
-
-/* FETCH */
-async function fetchData() {
-  try {
-    const res = await fetch(SHEET_JSON_URL);
+    const res = await fetch(url);
     const data = await res.json();
 
-    items = data.sort((a,b)=> (b.published_ts||0)-(a.published_ts||0));
-
-    render(items);
-
-  } catch(e) {
-    container.innerHTML = `<div class="empty">Error al cargar</div>`;
-  }
+    return data;
 }
 
-/* RENDER */
-function render(list) {
-  const q = normalize((searchInput.value||"").toLowerCase());
+// ================================
+//   RENDER DEL CATÁLOGO
+// ================================
+function render(items) {
+    const cont = document.getElementById("catalogo");
+    cont.innerHTML = "";
 
-  const filtered = list.filter(i=>{
-    if(activeFilter !== "all" && i.type !== activeFilter) return false;
+    items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-    const title = normalize((i.title||"").toLowerCase());
+        // Poster
+        const posterDiv = document.createElement("div");
+        posterDiv.className = "poster";
+        posterDiv.innerHTML = `<img src="${item.poster}" />`;
 
-    return title.includes(q);
-  });
+        // Contenido
+        const content = document.createElement("div");
+        content.className = "card-content";
 
-  container.innerHTML = "";
+        content.innerHTML = `
+            <h2>${item.title}</h2>
+            <p class="overview">${item.overview}</p>
+        `;
 
-  filtered.forEach(item => {
-    const card = document.createElement("article");
-    card.className = "card";
+        // Película
+        if (item.type === "movie") {
+            const link = document.createElement("a");
+            link.className = "btn";
+            link.href = item.link;
+            link.target = "_blank";
+            link.textContent = "Ver Película";
+            content.appendChild(link);
+        }
 
-    const posterWrap = document.createElement("div");
-    posterWrap.className = "poster";
+        // Series
+        if (item.type === "series") {
+            if (Array.isArray(item.season_links)) {
+                item.season_links.forEach(temp => {
+                    const row = document.createElement("div");
+                    row.className = "season-block";
 
-    const img = document.createElement("img");
-    img.src = item.poster.replace("w600_and_h900_bestv2","w300_and_h450_bestv2");
-    posterWrap.appendChild(img);
+                    const label = document.createElement("span");
+                    label.className = "season-label";
+                    label.textContent = "T" + temp.season + ":";
+                    row.appendChild(label);
 
-    card.appendChild(posterWrap);
+                    const epsRow = document.createElement("span");
+                    epsRow.className = "episode-row";
 
-    const content = document.createElement("div");
-    content.className = "card-content";
+                    temp.episodes.forEach(ep => {
+                        const btn = document.createElement("a");
+                        btn.href = ep.link;
+                        btn.target = "_blank";
+                        btn.className = "btn eps";
+                        btn.textContent = ep.episode;
 
-    const h2 = document.createElement("h2");
-    h2.textContent = item.title;
-    content.appendChild(h2);
+                        // ⭐ Episodio visto
+                        if (localStorage.getItem("visto_" + ep.link)) {
+                            btn.classList.add("episode-viewed");
+                        }
 
-    /* FAVORITO */
-    const favBtn = document.createElement("div");
-    favBtn.className = "fav-btn";
-    favBtn.textContent = isFavorite(item.title) ? "⭐" : "☆";
-    favBtn.onclick = ()=>{
-      toggleFavorite(item.title);
-      favBtn.textContent = isFavorite(item.title)? "⭐":"☆";
-    };
-    content.appendChild(favBtn);
+                        btn.addEventListener("click", () => {
+                            localStorage.setItem("visto_" + ep.link, "1");
+                            btn.classList.add("episode-viewed");
+                        });
 
-    const ov = document.createElement("p");
-    ov.className = "overview";
-    ov.textContent = item.overview;
-    content.appendChild(ov);
+                        epsRow.appendChild(btn);
+                    });
 
-    /* SERIES */
-    if(item.type === "series") {
-      const seasons = Array.isArray(item.season_links) ? item.season_links : [];
-      
-      seasons.forEach(s => {
-        const row = document.createElement("div");
-        row.className = "season-block";
+                    row.appendChild(epsRow);
+                    content.appendChild(row);
+                });
+            }
+        }
 
-        const label = document.createElement("span");
-        label.className = "season-label";
-        label.textContent = "T" + s.season + ": ";
-        row.appendChild(label);
+        card.appendChild(posterDiv);
+        card.appendChild(content);
 
-        const epsRow = document.createElement("span");
-        epsRow.className = "episode-row";
+        cont.appendChild(card);
+    });
+}
 
-        s.episodes.forEach(ep => {
-          const epBtn = document.createElement("a");
-          epBtn.href = ep.link;
-          epBtn.target = "_blank";
-          epBtn.className = "btn eps";
+// ================================
+//   BÚSQUEDA GLOBAL
+// ================================
+function activarBuscador(items) {
+    const input = document.getElementById("searchInput");
+    const filterBtns = document.querySelectorAll("#filterButtons button");
 
-          epBtn.textContent = ep.episode;
+    let tipo = "all";
 
-          if(isEpisodeWatched(s.season, ep.episode, item.title)) {
-            epBtn.classList.add("episode-viewed");
-          }
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            tipo = btn.dataset.type;
+            filtrar();
+        });
+    });
 
-          epBtn.addEventListener("click", () => {
-            markEpisodeWatched(s.season, ep.episode, item.title);
-            epBtn.classList.add("episode-viewed");
-          });
+    input.addEventListener("input", filtrar);
 
-          epsRow.appendChild(epBtn);
+    function filtrar() {
+        const t = input.value.toLowerCase();
+
+        const filtrado = items.filter(p => {
+            const coincide = p.title.toLowerCase().includes(t);
+
+            if (!coincide) return false;
+
+            if (tipo === "all") return true;
+            if (tipo === "movie" && p.type === "movie") return true;
+            if (tipo === "series" && p.type === "series") return true;
+
+            return false;
         });
 
-        row.appendChild(epsRow);
-        content.appendChild(row);
-      });
+        render(filtrado);
     }
-
-    card.appendChild(content);
-    container.appendChild(card);
-  });
 }
 
-/* EVENTOS */
-searchInput.addEventListener("input", ()=> render(items));
-
-filterButtons.forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    filterButtons.forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    activeFilter = btn.dataset.type;
+// ================================
+//   INICIO
+// ================================
+cargarCatalogo().then(items => {
     render(items);
-  });
+    activarBuscador(items);
 });
-
-fetchData();
