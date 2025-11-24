@@ -74,50 +74,43 @@ function render(list) {
     votes.innerHTML = `<span>👍 ${item.votes_up||0}</span> <span>👎 ${item.votes_down||0}</span>`;
     content.appendChild(votes);
 
-    // Buttons container
-    const seasonsRow = document.createElement('div');
-    seasonsRow.className = 'season-row';
-
-    // MOVIES
-    if(item.type === 'movie') {
-      const link = extractTeraboxLink(item.terabox);
-      if(link) {
-        const btn = document.createElement('a');
-        btn.href = link;
-        btn.className = 'btn';
-        btn.target = '_blank';
-        btn.textContent = 'Ver ahora';
-        content.appendChild(btn);
-      }
-    }
-
-    // SERIES
+    // ===========================================
+    // SERIES (compacto por temporadas/capitulos)
+    // ===========================================
     if(item.type === 'series') {
+
       const seasons = Array.isArray(item.season_links) ? item.season_links : [];
 
       if(seasons.length > 0) {
-        // Mostrar temporadas y capítulos
+
         seasons.forEach(seasonObj => {
-          const title = document.createElement('h3');
-          title.textContent = "Temporada " + seasonObj.season;
-          title.style.marginTop = "10px";
-          content.appendChild(title);
+          const row = document.createElement('div');
+          row.className = "season-block";
+
+          const label = document.createElement('span');
+          label.className = "season-label";
+          label.textContent = "T" + seasonObj.season + ": ";
+          row.appendChild(label);
+
+          const epsRow = document.createElement('span');
+          epsRow.className = "episode-row";
 
           if(Array.isArray(seasonObj.episodes)) {
             seasonObj.episodes.forEach(ep => {
               const epBtn = document.createElement('a');
               epBtn.href = ep.link;
               epBtn.target = "_blank";
-              epBtn.className = "btn secondary";
-              epBtn.textContent = "Cap " + ep.episode;
-              epBtn.style.marginRight = "6px";
-              content.appendChild(epBtn);
+              epBtn.className = "btn eps";
+              epBtn.textContent = ep.episode; 
+              epsRow.appendChild(epBtn);
             });
           }
+
+          row.appendChild(epsRow);
+          content.appendChild(row);
         });
 
       } else {
-        // Fallback
         const link = extractTeraboxLink(item.terabox);
         if(link) {
           const btn = document.createElement('a');
