@@ -78,7 +78,7 @@ function render(list) {
     const seasonsRow = document.createElement('div');
     seasonsRow.className = 'season-row';
 
-    // If movie: show ver ahora if terabox present (works with array or raw link)
+    // MOVIES
     if(item.type === 'movie') {
       const link = extractTeraboxLink(item.terabox);
       if(link) {
@@ -91,39 +91,33 @@ function render(list) {
       }
     }
 
-    // If series: show season buttons if present OR if not present but terabox exists show single Ver Serie
+    // SERIES
     if(item.type === 'series') {
       const seasons = Array.isArray(item.season_links) ? item.season_links : [];
-      const validSeasons = seasons.filter(s=>s && s.link && String(s.link).trim()!=='');
-      if(validSeasons.length > 0) {
-        validSeasons.forEach(s=>{
-          const btn = document.createElement('a');
-          btn.href = s.link;
-          btn.className = 'btn secondary';
-          btn.target = '_blank';
-          btn.textContent = 'Temporada ' + s.season;
-          seasonsRow.appendChild(btn);
 
-          // 🔹 NUEVO: si la temporada tiene episodes, generar botones de capítulos
-          if(s.episodes && Array.isArray(s.episodes) && s.episodes.length > 0) {
-            const epsRow = document.createElement('div');
-            epsRow.className = 'eps-row';
-            s.episodes.forEach(ep => {
-              if(ep.link) {
-                const epBtn = document.createElement('a');
-                epBtn.href = ep.link;
-                epBtn.className = 'btn tertiary';
-                epBtn.target = '_blank';
-                epBtn.textContent = 'Cap ' + ep.episode;
-                epsRow.appendChild(epBtn);
-              }
+      if(seasons.length > 0) {
+        // Mostrar temporadas y capítulos
+        seasons.forEach(seasonObj => {
+          const title = document.createElement('h3');
+          title.textContent = "Temporada " + seasonObj.season;
+          title.style.marginTop = "10px";
+          content.appendChild(title);
+
+          if(Array.isArray(seasonObj.episodes)) {
+            seasonObj.episodes.forEach(ep => {
+              const epBtn = document.createElement('a');
+              epBtn.href = ep.link;
+              epBtn.target = "_blank";
+              epBtn.className = "btn secondary";
+              epBtn.textContent = "Cap " + ep.episode;
+              epBtn.style.marginRight = "6px";
+              content.appendChild(epBtn);
             });
-            content.appendChild(epsRow); // append debajo de la temporada
           }
         });
-        content.appendChild(seasonsRow);
+
       } else {
-        // fallback to terabox as single button
+        // Fallback
         const link = extractTeraboxLink(item.terabox);
         if(link) {
           const btn = document.createElement('a');
@@ -149,7 +143,6 @@ function extractTeraboxLink(raw) {
     const parsed = JSON.parse(raw);
     if(Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
   } catch(e){}
-  // fallback regex
   const match = String(raw).match(/https?:\/\/[^\s"]+/);
   return match ? match[0] : '';
 }
