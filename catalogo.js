@@ -130,6 +130,10 @@ function render(list) {
       const seasons = Array.isArray(item.season_links) ? item.season_links : [];
 
       if(seasons.length > 0) {
+
+        // 🔥 Encontramos la temporada más alta
+        const maxSeason = Math.max(...seasons.map(s => s.season));
+
         seasons.forEach(seasonObj => {
           const row = document.createElement('div');
           row.className = "season-block";
@@ -139,31 +143,48 @@ function render(list) {
           label.textContent = "T" + seasonObj.season + ": ";
           row.appendChild(label);
 
-          const epsRow = document.createElement('span');
-          epsRow.className = "episode-row";
+          // -------------------------
+          // 🔥 NUEVA LÓGICA:
+          // - Solo la temporada más nueva → Episodios
+          // - Todas las demás → Botón directo carpeta
+          // -------------------------
+          if (seasonObj.season !== maxSeason) {
 
-          if(Array.isArray(seasonObj.episodes)) {
-            seasonObj.episodes.forEach(ep => {
-              const epBtn = document.createElement('a');
-              epBtn.href = ep.link;
-              epBtn.target = "_blank";
-              epBtn.className = "btn eps";
-              epBtn.textContent = ep.episode;
+            const directBtn = document.createElement('a');
+            directBtn.href = seasonObj.link || "#";
+            directBtn.target = "_blank";
+            directBtn.className = "btn season-folder";
+            directBtn.textContent = "Ver temporada completa";
+            row.appendChild(directBtn);
 
-              if(isEpisodeWatched(seasonObj.season, ep.episode, item.title)) {
-                epBtn.classList.add("watched");
-              }
+          } else {
+            // Temporada más nueva -> episodios detallados
+            const epsRow = document.createElement('span');
+            epsRow.className = "episode-row";
 
-              epBtn.addEventListener("click", () => {
-                markEpisodeWatched(seasonObj.season, ep.episode, item.title);
-                epBtn.classList.add("watched");
+            if(Array.isArray(seasonObj.episodes)) {
+              seasonObj.episodes.forEach(ep => {
+                const epBtn = document.createElement('a');
+                epBtn.href = ep.link;
+                epBtn.target = "_blank";
+                epBtn.className = "btn eps";
+                epBtn.textContent = ep.episode;
+
+                if(isEpisodeWatched(seasonObj.season, ep.episode, item.title)) {
+                  epBtn.classList.add("watched");
+                }
+
+                epBtn.addEventListener("click", () => {
+                  markEpisodeWatched(seasonObj.season, ep.episode, item.title);
+                  epBtn.classList.add("watched");
+                });
+
+                epsRow.appendChild(epBtn);
               });
-
-              epsRow.appendChild(epBtn);
-            });
+            }
+            row.appendChild(epsRow);
           }
 
-          row.appendChild(epsRow);
           content.appendChild(row);
         });
 
