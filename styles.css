@@ -1,257 +1,98 @@
-/* ---------------------------------- */
 /* RESET */
-/* ---------------------------------- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
+
 body {
-    font-family: 'Roboto', Arial, sans-serif;
-    background: radial-gradient(circle at 20% 20%, #0a0f29 0%, #050714 100%);
-    color: #fff;
-    padding: 60px 12px 20px;
-    transition: background .3s, color .3s;
+  font-family: 'Roboto', Arial, sans-serif;
+  background: radial-gradient(circle at 20% 20%, #0a0f29 0%, #050714 100%);
+  color: #fff;
+  padding: 60px 12px 20px;
+  transition: background .3s, color .3s;
 }
 
-/* ---------------------------------- */
-/* DARK MODE (invertido HBO → claro) */
-/* ---------------------------------- */
+/* DARK MODE */
 body.dark-mode {
-    background: #f0f4ff;
-    color: #000;
+  background: #f0f4ff;
+  color: #000;
 }
+body.dark-mode .card { background:#fff; color:#000; box-shadow:0 6px 20px rgba(0,0,0,.15); }
+body.dark-mode .btn { background:#1a2b6d; color:#fff; }
+body.dark-mode .btn.eps { background:#e0e4ff; color:#000; }
+body.dark-mode .episode-viewed { background:#a2ffb0 !important; color:#003800 !important; }
 
-body.dark-mode .card {
-    background: #ffffff;
-    color: #000;
-    box-shadow: 0 6px 20px rgba(0,0,0,.15);
-}
-
-body.dark-mode .btn {
-    background: #1a2b6d;
-    color: #fff;
-}
-
-body.dark-mode .btn.eps {
-    background: #e0e4ff;
-    color: #000;
-}
-
-body.dark-mode .episode-viewed {
-    background: #a2ffb0 !important;
-    color: #003800 !important;
-}
-
-/* ---------------------------------- */
 /* BARRA ROTATIVA */
-/* ---------------------------------- */
 .top-banner {
-    width: 100%;
-    background: linear-gradient(90deg, #1e2a78, #532f93, #1e2a78);
-    color: white;
-    text-align: center;
-    padding: 12px 0;
-    font-size: 19px;
-    font-weight: 600;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
-    text-shadow: 0 0 10px rgba(255,255,255,.4);
+  width:100%; background:linear-gradient(90deg, #1e2a78, #532f93, #1e2a78);
+  color:white; text-align:center; padding:12px 0; font-size:19px; font-weight:600;
+  position:fixed; top:0; left:0; z-index:9999; text-shadow:0 0 10px rgba(255,255,255,.4);
 }
 
-/* ---------------------------------- */
 /* HEADER */
-/* ---------------------------------- */
-header { text-align: center; margin-bottom: 12px; }
-header h1 { 
-    font-size: 2rem; 
-    font-weight: 800; 
-    background: linear-gradient(90deg, #5a7dff, #b166ff);
-    -webkit-background-clip: text;
-    color: transparent;
-    text-shadow: 0 0 20px rgba(120,70,255,.4);
+header { text-align:center; margin-bottom:12px; }
+header h1 {
+  font-size:2rem; font-weight:800;
+  background: linear-gradient(90deg, #5a7dff, #b166ff);
+  -webkit-background-clip:text; color:transparent; text-shadow:0 0 20px rgba(120,70,255,.4);
 }
 
-/* ---------------------------------- */
 /* BUSCADOR */
-/* ---------------------------------- */
 #searchInput {
-    width: 100%;
-    max-width: 520px;
-    padding: 12px;
-    margin: 12px auto 25px;
-    display: block;
-    border-radius: 12px;
-    border: none;
-    outline: none;
-    background: #0f1433;
-    color: white;
-    font-size: 1rem;
-    box-shadow: 0 0 12px rgba(60,60,255,.25);
-    transition: .3s;
+  width:100%; max-width:520px; padding:12px; margin:12px auto 25px; display:block;
+  border-radius:12px; border:none; outline:none; background:#0f1433; color:white;
+  font-size:1rem; box-shadow:0 0 12px rgba(60,60,255,.25); transition:.3s;
 }
-#searchInput:focus {
-    box-shadow: 0 0 18px rgba(120,70,255,.5);
-}
+#searchInput:focus { box-shadow:0 0 18px rgba(120,70,255,.5); }
 
-/* ---------------------------------- */
 /* CATÁLOGO */
-/* ---------------------------------- */
 main#catalogo {
-    max-width: 1300px;
-    margin: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-    gap: 18px;
-    justify-items: center;
+  max-width:1300px; margin:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:18px;
+  justify-items:center;
 }
 
-/* ---------------------------------- */
-/* CARD ESTILO HBO */
-/* ---------------------------------- */
+/* CARD */
 .card {
-    width: 100%;
-    max-width: 230px;
-    background: #0c112b;
-    border-radius: 14px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: .3s;
-    box-shadow: 0 8px 25px rgba(0,0,0,.6);
-    border: 1px solid rgba(120,70,255,.15);
+  width:100%; max-width:230px; background:#0c112b; border-radius:14px;
+  overflow:hidden; display:flex; flex-direction:column; transition:.3s;
+  box-shadow:0 8px 25px rgba(0,0,0,.6); border:1px solid rgba(120,70,255,.15);
 }
-
-.card:hover {
-    transform: translateY(-7px) scale(1.03);
-    box-shadow: 0 15px 40px rgba(90,50,255,.55);
-    border-color: rgba(160,120,255,.5);
-}
+.card:hover { transform:translateY(-7px) scale(1.03); box-shadow:0 15px 40px rgba(90,50,255,.55); border-color:rgba(160,120,255,.5); }
 
 /* POSTER */
-.card .poster img {
-    width: 100%;
-    height: 310px;
-    object-fit: cover;
-    filter: brightness(.9);
-    transition: .3s;
-}
-.card:hover .poster img {
-    filter: brightness(1.15);
-}
+.card .poster { width:100%; height:310px; object-fit:cover; filter:brightness(.9); transition:.3s; }
+.card:hover .poster { filter:brightness(1.15); }
 
-/* ---------------------------------- */
 /* CARD CONTENT */
-/* ---------------------------------- */
-.card-content {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+.card-content { padding:14px; display:flex; flex-direction:column; gap:8px; }
+.card-content h2 { font-size:1rem; min-height:2.1em; overflow:hidden; font-weight:600; }
+.card-content .overview { font-size:.85rem; height:3.2em; overflow:hidden; color:#c7c7e8; }
+.card-content .meta { color:#8a8ac0; font-size:.82rem; }
+.votes { display:flex; justify-content:space-between; }
 
-.card-content h2 {
-    font-size: 1rem;
-    min-height: 2.1em;
-    overflow: hidden;
-    font-weight: 600;
-}
-
-.card-content .overview {
-    font-size: .85rem;
-    height: 3.2em;
-    overflow: hidden;
-    color: #c7c7e8;
-}
-
-.card-content .meta { 
-    color: #8a8ac0; 
-    font-size: .82rem; 
-}
-
-.votes { display: flex; justify-content: space-between; }
-
-/* ---------------------------------- */
-/* BOTÓN GENERAL — ESTILO HBO */
-/* ---------------------------------- */
+/* BOTONES */
 .btn {
-    display: block;
-    text-decoration: none;
-    padding: 10px;
-    background: linear-gradient(90deg, #4a5fff, #9a46ff);
-    color: white;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: bold;
-    transition: .3s;
-    box-shadow: 0 0 15px rgba(120,70,255,.4);
-    border: 1px solid rgba(255,255,255,.1);
+  display:block; text-decoration:none; padding:10px;
+  background:linear-gradient(90deg, #4a5fff, #9a46ff); color:white;
+  border-radius:12px; text-align:center; font-weight:bold; transition:.3s;
+  box-shadow:0 0 15px rgba(120,70,255,.4); border:1px solid rgba(255,255,255,.1);
 }
+.btn:hover { filter:brightness(1.2); box-shadow:0 0 20px rgba(160,110,255,.7); }
+.btn.eps { padding:5px 9px; font-size:13px; border-radius:6px; background:#1a1f44; color:white; border:1px solid rgba(150,100,255,.25); }
+.btn.eps:hover { background:#4f3dcc; box-shadow:0 0 12px rgba(120,70,255,.5); }
+.btn.eps.locked { background:#333; color:#888; cursor:default; box-shadow:none; }
 
-.btn:hover { 
-    filter: brightness(1.2);
-    box-shadow: 0 0 20px rgba(160,110,255,.7);
-}
+/* TEMPORADAS */
+.season-row { margin-top:8px; font-size:14px; display:flex; align-items:center; flex-wrap:wrap; }
+.season-row span { font-weight:bold; margin-right:6px; color:#bbaaff; }
 
-/* ---------------------------------- */
-/* TEMPORADAS Y EPISODIOS */
-/* ---------------------------------- */
-.season-block {
-    margin-top: 8px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.season-label { 
-    font-weight: bold;
-    margin-right: 6px;
-    color: #bbaaff;
-}
+/* FAVORITOS Y EPISODIOS VISTOS */
+.episode-viewed { background:#34ff9a !important; color:#003300 !important; border:none !important; box-shadow:0 0 10px rgba(50,255,150,.6) !important; }
+.favorite { background:#ff2b85 !important; box-shadow:0 0 10px rgba(255,50,140,.6); }
 
-/* FILA DE EPISODIOS */
-.episode-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-/* ---------------------------------- */
-/* BOTONES DE EPISODIOS */
-/* ---------------------------------- */
-.btn.eps {
-    padding: 5px 9px;
-    font-size: 13px;
-    border-radius: 6px;
-    background: #1a1f44;
-    color: white;
-    text-decoration: none;
-    display: inline-block;
-    transition: .25s;
-    border: 1px solid rgba(150,100,255,.25);
-}
-.btn.eps:hover {
-    background: #4f3dcc;
-    box-shadow: 0 0 12px rgba(120,70,255,.5);
-}
-
-/* EPISODIO VISTO */
-.episode-viewed {
-    background: #34ff9a !important;
-    color: #003300 !important;
-    border: none !important;
-    box-shadow: 0 0 10px rgba(50,255,150,.6) !important;
-}
-
-/* ❤️ FAVORITO */
-.favorite {
-    background: #ff2b85 !important;
-    box-shadow: 0 0 10px rgba(255,50,140,.6);
-}
-
-/* ---------------------------------- */
 /* RESPONSIVE */
-/* ---------------------------------- */
-@media (max-width: 480px) {
-    .card { max-width: 170px; }
-    .card-content h2 { font-size: .85rem; }
-    .btn.eps { font-size: 12px; padding: 3px 7px; }
+@media(max-width:480px) {
+  .card { max-width:170px; }
+  .card-content h2 { font-size:.85rem; }
+  .btn.eps { font-size:12px; padding:3px 7px; }
 }
