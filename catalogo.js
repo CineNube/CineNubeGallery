@@ -1,4 +1,4 @@
-// catalogo.js — versión mejorada y funcional
+// catalogo.js — versión final con slugs y scroll directo
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 const container = document.getElementById("catalogo");
 const searchInput = document.getElementById("searchInput");
@@ -15,10 +15,9 @@ async function fetchData() {
         if (!res.ok) throw new Error("Error en la respuesta");
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("JSON inválido");
-
-        // ordenar por fecha
         items = data.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
         render(items);
+        scrollToSlugFromURL();
     } catch (e) {
         console.error(e);
         container.innerHTML = `<div class="empty">Error al cargar los datos</div>`;
@@ -35,7 +34,6 @@ function render(list) {
         if (q && (!i.title || !i.title.toLowerCase().includes(q))) return false;
         return true;
     });
-
     if (filtered.length === 0) {
         container.innerHTML = `<div class="empty">No hay resultados</div>`;
         return;
@@ -43,10 +41,15 @@ function render(list) {
 
     container.innerHTML = "";
     const frag = document.createDocumentFragment();
-
     filtered.forEach((item) => {
         const card = document.createElement("article");
         card.className = "card";
+
+        // crear slug
+        const slug = (item.title || "").toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        card.dataset.slug = slug;
 
         // IMAGEN
         const img = document.createElement("img");
@@ -77,9 +80,7 @@ function render(list) {
         votes.innerHTML = `<span>👍 ${item.votes_up || 0}</span> <span>👎 ${item.votes_down || 0}</span>`;
         c.appendChild(votes);
 
-        // -----------------------------
         // SERIES → TODAS LAS TEMPORADAS
-        // -----------------------------
         if (item.type === "series") {
             const seasons = Array.isArray(item.season_links) ? item.season_links : [];
             seasons.forEach((s) => {
@@ -91,23 +92,17 @@ function render(list) {
                 row.appendChild(label);
 
                 const btn = document.createElement("a");
-                if (s.link || s.episodes) {
-                    btn.href = s.link || "#";
-                    btn.target = "_blank";
-                    btn.className = "btn eps";
-                    btn.textContent = "Ver temporada completa";
-                } else {
-                    btn.className = "btn eps locked";
-                    btn.textContent = "🔒 Sin enlace";
-                }
+                btn.href = s.link || "#";
+                btn.target = "_blank";
+                btn.className = "btn";
+                btn.textContent = s.link ? "Ver temporada completa" : "🔒 Sin enlace";
                 row.appendChild(btn);
+
                 c.appendChild(row);
             });
         }
 
-        // -----------------------------
         // MOVIES → botón normal
-        // -----------------------------
         if (item.type === "movie") {
             const link = extractTeraboxLink(item.terabox);
             if (link) {
@@ -123,8 +118,24 @@ function render(list) {
         card.appendChild(c);
         frag.appendChild(card);
     });
-
     container.appendChild(frag);
+}
+
+// -----------------------------
+// SCROLL DIRECTO DESDE URL #SLUG
+// -----------------------------
+function scrollToSlugFromURL() {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const interval = setInterval(() => {
+        const targetCard = document.querySelector(`.card[data-slug="${hash}"]`);
+        if (targetCard) {
+            clearInterval(interval);
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            targetCard.style.transition = "0.5s";
+            targetCard.style.boxShadow = "0 0 20px #7b4fff";
+        }
+    }, 100);
 }
 
 // -----------------------------
@@ -134,7 +145,9 @@ function extractTeraboxLink(raw) {
     if (!raw) return "";
     try {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
+        if (Array.isArray(parsed) && parsed[0] && parsed[0].link) {
+            return parsed[0].link;
+        }
     } catch (e) {}
     return raw;
 }
@@ -152,5 +165,90 @@ filterButtons.forEach((btn) => {
     });
 });
 
-// iniciar fetchData();
+// -----------------------------
+// SEND TELEGRAM CORREGIDO
+// -----------------------------
+function sendTelegram(item, modoActualizacion) {
+    if (!item?.type) return false;
+    modoActualizacion = !!modoActualizacion;
+    var topic = normalize(item.type) === "movie" ? TELEGRAM_TOPIC_PELICULAS : TELEGRAM_TOPIC_SERIES;
+    var idiomaText = item.Idioma ? "[" + item.Idioma + "] " : "";
+    var hashtags = formatHashtags(item.generos);
+    var mensaje = "";
+
+    let votosTxt = "⭐ <b>" + (item.vote_average || "N/A") + "</b> | (" + (item.vote_count || 0) + " votos)\n" +
+        "👍 " + (item.votes_up || 0) + " 👎 " + (item.votes_down || 0) + "\n\n";
+
+    if (modoActualizacion) {
+        mensaje += "📢 <b>NUEVA ACTUALIZACIÓN</b>\n\n" +
+            "🎬 <b>" + escapeHTML(item.title || "") + "</b>\n\n" +
+            votosTxt + "Se añadieron nuevos episodios.\n\n";
+    } else {
+        let sinopsis = resumenInteligente(item.overview || "");
+        mensaje += "🎬 <b>" + escapeHTML(idiomaText + (item.title || "")) + "</b>\n\n" +
+            escapeHTML(sinopsis) + "\n\n" +
+            votosTxt;
+    }
+
+    var seasons = cleanSeasonLinks(item.season_links);
+    if (seasons.length && normalize(item.type) === "series") {
+        seasons.forEach(function(s) {
+            mensaje += "📺 Temporada " + s.season + "\n";
+            if (Array.isArray(s.episodes)) {
+                s.episodes.forEach(function(ep) {
+                    mensaje += " • Cap " + ep.episode + ' (<a href="' + ep.link + '">Ver</a>)\n';
+                });
+            } else if (s.link) {
+                mensaje += ' • (<a href="' + s.link + '">Ver</a>)\n';
+            }
+        });
+    }
+
+    if (normalize(item.type) === "movie") {
+        let link = extractMovieLink(item.terabox);
+        if (link) {
+            mensaje += '\n🎥 <b><a href="' + link + '">Ver ahora</a></b>\n';
+        }
+    }
+
+    // --- LINK DIRECTO AL SLUG ---
+    const slug = (item.title || "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    const urlDirecto = "https://cinenube.github.io/CineNubeGallery/#" + slug;
+    mensaje += `\n🌐 <a href="${urlDirecto}">Ver más en CineNube</a>`;
+
+    if (hashtags) mensaje += "\n\n" + hashtags;
+
+    var payload = item.poster ? {
+        chat_id: TELEGRAM_CHANNEL_ID,
+        message_thread_id: topic,
+        photo: item.poster,
+        caption: mensaje,
+        parse_mode: "HTML"
+    } : {
+        chat_id: TELEGRAM_CHANNEL_ID,
+        message_thread_id: topic,
+        text: mensaje,
+        parse_mode: "HTML"
+    };
+
+    var endpoint = item.poster ? "sendPhoto" : "sendMessage";
+    try {
+        var res = UrlFetchApp.fetch(
+            "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/" + endpoint, {
+                method: "post",
+                contentType: "application/json",
+                payload: JSON.stringify(payload),
+                muteHttpExceptions: true
+            }
+        );
+        return JSON.parse(res.getContentText()).ok;
+    } catch (e) {
+        Logger.log("Error Telegram: " + e);
+        return false;
+    }
+}
+
+// iniciar fetchData
 fetchData();
