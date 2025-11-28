@@ -91,17 +91,22 @@ function render(list) {
                 row.appendChild(label);
 
                 const btn = document.createElement("a");
+
+                // --- TEMPORADA CON ENLACE ---
                 if (s.link || s.episodes) {
-    btn.href = s.link || "#";
-    btn.target = "_blank";
-    btn.className = "btn eps";
-    btn.textContent = "Ver temporada completa";
-} else {
-    btn.className = "btn eps vip-access";
-    btn.href = "https://t.me/movfrezon";   // ← aquí VA tu página VIP / Telegram / Pago
-    btn.target = "_blank";
-    btn.textContent = "🔑 Acceso VIP – Solicitar temporada";
-}
+                    btn.href = s.link || "#";
+                    btn.target = "_blank";
+                    btn.className = "btn eps";
+                    btn.textContent = "Ver temporada completa";
+                } 
+                
+                // --- TEMPORADA SIN ENLACE → VIP ---
+                else {
+                    btn.className = "btn eps vip-access";
+                    btn.href = "https://t.me/movfrezon";  // <<--- AQUÍ TU ENLACE VIP
+                    btn.target = "_blank";
+                    btn.textContent = "🔑 Acceso VIP – Solicitar temporada";
+                }
 
                 row.appendChild(btn);
                 c.appendChild(row);
