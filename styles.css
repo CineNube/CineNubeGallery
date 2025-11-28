@@ -96,3 +96,56 @@ main#catalogo {
   .card-content h2 { font-size:.85rem; }
   .btn.eps { font-size:12px; padding:3px 7px; }
 }
+
+/* ============================
+   🔑 BOTÓN VIP — GOLD PREMIUM
+   ============================ */
+
+.btn.eps.vip-access {
+  background: linear-gradient(135deg, #e4c77f, #b7922f, #f5d98f);
+  color: #1a1200;
+  border: 1px solid rgba(255, 230, 150, 0.8);
+  font-weight: 900;
+  text-shadow: 0 0 5px rgba(255,255,255,0.4);
+  box-shadow: 
+    0 0 12px rgba(255, 210, 100, 0.6),
+    0 0 25px rgba(255, 200, 80, 0.4),
+    inset 0 0 8px rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: .25s;
+}
+
+/* ✨ Efecto de brillo al pasar el mouse */
+.btn.eps.vip-access:hover {
+  filter: brightness(1.25);
+  transform: scale(1.06);
+  box-shadow:
+    0 0 18px rgba(255, 220, 120, 0.9),
+    0 0 30px rgba(255, 200, 80, 0.8),
+    inset 0 0 12px rgba(255, 255, 255, 0.45);
+}
+
+/* 🔥 Efecto de “destello” animado suave */
+.btn.eps.vip-access::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -150%;
+  width: 120%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: skewX(-25deg);
+  transition: 0.5s;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ✨ El destello se mueve al hacer hover */
+.btn.eps.vip-access:hover::after {
+  left: 150%;
+}
+
+/* Para que la animación funcione bien */
+.btn.eps.vip-access {
+  position: relative;
+  overflow: hidden;
+}
