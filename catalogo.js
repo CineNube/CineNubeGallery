@@ -1,4 +1,4 @@
-// catalogo.js — versión mejorada y funcional
+// catalogo.js — versión final optimizada
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 const container = document.getElementById("catalogo");
 const searchInput = document.getElementById("searchInput");
@@ -78,49 +78,48 @@ function render(list) {
         c.appendChild(votes);
 
         // -----------------------------
-// SERIES → TODAS LAS TEMPORADAS (cuadrados VIP)
-// -----------------------------
-if (item.type === "series") {
-    const seasons = Array.isArray(item.season_links) ? item.season_links : [];
-    if (seasons.length > 0) {
-        const seasonRow = document.createElement("div");
-        seasonRow.className = "season-row";
+        // SERIES → TEMPORADAS
+        // -----------------------------
+        if (item.type === "series") {
+            const seasons = Array.isArray(item.season_links) ? item.season_links : [];
+            if (seasons.length > 0) {
+                const seasonRow = document.createElement("div");
+                seasonRow.className = "season-row";
 
-        seasons.forEach((s) => {
-            const seasonDiv = document.createElement("div");
-            seasonDiv.className = "season";
-            seasonDiv.innerHTML = `<span>${s.season}</span>`;
+                seasons.forEach((s) => {
+                    const seasonDiv = document.createElement("div");
+                    seasonDiv.className = "season";
+                    seasonDiv.innerHTML = `<span>${s.season}</span>`;
 
-            // Si no tiene link → agregar mini VIP
-            if (!(s.link || s.episodes)) {
-                const mini = document.createElement("span");
-                mini.className = "mini";
-                mini.textContent = "VIP";
-                seasonDiv.appendChild(mini);
+                    // Si no tiene link → VIP
+                    if (!(s.link || s.episodes)) {
+                        const mini = document.createElement("span");
+                        mini.className = "mini";
+                        mini.textContent = "VIP";
+                        seasonDiv.appendChild(mini);
 
-                // Hacer clic en el cuadrado → abrir link VIP
-                seasonDiv.style.cursor = "pointer";
-                seasonDiv.addEventListener("click", () => {
-                    window.open("https://t.me/movfrezon", "_blank");
+                        seasonDiv.style.cursor = "pointer";
+                        seasonDiv.addEventListener("click", () => {
+                            window.open("https://t.me/movfrezon", "_blank");
+                        });
+                    }
+                    // Si tiene link → clic directo
+                    else if (s.link) {
+                        seasonDiv.style.cursor = "pointer";
+                        seasonDiv.addEventListener("click", () => {
+                            window.open(s.link, "_blank");
+                        });
+                    }
+
+                    seasonRow.appendChild(seasonDiv);
                 });
-            }
-            // Si tiene link, hacer clic directo en el cuadrado
-            else if (s.link) {
-                seasonDiv.style.cursor = "pointer";
-                seasonDiv.addEventListener("click", () => {
-                    window.open(s.link, "_blank");
-                });
-            }
 
-            seasonRow.appendChild(seasonDiv);
-        });
-
-        c.appendChild(seasonRow);
-    }
-}
+                c.appendChild(seasonRow);
+            }
+        }
 
         // -----------------------------
-        // MOVIES → botón normal
+        // PELÍCULAS → BOTÓN VER AHORA
         // -----------------------------
         if (item.type === "movie") {
             const link = extractTeraboxLink(item.terabox);
@@ -148,7 +147,7 @@ function extractTeraboxLink(raw) {
     if (!raw) return "";
     try {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
+        if (Array.isArray(parsed) && parsed[0]?.link) return parsed[0].link;
     } catch (e) {}
     return raw;
 }
@@ -166,5 +165,5 @@ filterButtons.forEach((btn) => {
     });
 });
 
-// iniciar fetchData();
+// iniciar fetchData()
 fetchData();
