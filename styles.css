@@ -19,7 +19,7 @@ body.dark-mode .btn { background:#1a2b6d; color:#fff; }
 body.dark-mode .btn.eps { background:#e0e4ff; color:#000; }
 body.dark-mode .episode-viewed { background:#a2ffb0 !important; color:#003800 !important; }
 
-/* BARRA ROTATIVA */
+/* BANNER ROTATIVO */
 .top-banner {
   width:100%; background:linear-gradient(90deg, #1e2a78, #532f93, #1e2a78);
   color:white; text-align:center; padding:12px 0; font-size:19px; font-weight:600;
@@ -82,18 +82,17 @@ main#catalogo {
 .btn.eps:hover { background:#4f3dcc; box-shadow:0 0 12px rgba(120,70,255,.5); }
 .btn.eps.locked { background:#333; color:#888; cursor:default; box-shadow:none; }
 
-/* TEMPORADAS: cuadraditos compactos con VIP */
+/* TEMPORADAS */
 .season-row {
   margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 columnas max */
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
-
 .season-row .season {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* cuadrado perfecto */
+  padding-top: 100%;
   background: rgba(120,70,255,0.1);
   border: 1px solid rgba(120,70,255,.3);
   border-radius: 6px;
@@ -107,28 +106,13 @@ main#catalogo {
   transition: 0.2s;
   overflow: hidden;
 }
-
-.season-row .season:hover {
-  background: rgba(120,70,255,0.2);
-}
-
-.season-row .season span:first-child {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
+.season-row .season:hover { background: rgba(120,70,255,0.2); }
+.season-row .season span:first-child { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .season-row .season .mini {
   position: absolute;
-  bottom: 2px;
-  right: 2px;
-  font-size: 8px;
-  background: gold;
-  color: black;
-  padding: 1px 2px;
-  border-radius: 2px;
-  font-weight: 700;
+  bottom: 2px; right: 2px;
+  font-size: 8px; background: gold; color: black;
+  padding: 1px 2px; border-radius: 2px; font-weight: 700;
 }
 
 /* FAVORITOS Y EPISODIOS VISTOS */
@@ -142,51 +126,32 @@ main#catalogo {
   .btn.eps { font-size:12px; padding:3px 7px; }
 }
 
-/* ============================
-   🔑 BOTÓN VIP — GOLD PREMIUM
-   ============================ */
-
+/* BOTÓN VIP */
 .btn.eps.vip-access {
   background: linear-gradient(135deg, #e4c77f, #b7922f, #f5d98f);
   color: #1a1200;
   border: 1px solid rgba(255, 230, 150, 0.8);
   font-weight: 900;
   text-shadow: 0 0 5px rgba(255,255,255,0.4);
-  box-shadow: 
-    0 0 12px rgba(255, 210, 100, 0.6),
-    0 0 25px rgba(255, 200, 80, 0.4),
-    inset 0 0 8px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 12px rgba(255,210,100,.6), 0 0 25px rgba(255,200,80,.4), inset 0 0 8px rgba(255,255,255,.3);
   cursor: pointer;
   transition: .25s;
+  position: relative; overflow: hidden;
 }
-
 .btn.eps.vip-access:hover {
   filter: brightness(1.25);
   transform: scale(1.06);
-  box-shadow:
-    0 0 18px rgba(255, 220, 120, 0.9),
-    0 0 30px rgba(255, 200, 80, 0.8),
-    inset 0 0 12px rgba(255, 255, 255, 0.45);
+  box-shadow:0 0 18px rgba(255,220,120,.9),0 0 30px rgba(255,200,80,.8), inset 0 0 12px rgba(255,255,255,.45);
 }
-
 .btn.eps.vip-access::after {
-  content: "";
-  position: absolute;
-  top: 0; left: -150%;
-  width: 120%;
-  height: 100%;
+  content:"";
+  position:absolute;
+  top:0; left:-150%;
+  width:120%; height:100%;
   background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
   transform: skewX(-25deg);
-  transition: 0.5s;
-  opacity: 0.4;
-  pointer-events: none;
+  transition:0.5s;
+  opacity:0.4;
+  pointer-events:none;
 }
-
-.btn.eps.vip-access:hover::after {
-  left: 150%;
-}
-
-.btn.eps.vip-access {
-  position: relative;
-  overflow: hidden;
-}
+.btn.eps.vip-access:hover::after { left:150%; }
