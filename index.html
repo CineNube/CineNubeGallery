@@ -11,16 +11,17 @@
 <!-- Iconos Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Scripts optimizados -->
+<!-- Script del catálogo -->
 <script src="catalogo.js" defer></script>
-<script src="auto_publish.js" defer></script>
 
 <style>
+/* HEADER */
 .header-row { display: flex; align-items: center; justify-content: center; gap: 20px; position: relative; width: 100%; max-width: 1200px; }
 .social-header { position: absolute; right: 0; display: flex; gap: 12px; }
 .social-header a { color: #fff; font-size: 26px; text-decoration: none; transition: 0.2s; }
 .social-header a:hover { color: #e50914; }
 
+/* BANNER ROTATIVO */
 .top-banner { width: 100%; background: #000; color: white; text-align: center; padding: 12px 0; font-size: 18px; font-weight: 600; position: fixed; top: 0; left: 0; z-index: 9999; }
 .top-banner span { display: inline-block; transition: opacity 0.5s ease; }
 .top-banner .fade { opacity: 0; }
@@ -29,6 +30,7 @@
 </head>
 <body>
 
+<!-- BANNER ROTATIVO -->
 <div class="top-banner">
   <span id="rotating-text"></span>
 </div>
@@ -44,6 +46,7 @@
     </div>
   </div>
 
+  <!-- BUSCADOR + FILTROS -->
   <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
     <input id="searchInput" type="text" placeholder="Buscar..." />
     <div id="filterButtons">
@@ -54,6 +57,7 @@
   </div>
 </header>
 
+<!-- CATÁLOGO DINÁMICO -->
 <main id="catalogo" role="main">
 
   <!-- EJEMPLO DE SERIE CON TEMPORADAS -->
@@ -66,7 +70,7 @@
       </p>
       <div class="meta">⭐ 8.4 | 📅 2012</div>
 
-      <!-- FILA DE TEMPORADAS -->
+      <!-- GRID DE TEMPORADAS -->
       <div class="season-row">
         <div class="season"><span>1</span><span class="mini">VIP</span></div>
         <div class="season"><span>2</span><span class="mini">VIP</span></div>
@@ -82,13 +86,14 @@
         <div class="season"><span>12</span><span class="mini">VIP</span></div>
         <div class="season"><span>13</span><span class="mini">VIP</span></div>
       </div>
-      <!-- FIN FILA DE TEMPORADAS -->
+      <!-- FIN GRID DE TEMPORADAS -->
 
     </div>
   </div>
 
 </main>
 
+<!-- BANNER ROTATIVO SCRIPT -->
 <script>
 const messages = [
   "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
@@ -120,6 +125,7 @@ function updateText() {
         index = (index + 1) % messages.length;
     }, 500);
 }
+
 textElement.textContent = messages[0];
 textElement.classList.add("show");
 setInterval(updateText, 3000);
