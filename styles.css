@@ -85,17 +85,17 @@ main#catalogo {
 /* TEMPORADAS: cuadraditos compactos con VIP */
 .season-row {
   margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px; /* espacio entre cuadrados */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columnas max */
+  gap: 6px;
 }
 
 .season-row .season {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 100%;
+  padding-top: 100%; /* cuadrado perfecto */
   background: rgba(120,70,255,0.1);
-  border: 1px solid rgba(120,70,255,0.3);
+  border: 1px solid rgba(120,70,255,.3);
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -105,10 +105,18 @@ main#catalogo {
   color: #bbaaff;
   cursor: pointer;
   transition: 0.2s;
+  overflow: hidden;
 }
 
 .season-row .season:hover {
   background: rgba(120,70,255,0.2);
+}
+
+.season-row .season span:first-child {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .season-row .season .mini {
