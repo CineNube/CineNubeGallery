@@ -78,40 +78,46 @@ function render(list) {
         c.appendChild(votes);
 
         // -----------------------------
-        // SERIES → TODAS LAS TEMPORADAS
-        // -----------------------------
-        if (item.type === "series") {
-            const seasons = Array.isArray(item.season_links) ? item.season_links : [];
-            seasons.forEach((s) => {
-                const row = document.createElement("div");
-                row.className = "season-row";
+// SERIES → TODAS LAS TEMPORADAS (cuadrados VIP)
+// -----------------------------
+if (item.type === "series") {
+    const seasons = Array.isArray(item.season_links) ? item.season_links : [];
+    if (seasons.length > 0) {
+        const seasonRow = document.createElement("div");
+        seasonRow.className = "season-row";
 
-                const label = document.createElement("span");
-                label.textContent = "T" + s.season + ": ";
-                row.appendChild(label);
+        seasons.forEach((s) => {
+            const seasonDiv = document.createElement("div");
+            seasonDiv.className = "season";
+            seasonDiv.innerHTML = `<span>${s.season}</span>`;
 
-                const btn = document.createElement("a");
+            // Si no tiene link → agregar mini VIP
+            if (!(s.link || s.episodes)) {
+                const mini = document.createElement("span");
+                mini.className = "mini";
+                mini.textContent = "VIP";
+                seasonDiv.appendChild(mini);
 
-                // --- TEMPORADA CON ENLACE ---
-                if (s.link || s.episodes) {
-                    btn.href = s.link || "#";
-                    btn.target = "_blank";
-                    btn.className = "btn eps";
-                    btn.textContent = "Ver temporada completa";
-                } 
-                
-                // --- TEMPORADA SIN ENLACE → VIP ---
-                else {
-                    btn.className = "btn eps vip-access";
-                    btn.href = "https://t.me/movfrezon";  // <<--- AQUÍ TU ENLACE VIP
-                    btn.target = "_blank";
-                    btn.textContent = "🔑 Acceso VIP – Solicitar temporada";
-                }
+                // Hacer clic en el cuadrado → abrir link VIP
+                seasonDiv.style.cursor = "pointer";
+                seasonDiv.addEventListener("click", () => {
+                    window.open("https://t.me/movfrezon", "_blank");
+                });
+            }
+            // Si tiene link, hacer clic directo en el cuadrado
+            else if (s.link) {
+                seasonDiv.style.cursor = "pointer";
+                seasonDiv.addEventListener("click", () => {
+                    window.open(s.link, "_blank");
+                });
+            }
 
-                row.appendChild(btn);
-                c.appendChild(row);
-            });
-        }
+            seasonRow.appendChild(seasonDiv);
+        });
+
+        c.appendChild(seasonRow);
+    }
+}
 
         // -----------------------------
         // MOVIES → botón normal
