@@ -11,20 +11,12 @@
 <!-- Iconos Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Scripts optimizados -->
+<!-- Scripts -->
 <script src="catalogo.js" defer></script>
 
-<style>
-.header-row { display: flex; align-items: center; justify-content: center; gap: 20px; position: relative; width: 100%; max-width: 1200px; }
-.social-header { position: absolute; right: 0; display: flex; gap: 12px; }
-.social-header a { color: #fff; font-size: 26px; text-decoration: none; transition: 0.2s; }
-.social-header a:hover { color: #e50914; }
-
-.top-banner { width: 100%; background: #000; color: white; text-align: center; padding: 12px 0; font-size: 18px; font-weight: 600; position: fixed; top: 0; left: 0; z-index: 9999; }
-.top-banner span { display: inline-block; transition: opacity 0.5s ease; }
-.top-banner .fade { opacity: 0; }
-.top-banner .show { opacity: 1; }
-</style>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e2a78">
 </head>
 <body>
 
@@ -53,9 +45,7 @@
   </div>
 </header>
 
-<main id="catalogo" role="main">
-  <div class="empty">Cargando contenido...</div>
-</main>
+<main id="catalogo" role="main"></main>
 
 <script>
 const messages = [
@@ -71,26 +61,19 @@ let index = 0;
 const textElement = document.getElementById("rotating-text");
 
 function updateText() {
-    textElement.classList.remove("show");
-    textElement.classList.add("fade");
-    setTimeout(() => {
-        const msg = messages[index];
-        if (msg.includes("https://")) {
-            const url = msg.match(/https:\/\/\S+/)[0];
-            textElement.innerHTML = `<a href="${url}" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else if (msg.includes("@")) {
-            textElement.innerHTML = `<a href="https://t.me/movfrezon" target="_blank" style="color:#4da6ff; text-decoration:underline;">${msg}</a>`;
-        } else {
-            textElement.textContent = msg;
-        }
-        textElement.classList.remove("fade");
-        textElement.classList.add("show");
-        index = (index + 1) % messages.length;
-    }, 500);
+    textElement.textContent = messages[index];
+    index = (index + 1) % messages.length;
 }
 textElement.textContent = messages[0];
-textElement.classList.add("show");
 setInterval(updateText, 3000);
+
+// -----------------------------
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log('Service Worker registrado.'))
+    .catch(console.error);
+}
 </script>
 
 </body>
