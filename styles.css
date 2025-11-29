@@ -82,9 +82,46 @@ main#catalogo {
 .btn.eps:hover { background:#4f3dcc; box-shadow:0 0 12px rgba(120,70,255,.5); }
 .btn.eps.locked { background:#333; color:#888; cursor:default; box-shadow:none; }
 
-/* TEMPORADAS */
-.season-row { margin-top:8px; font-size:14px; display:flex; align-items:center; flex-wrap:wrap; }
-.season-row span { font-weight:bold; margin-right:6px; color:#bbaaff; }
+/* TEMPORADAS: cuadraditos compactos con VIP */
+.season-row {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px; /* espacio entre cuadrados */
+}
+
+.season-row .season {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: rgba(120,70,255,0.1);
+  border: 1px solid rgba(120,70,255,0.3);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: #bbaaff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.season-row .season:hover {
+  background: rgba(120,70,255,0.2);
+}
+
+.season-row .season .mini {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 8px;
+  background: gold;
+  color: black;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: 700;
+}
 
 /* FAVORITOS Y EPISODIOS VISTOS */
 .episode-viewed { background:#34ff9a !important; color:#003300 !important; border:none !important; box-shadow:0 0 10px rgba(50,255,150,.6) !important; }
@@ -115,7 +152,6 @@ main#catalogo {
   transition: .25s;
 }
 
-/* ✨ Efecto de brillo al pasar el mouse */
 .btn.eps.vip-access:hover {
   filter: brightness(1.25);
   transform: scale(1.06);
@@ -125,7 +161,6 @@ main#catalogo {
     inset 0 0 12px rgba(255, 255, 255, 0.45);
 }
 
-/* 🔥 Efecto de “destello” animado suave */
 .btn.eps.vip-access::after {
   content: "";
   position: absolute;
@@ -139,12 +174,10 @@ main#catalogo {
   pointer-events: none;
 }
 
-/* ✨ El destello se mueve al hacer hover */
 .btn.eps.vip-access:hover::after {
   left: 150%;
 }
 
-/* Para que la animación funcione bien */
 .btn.eps.vip-access {
   position: relative;
   overflow: hidden;
