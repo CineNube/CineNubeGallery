@@ -1,131 +1,255 @@
-// -------------------------
-// FUNCIONES DE UTILIDAD
-// -------------------------
-function sanitize(text) {
-    return String(text || "").trim();
-}
+// catalogo.js — versión YTS-style manteniendo tu estructura original
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
+const container = document.getElementById("catalogo");
+const searchInput = document.getElementById("searchInput");
+const filterButtons = document.querySelectorAll("#filterButtons button");
+let items = [];
+let activeFilter = "all";
 
+// safe JSON parse for fields that sometimes are strings
 function safeParseSeasonLinks(raw) {
     if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
     try {
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
+        if (Array.isArray(parsed)) return parsed;
     } catch (e) {
-        return [];
+        // fallback: ignore invalid JSON
     }
+    return [];
 }
 
-// -------------------------
-// GENERAR TARJETAS DEL CATÁLOGO
-// -------------------------
-function generateCard(item) {
-    const type = sanitize(item.type).toLowerCase();
-    const title = sanitize(item.title);
-    const rating = sanitize(item.rating);
-    const year = sanitize(item.year);
-    const genre = sanitize(item.genre);
-    const poster = sanitize(item.poster);
-
-    let html = `
-<div class="yts-card">
-    <div class="yts-poster">
-        <img src="${poster}" alt="${title}">
-        <div class="yts-overlay"><i class="fas fa-play"></i></div>
-    </div>
-
-    <div class="yts-info">
-        <h3>${title}</h3>
-        <div class="yts-meta">
-            <span>${year}</span>
-            <span class="yts-genre">${genre}</span>
-        </div>
-        <div class="yts-rating">${rating}</div>
-    </div>
-`;
-
-    // -------------------------
-    // SERIES → BLOQUE DE TEMPORADAS
-    // -------------------------
-    if (type === "series") {
-        const seasonsRaw = item.season_links || item.seasonLinks || "";
-        const seasons = safeParseSeasonLinks(seasonsRaw);
-
-        html += `<div class="season-container">`;
-
-        seasons.forEach(season => {
-            const seasonNum = season.season;
-            const episodes = season.episodes || [];
-
-            // Tiene episodios → ES GRATIS
-            const isFree = episodes.length > 0;
-
-            // 🔥 AQUI ESTA LA CORRECCIÓN QUE PEDISTE 🔥
-            if (isFree) {
-                html += `
-                <button class="season-btn free" data-season="${seasonNum}" data-id="${item.id}">
-                    ${seasonNum}
-                </button>`;
-            } else {
-                html += `
-                <button class="season-btn vip" disabled>
-                    VIP
-                </button>`;
-            }
-        });
-
-        html += `</div>`;
-    }
-
-    html += `</div>`;
-    return html;
-}
-
-// -------------------------
-// CARGAR LA DATA
-// -------------------------
-let globalData = [];
-
-function renderCatalog(data) {
-    const container = document.getElementById("catalogo");
-    container.innerHTML = data.map(generateCard).join("");
-
-    // EVENTOS DE TEMPORADA (solo si tienen link)
-    document.querySelectorAll(".season-btn.free").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const season = btn.dataset.season;
-            const id = btn.dataset.id;
-
-            const item = globalData.find(i => i.id == id);
-            if (!item) return;
-
-            const seasons = safeParseSeasonLinks(item.season_links || item.seasonLinks || "");
-            const s = seasons.find(s => s.season == season);
-            if (!s) return;
-
-            const firstEp = (s.episodes && s.episodes[0]) ? s.episodes[0].link : null;
-
-            if (firstEp) {
-                window.location.href = firstEp;
-            }
-        });
-    });
-}
-
+// -----------------------------
+// FETCH DATA
+// -----------------------------
 async function fetchData() {
     try {
-        const url = "https://script.google.com/macros/s/AKfycbyoBZS8RETPSdWL3k2Fi7j0bGSR9svVn96E55qRvErCrmdNVzXj8gj1nUpDIFA3yIN-/exec";
+        const res = await fetch(SHEET_JSON_URL);
+        if (!res.ok) throw new Error("Error en la respuesta");
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("JSON inválido");
 
-        const res = await fetch(url);
-        const json = await res.json();
-
-        globalData = json;
-        renderCatalog(json);
-
+        // ordenar por fecha (si viene published_ts)
+        items = data.sort((a, b) => ((b.published_ts || 0) - (a.published_ts || 0)));
+        render(items);
     } catch (e) {
-        console.error("Error cargando catálogo:", e);
+        console.error(e);
+        if (container) container.innerHTML = `<div class="empty">Error al cargar los datos</div>`;
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    fetchData();
+// -----------------------------
+// EXTRAER LINK TERABOX (mantiene compatibilidad)
+function extractTeraboxLink(raw) {
+    if (!raw) return "";
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
+    } catch (e) {}
+    const match = String(raw || "").match(/https?:\/\/[^\s"]+/);
+    return match ? match[0] : "";
+}
+
+// helper short title
+function shortTitle(title) {
+    if (!title) return "";
+    return title.length > 50 ? title.substring(0, 47).trim() + "..." : title;
+}
+
+// -----------------------------
+// RENDER PRINCIPAL
+function render(list) {
+    if (!container) return;
+    const q = (searchInput && (searchInput.value || "")).toLowerCase().trim();
+    const filtered = list.filter((i) => {
+        if (activeFilter !== "all" && i.type !== activeFilter) return false;
+        if (q && (!i.title || !i.title.toLowerCase().includes(q))) return false;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty">No hay resultados</div>`;
+        return;
+    }
+
+    container.innerHTML = "";
+    const frag = document.createDocumentFragment();
+
+    filtered.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        // movie-card wrapper
+        const mc = document.createElement("div");
+        mc.className = "movie-card";
+
+        // poster wrap
+        const pw = document.createElement("div");
+        pw.className = "poster-wrap";
+
+        const img = document.createElement("img");
+        img.className = "poster";
+        img.alt = item.title || "Poster";
+        img.src = item.poster || item.portada || "https://via.placeholder.com/600x900?text=No+Image";
+
+        // play overlay
+        const play = document.createElement("div");
+        play.className = "play-overlay";
+        play.innerHTML = '<i class="fa-solid fa-play"></i>';
+
+        // subtle fade
+        const fade = document.createElement("div");
+        fade.className = "poster-bottom-fade";
+
+        pw.appendChild(img);
+        pw.appendChild(fade);
+        pw.appendChild(play);
+        mc.appendChild(pw);
+
+        // info block
+        const info = document.createElement("div");
+        info.className = "card-info";
+
+        const titleRow = document.createElement("div");
+        titleRow.className = "title-row";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "movie-title";
+        titleEl.textContent = shortTitle(item.title || item.titulo || "");
+
+        const ratingEl = document.createElement("div");
+        ratingEl.className = "rating";
+        ratingEl.textContent = item.rating || item.vote_average || "N/A";
+
+        titleRow.appendChild(titleEl);
+        titleRow.appendChild(ratingEl);
+
+        const metaRow = document.createElement("div");
+        metaRow.className = "movie-meta";
+        const year = item.year || item.año || "";
+        const genres = item.generos || item.genero || "";
+        metaRow.textContent = `${year}${genres ? " • " + genres : ""}`;
+
+        info.appendChild(titleRow);
+        info.appendChild(metaRow);
+        mc.appendChild(info);
+
+        // Seasons handling for series (keeps your previous behaviour but compact)
+        if (String(item.type).toLowerCase() === "series") {
+            const seasonsRaw = item.season_links || item.seasonLinks || "";
+            const seasons = safeParseSeasonLinks(seasonsRaw);
+            if (seasons.length > 0) {
+                const seasonRow = document.createElement("div");
+                seasonRow.className = "season-row";
+
+                seasons.forEach((s) => {
+                    const sd = document.createElement("div");
+                    sd.className = "season";
+
+                    // get season number in a safe way
+                    const seasonNumber = s.season ?? s.season_number ?? s.seasonNumber ?? "";
+                    // determine if this season has episodes or a link
+                    const hasEpisodes = Array.isArray(s.episodes) && s.episodes.length > 0;
+                    const hasLink = !!(s.link && String(s.link).indexOf("http") === 0);
+
+                    // If season has episodes or direct link -> show the number (free)
+                    if (hasEpisodes || hasLink) {
+                        sd.textContent = String(seasonNumber);
+                        sd.classList.add("season-free");
+                        // click behaviour
+                        sd.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            // if episodes array -> open first episode
+                            if (hasEpisodes) {
+                                const link = s.episodes[0].link || s.episodes[0].dlink || "";
+                                if (link) window.open(link, "_blank");
+                                return;
+                            }
+                            // else if season has a link -> open it
+                            if (hasLink) {
+                                window.open(s.link, "_blank");
+                                return;
+                            }
+                        });
+                    } else {
+                        // No link/episodes -> VIP
+                        sd.textContent = String(seasonNumber) || "T";
+                        sd.classList.add("season-vip");
+                        // append small badge/candado inside (visual)
+                        const badge = document.createElement("span");
+                        badge.className = "badge";
+                        badge.textContent = "🔒";
+                        sd.appendChild(badge);
+
+                        // clicking VIP opens VIP contact
+                        sd.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            window.open("https://t.me/movfrezon", "_blank");
+                        });
+                    }
+
+                    seasonRow.appendChild(sd);
+                });
+
+                mc.appendChild(seasonRow);
+            }
+        }
+
+        // Poster click behaviour:
+        // - Movies: open terabox (extractTeraboxLink)
+        // - Series: try to open first episode link or season.link or VIP
+        if (String(item.type).toLowerCase() === "movie") {
+            const movieLink = extractTeraboxLink(item.terabox || item.terabox_link || item.enlace || item.link);
+            if (movieLink) {
+                pw.style.cursor = "pointer";
+                pw.addEventListener("click", () => window.open(movieLink, "_blank"));
+            } else {
+                pw.style.cursor = "pointer";
+                pw.addEventListener("click", () => window.open("https://t.me/movfrezon", "_blank"));
+            }
+        } else if (String(item.type).toLowerCase() === "series") {
+            pw.style.cursor = "pointer";
+            pw.addEventListener("click", () => {
+                const seasonsRaw = item.season_links || item.seasonLinks || "";
+                const seasons = safeParseSeasonLinks(seasonsRaw);
+                // try to find first episode link
+                for (let s of seasons) {
+                    if (Array.isArray(s.episodes) && s.episodes.length) {
+                        const link = s.episodes[0].link || s.episodes[0].dlink || "";
+                        if (link) { window.open(link, "_blank"); return; }
+                    }
+                    if (s.link) { window.open(s.link, "_blank"); return; }
+                }
+                // fallback VIP
+                window.open("https://t.me/movfrezon", "_blank");
+            });
+        } else {
+            // fallback generic: try terabox in any case
+            const anyLink = extractTeraboxLink(item.terabox || item.link || item.enlace);
+            if (anyLink) {
+                pw.style.cursor = "pointer";
+                pw.addEventListener("click", () => window.open(anyLink, "_blank"));
+            }
+        }
+
+        card.appendChild(mc);
+        frag.appendChild(card);
+    });
+
+    container.appendChild(frag);
+}
+
+// -----------------------------
+// FILTROS Y BUSCADOR
+if (searchInput) searchInput.addEventListener("input", () => render(items));
+if (filterButtons && filterButtons.length) filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        filterButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.type || "all";
+        render(items);
+    });
 });
+
+// iniciar fetchData()
+fetchData();
