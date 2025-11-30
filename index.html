@@ -28,10 +28,10 @@
   <div class="header-row">
     <h1>CineNube</h1>
     <div class="social-header">
-      <a href="https://facebook.com/TU_USUARIO" target="_blank"><i class="fab fa-facebook"></i></a>
-      <a href="https://instagram.com/cine_nube" target="_blank"><i class="fab fa-instagram"></i></a>
-      <a href="https://t.me/estrenos_online_25" target="_blank"><i class="fab fa-telegram"></i></a>
-      <a href="https://www.tiktok.com/@cine_nube" target="_blank"><i class="fab fa-tiktok"></i></a>
+      <a href="https://facebook.com/TU_USUARIO" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+      <a href="https://instagram.com/cine_nube" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="https://t.me/estrenos_online_25" target="_blank" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+      <a href="https://www.tiktok.com/@cine_nube" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
     </div>
   </div>
 
@@ -45,7 +45,9 @@
   </div>
 </header>
 
-<main id="catalogo" role="main"></main>
+<main id="catalogo" role="main">
+  <div class="empty">Cargando contenido...</div>
+</main>
 
 <script>
 const messages = [
@@ -67,7 +69,6 @@ function updateText() {
 textElement.textContent = messages[0];
 setInterval(updateText, 3000);
 
-// -----------------------------
 // Registrar Service Worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
