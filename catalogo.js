@@ -1,11 +1,23 @@
-// catalogo.js — versión final optimizada (diseño YTS-compacto)
-// URL del JSON
+// catalogo.js — versión YTS-style manteniendo tu estructura original
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 const container = document.getElementById("catalogo");
 const searchInput = document.getElementById("searchInput");
 const filterButtons = document.querySelectorAll("#filterButtons button");
 let items = [];
 let activeFilter = "all";
+
+// safe JSON parse for fields that sometimes are strings
+function safeParseSeasonLinks(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+        // fallback: try to detect simple "season:link" patterns? -> ignore
+    }
+    return [];
+}
 
 // -----------------------------
 // FETCH DATA
@@ -17,18 +29,17 @@ async function fetchData() {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("JSON inválido");
 
-        // ordenar por fecha
-        items = data.sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
+        // ordenar por fecha (si viene published_ts)
+        items = data.sort((a, b) => ( (b.published_ts || 0) - (a.published_ts || 0) ));
         render(items);
     } catch (e) {
         console.error(e);
-        container.innerHTML = `<div class="empty">Error al cargar los datos</div>`;
+        if (container) container.innerHTML = `<div class="empty">Error al cargar los datos</div>`;
     }
 }
 
 // -----------------------------
-// Helpers
-// -----------------------------
+// EXTRAER LINK TERABOX (mantiene compatibilidad)
 function extractTeraboxLink(raw) {
     if (!raw) return "";
     try {
@@ -39,15 +50,16 @@ function extractTeraboxLink(raw) {
     return match ? match[0] : "";
 }
 
+// helper short title
 function shortTitle(title) {
     if (!title) return "";
-    // quitar artículos largos (opcional) y recortar
-    return title.length > 40 ? title.substring(0, 37).trim() + "..." : title;
+    return title.length > 50 ? title.substring(0, 47).trim() + "..." : title;
 }
 
 // -----------------------------
-// RENDER PRINCIPAL (YTS style)
+// RENDER PRINCIPAL
 function render(list) {
+    if (!container) return;
     const q = (searchInput.value || "").toLowerCase().trim();
     const filtered = list.filter((i) => {
         if (activeFilter !== "all" && i.type !== activeFilter) return false;
@@ -67,29 +79,34 @@ function render(list) {
         const card = document.createElement("article");
         card.className = "card";
 
-        // Movie-card wrapper
+        // movie-card wrapper
         const mc = document.createElement("div");
         mc.className = "movie-card";
 
-        // Poster wrap
+        // poster wrap
         const pw = document.createElement("div");
         pw.className = "poster-wrap";
 
         const img = document.createElement("img");
         img.className = "poster";
         img.alt = item.title || "Poster";
-        img.src = item.poster || "https://via.placeholder.com/600x900?text=No+Image";
+        img.src = item.poster || item.portada || "https://via.placeholder.com/600x900?text=No+Image";
 
-        // Play overlay
+        // play overlay
         const play = document.createElement("div");
         play.className = "play-overlay";
         play.innerHTML = `<i class="fa-solid fa-play"></i>`;
 
+        // subtle fade
+        const fade = document.createElement("div");
+        fade.className = "poster-bottom-fade";
+
         pw.appendChild(img);
+        pw.appendChild(fade);
         pw.appendChild(play);
         mc.appendChild(pw);
 
-        // Info block
+        // info block
         const info = document.createElement("div");
         info.className = "card-info";
 
@@ -98,91 +115,103 @@ function render(list) {
 
         const titleEl = document.createElement("div");
         titleEl.className = "movie-title";
-        titleEl.textContent = shortTitle(item.title || "");
+        titleEl.textContent = shortTitle(item.title || item.titulo || "");
 
         const ratingEl = document.createElement("div");
         ratingEl.className = "rating";
-        ratingEl.textContent = item.rating ? String(item.rating) : "N/A";
+        ratingEl.textContent = item.rating || item.vote_average || item.vote_average || "N/A";
 
         titleRow.appendChild(titleEl);
         titleRow.appendChild(ratingEl);
 
         const metaRow = document.createElement("div");
         metaRow.className = "movie-meta";
-        const year = item.year || "";
-        const genres = item.generos || "";
+        const year = item.year || item.año || item.year || "";
+        const genres = item.generos || item.genero || "";
         metaRow.textContent = `${year}${genres ? " • " + genres : ""}`;
 
         info.appendChild(titleRow);
         info.appendChild(metaRow);
 
-        // Append info to card
         mc.appendChild(info);
 
-        // Keep season-row if series (compact)
-        if (item.type === "series") {
-            const seasons = Array.isArray(item.season_links) ? item.season_links : [];
+        // Seasons handling for series (keeps your previous behaviour but compact)
+        if (String(item.type).toLowerCase() === "series") {
+            const seasonsRaw = item.season_links || item.seasonLinks || "";
+            const seasons = safeParseSeasonLinks(seasonsRaw);
             if (seasons.length > 0) {
                 const seasonRow = document.createElement("div");
                 seasonRow.className = "season-row";
+
                 seasons.forEach((s) => {
                     const sd = document.createElement("div");
                     sd.className = "season";
-                    sd.textContent = s.season;
-                    // click behavior: link if present, otherwise vip
-                    if (s.link || Array.isArray(s.episodes)) {
-                        sd.addEventListener("click", () => {
-                            if (Array.isArray(s.episodes) && s.episodes.length) {
-                                window.open(s.episodes[0].link, "_blank");
-                            } else if (s.link) {
-                                window.open(s.link, "_blank");
-                            }
+                    sd.textContent = s.season ?? s.season_number ?? s.seasonNumber ?? "T";
+
+                    // click behaviour: if episodes present -> open first episode; if link -> open link; else VIP
+                    if (Array.isArray(s.episodes) && s.episodes.length) {
+                        sd.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            const link = s.episodes[0].link || s.episodes[0].dlink || "";
+                            if (link) window.open(link, "_blank");
+                        });
+                    } else if (s.link) {
+                        sd.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            window.open(s.link, "_blank");
                         });
                     } else {
-                        sd.addEventListener("click", () => {
+                        sd.addEventListener("click", (e) => {
+                            e.stopPropagation();
                             window.open("https://t.me/movfrezon", "_blank");
                         });
-                        const mini = document.createElement("span");
-                        mini.className = "badge";
-                        mini.textContent = "VIP";
-                        sd.appendChild(mini);
+                        const badge = document.createElement("span");
+                        badge.className = "badge";
+                        badge.textContent = "VIP";
+                        sd.appendChild(badge);
                     }
                     seasonRow.appendChild(sd);
                 });
+
                 mc.appendChild(seasonRow);
-            }
-        } else {
-            // For movies keep an accessible small link area (not intrusive)
-            const movieLink = extractTeraboxLink(item.terabox);
-            if (movieLink) {
-                // clicking poster opens movie link
-                pw.style.cursor = "pointer";
-                pw.addEventListener("click", () => window.open(movieLink, "_blank"));
-            } else {
-                // fallback: if no link, poster opens telegram vip
-                pw.style.cursor = "pointer";
-                pw.addEventListener("click", () => window.open("https://t.me/movfrezon", "_blank"));
             }
         }
 
-        // Also allow clicking poster for series -> open last season or VIP
-        if (item.type === "series") {
+        // Poster click behaviour:
+        // - Movies: open terabox (extractTeraboxLink)
+        // - Series: try to open first episode link or season.link or VIP
+        if (String(item.type).toLowerCase() === "movie") {
+            const movieLink = extractTeraboxLink(item.terabox || item.terabox_link || item.enlace || item.link);
+            if (movieLink) {
+                pw.style.cursor = "pointer";
+                pw.addEventListener("click", () => window.open(movieLink, "_blank"));
+            } else {
+                pw.style.cursor = "pointer";
+                pw.addEventListener("click", () => window.open("https://t.me/movfrezon", "_blank"));
+            }
+        } else if (String(item.type).toLowerCase() === "series") {
             pw.style.cursor = "pointer";
-            const seasons = Array.isArray(item.season_links) ? item.season_links : [];
             pw.addEventListener("click", () => {
-                if (seasons.length) {
-                    // prefer first episode link if exists, else season link, else VIP
-                    let found = null;
-                    for (let s of seasons) {
-                        if (Array.isArray(s.episodes) && s.episodes.length) { found = s.episodes[0].link; break; }
-                        if (s.link) { found = s.link; /* continue searching for episodes */ }
+                const seasonsRaw = item.season_links || item.seasonLinks || "";
+                const seasons = safeParseSeasonLinks(seasonsRaw);
+                // try to find first episode link
+                for (let s of seasons) {
+                    if (Array.isArray(s.episodes) && s.episodes.length) {
+                        const link = s.episodes[0].link || s.episodes[0].dlink || "";
+                        if (link) { window.open(link, "_blank"); return; }
                     }
-                    if (found) window.open(found, "_blank");
-                    else window.open("https://t.me/movfrezon", "_blank");
-                } else {
-                    window.open("https://t.me/movfrezon", "_blank");
+                    if (s.link) { window.open(s.link, "_blank"); return; }
                 }
+                // fallback VIP
+                window.open("https://t.me/movfrezon", "_blank");
             });
+        } else {
+            // fallback generic: try terabox in any case
+            const anyLink = extractTeraboxLink(item.terabox || item.link || item.enlace);
+            if (anyLink) {
+                pw.style.cursor = "pointer";
+                pw.addEventListener("click", () => window.open(anyLink, "_blank"));
+            }
         }
 
         card.appendChild(mc);
@@ -194,8 +223,8 @@ function render(list) {
 
 // -----------------------------
 // FILTROS Y BUSCADOR
-searchInput.addEventListener("input", () => render(items));
-filterButtons.forEach((btn) => {
+if (searchInput) searchInput.addEventListener("input", () => render(items));
+if (filterButtons && filterButtons.length) filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
         filterButtons.forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
@@ -204,5 +233,5 @@ filterButtons.forEach((btn) => {
     });
 });
 
-// iniciar fetchData();
+// iniciar fetchData()
 fetchData();
