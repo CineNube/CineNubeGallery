@@ -16,7 +16,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1e2a78">
+<meta name="theme-color" content="#0b6f4a">
 </head>
 <body>
 
@@ -35,7 +35,7 @@
     </div>
   </div>
 
-  <div style="width:100%; max-width:1200px; display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px;">
+  <div class="search-row" style="width:100%; max-width:1200px; margin:10px auto 0; display:flex; gap:12px; align-items:center; justify-content:center;">
     <input id="searchInput" type="text" placeholder="Buscar..." />
     <div id="filterButtons">
       <button data-type="all" class="active">Todo</button>
@@ -46,10 +46,12 @@
 </header>
 
 <main id="catalogo" role="main">
+  <!-- contenido generado dinámicamente -->
   <div class="empty">Cargando contenido...</div>
 </main>
 
 <script>
+/* Rotating top banner (mismo texto que tenías) */
 const messages = [
   "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
   "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
@@ -61,7 +63,6 @@ const messages = [
 ];
 let index = 0;
 const textElement = document.getElementById("rotating-text");
-
 function updateText() {
     textElement.textContent = messages[index];
     index = (index + 1) % messages.length;
@@ -69,7 +70,7 @@ function updateText() {
 textElement.textContent = messages[0];
 setInterval(updateText, 3000);
 
-// Registrar Service Worker
+/* Registrar Service Worker (si existe) */
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
     .then(() => console.log('Service Worker registrado.'))
