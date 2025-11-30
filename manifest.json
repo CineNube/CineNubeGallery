@@ -2,11 +2,13 @@
   "name": "CineNube",
   "short_name": "CineNube",
   "description": "Tu espacio de cine y series online",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#1e2a78",
   "theme_color": "#1e2a78",
   "orientation": "portrait",
+
   "icons": [
     {
       "src": "icons/icon-72x72.png",
@@ -46,7 +48,8 @@
     {
       "src": "icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
