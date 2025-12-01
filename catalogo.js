@@ -134,7 +134,7 @@ function render(list) {
         info.appendChild(metaRow);
         mc.appendChild(info);
 
-        // Seasons handling for series (keeps your previous behaviour but compact)
+        // Seasons handling for series (compact + VIP badge inside square)
         if (String(item.type).toLowerCase() === "series") {
             const seasonsRaw = item.season_links || item.seasonLinks || "";
             const seasons = safeParseSeasonLinks(seasonsRaw);
@@ -152,9 +152,14 @@ function render(list) {
                     const hasEpisodes = Array.isArray(s.episodes) && s.episodes.length > 0;
                     const hasLink = !!(s.link && String(s.link).indexOf("http") === 0);
 
+                    // Put number as main content
+                    const numSpan = document.createElement("span");
+                    numSpan.className = "season-number";
+                    numSpan.textContent = String(seasonNumber) || "T";
+                    sd.appendChild(numSpan);
+
                     // If season has episodes or direct link -> show the number (free)
                     if (hasEpisodes || hasLink) {
-                        sd.textContent = String(seasonNumber);
                         sd.classList.add("season-free");
                         // click behaviour
                         sd.addEventListener("click", (e) => {
@@ -173,12 +178,11 @@ function render(list) {
                         });
                     } else {
                         // No link/episodes -> VIP
-                        sd.textContent = String(seasonNumber) || "T";
                         sd.classList.add("season-vip");
-                        // append small badge/candado inside (visual)
+                        // append small badge "VIP" inside (visual)
                         const badge = document.createElement("span");
                         badge.className = "badge";
-                        badge.textContent = "🔒";
+                        badge.textContent = "VIP";
                         sd.appendChild(badge);
 
                         // clicking VIP opens VIP contact
