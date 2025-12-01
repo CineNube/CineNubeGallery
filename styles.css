@@ -225,3 +225,85 @@ main#catalogo {
   main#catalogo { gap:10px; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); margin-top:80px; }
   .movie-card:hover { transform:none; box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
 }
+
+/* ============================
+   FIX FINAL VIP + HOVER YTS
+   ============================ */
+
+/* --- HOVER VERDE ESTILO YTS --- */
+.card {
+    position: relative;
+    transition: 0.25s ease;
+    border-radius: 18px;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 22px rgba(0, 255, 140, 0.45);
+    border: 2px solid rgba(0, 255, 140, 0.8);
+}
+
+/* --- TEMPORADAS: NUEVO CUADRO --- */
+.season-row .season {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    border-radius: 10px;
+    background: rgba(20, 25, 45, 0.9);
+    border: 1px solid rgba(0,255,110,0.2);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    overflow: hidden;
+    transition: 0.25s ease;
+}
+
+/* Hover estilo YTS */
+.season-row .season:hover {
+    background: rgba(0,255,110,0.12);
+    border-color: rgba(0,255,150,0.55);
+    box-shadow: 0 0 15px rgba(0,255,120,0.35);
+}
+
+/* --- TEMPORADA FREE (número normal) --- */
+.season-free {
+    font-size: 22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* --- VIP NUEVO DISEÑO --- */
+.season-vip {
+    background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
+    border: 2px solid gold;
+    color: gold;
+}
+
+/* Número de temporada encima */
+.season-vip::before {
+    content: attr(data-season);
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 13px;
+    color: gold;
+    font-weight: 900;
+    text-shadow: 0 0 5px rgba(255,215,0,0.6);
+}
+
+/* Texto "VIP" perfectamente centrado */
+.season-vip::after {
+    content: "VIP";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    font-weight: 800;
+    background: gold;
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: #1a1a1a;
+    box-shadow: 0 0 6px rgba(255,215,0,0.7);
+}
