@@ -103,7 +103,7 @@ header {
 }
 
 /* ============================================
-   BOTÓN PLAY ESTILO YTS (centrado sobre imagen)
+   BOTÓN PLAY ESTILO YTS
 ============================================ */
 .play-btn {
     position: absolute;
@@ -185,7 +185,7 @@ header {
 }
 
 /* ============================================
-   VIP — ESTILO PREMIUM ELEGANTE
+   VIP — SOLO ARREGLO (NO CAMBIADO)
 ============================================ */
 .season-vip {
     background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
@@ -193,19 +193,20 @@ header {
     color: var(--vip-gold);
 }
 
-/* Número pequeño arriba */
+/* Número — ahora SIEMPRE visible ARRIBA */
 .season-vip::before {
     content: attr(data-season);
     position: absolute;
-    top: 5px;
-    right: 6px;
-    font-size: 13px;
+    top: 4px;
+    left: 6px;
+    font-size: 14px;
     font-weight: 900;
     color: var(--vip-gold);
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+    z-index: 5;
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
 }
 
-/* Texto VIP centrado */
+/* VIP centrado — SIN TAPAR EL NÚMERO */
 .season-vip::after {
     content: "VIP";
     position: absolute;
@@ -219,6 +220,7 @@ header {
     border-radius: 6px;
     color: #1a1a1a;
     box-shadow: 0 0 6px rgba(255, 215, 0, 0.7);
+    z-index: 3;
 }
 
 /* ============================================
