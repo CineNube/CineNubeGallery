@@ -70,9 +70,9 @@ header {
 ============================================ */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 20px;
-    padding: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 26px;
+    padding: 30px;
 }
 
 /* ============================================
@@ -96,17 +96,14 @@ header {
     box-shadow: 0 0 20px var(--green-yts-dim);
 }
 
-/* ============================================
-   IMAGENES — CORRECCIÓN DEL TAMAÑO
-============================================ */
 .card img {
     width: 100%;
-    height: 230px; /* <-- YA NO ES GIGANTE */
+    height: 300px;
     object-fit: cover;
 }
 
 /* ============================================
-   PLAY BUTTON
+   BOTÓN PLAY ESTILO YTS
 ============================================ */
 .play-btn {
     position: absolute;
@@ -188,7 +185,7 @@ header {
 }
 
 /* ============================================
-   VIP — SOLO CORRECCIÓN
+   VIP — SOLO ARREGLO (NO CAMBIADO)
 ============================================ */
 .season-vip {
     background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
@@ -196,22 +193,24 @@ header {
     color: var(--vip-gold);
 }
 
-/* número arriba — CORREGIDO */
+/* Número — ahora SIEMPRE visible ARRIBA */
 .season-vip::before {
     content: attr(data-season);
     position: absolute;
-    top: 5px;
-    left: 6px;    /* <-- cambia de right a left para no chocar con VIP */
-    font-size: 13px;
+    top: 4px;
+    left: 6px;
+    font-size: 14px;
     font-weight: 900;
     color: var(--vip-gold);
+    z-index: 5;
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
 }
 
-/* texto VIP centrado — CORREGIDO */
+/* VIP centrado — SIN TAPAR EL NÚMERO */
 .season-vip::after {
     content: "VIP";
     position: absolute;
-    top: 55%; /* <-- pequeño ajuste para centrar perfecto */
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 15px;
@@ -220,6 +219,8 @@ header {
     padding: 3px 8px;
     border-radius: 6px;
     color: #1a1a1a;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.7);
+    z-index: 3;
 }
 
 /* ============================================
@@ -227,10 +228,6 @@ header {
 ============================================ */
 @media (max-width: 600px) {
     .card img {
-        height: 180px; /* MÁS PEQUEÑO EN MÓVIL */
-    }
-
-    .grid {
-        gap: 14px;
+        height: 240px;
     }
 }
