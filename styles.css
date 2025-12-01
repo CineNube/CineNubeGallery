@@ -71,8 +71,8 @@ header {
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 22px;
-    padding: 30px;
+    gap: 20px;
+    padding: 20px;
 }
 
 /* ============================================
@@ -96,14 +96,17 @@ header {
     box-shadow: 0 0 20px var(--green-yts-dim);
 }
 
+/* ============================================
+   IMAGENES — CORRECCIÓN DEL TAMAÑO
+============================================ */
 .card img {
     width: 100%;
-    height: 240px;
+    height: 230px; /* <-- YA NO ES GIGANTE */
     object-fit: cover;
 }
 
 /* ============================================
-   BOTÓN PLAY (centrado sobre imagen)
+   PLAY BUTTON
 ============================================ */
 .play-btn {
     position: absolute;
@@ -111,14 +114,14 @@ header {
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--green-yts);
-    width: 58px;
-    height: 58px;
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #000;
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 900;
     opacity: 0;
     transition: .25s ease;
@@ -155,7 +158,6 @@ header {
     padding: 15px 10px 0 10px;
 }
 
-/* Cuadro de temporada */
 .season {
     position: relative;
     width: 100%;
@@ -164,62 +166,60 @@ header {
     background: rgba(20, 25, 45, 0.9);
     border: 1px solid var(--green-yts-dim);
     color: white;
+    font-weight: 700;
     cursor: pointer;
     overflow: hidden;
     transition: 0.25s ease;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: 800;
-    font-size: 20px;
 }
 
-/* Hover temporadas */
+/* Hover estilo YTS */
 .season:hover {
     background: rgba(0,255,110,0.12);
     border-color: rgba(0,255,150,0.55);
     box-shadow: 0 0 15px rgba(0,255,120,0.35);
 }
 
-/* ============================================
-   VIP (corregido)
-============================================ */
+/* Temporada gratis */
+.season-free {
+    font-size: 20px;
+}
 
-/* Cuadro VIP */
+/* ============================================
+   VIP — SOLO CORRECCIÓN
+============================================ */
 .season-vip {
     background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
     border: 2px solid var(--vip-gold);
     color: var(--vip-gold);
 }
 
-/* Nº de temporada — ahora SIEMPRE visible y arriba */
+/* número arriba — CORREGIDO */
 .season-vip::before {
     content: attr(data-season);
     position: absolute;
-    top: 6px;
-    left: 8px;
-    font-size: 15px;
+    top: 5px;
+    left: 6px;    /* <-- cambia de right a left para no chocar con VIP */
+    font-size: 13px;
     font-weight: 900;
     color: var(--vip-gold);
-    z-index: 4;
-    text-shadow: 0 0 8px rgba(255, 215, 0, 0.9);
 }
 
-/* Texto VIP centrado (más pequeño para no tapar) */
+/* texto VIP centrado — CORREGIDO */
 .season-vip::after {
     content: "VIP";
     position: absolute;
-    top: 58%;
+    top: 55%; /* <-- pequeño ajuste para centrar perfecto */
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 800;
+    background: var(--vip-gold);
     padding: 3px 8px;
     border-radius: 6px;
-    background: var(--vip-gold);
     color: #1a1a1a;
-    box-shadow: 0 0 6px rgba(255, 215, 0, 0.7);
-    z-index: 3;
 }
 
 /* ============================================
@@ -227,13 +227,10 @@ header {
 ============================================ */
 @media (max-width: 600px) {
     .card img {
-        height: 200px;
+        height: 180px; /* MÁS PEQUEÑO EN MÓVIL */
     }
+
     .grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 16px;
-    }
-    .season {
-        font-size: 18px;
+        gap: 14px;
     }
 }
