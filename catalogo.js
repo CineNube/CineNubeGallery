@@ -1,5 +1,6 @@
 // catalogo.js — versión estable + corregida (Tendencias OK)
 
+// URL hoja (la tuya)
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
 const container = document.getElementById("catalogo");
@@ -37,16 +38,45 @@ function shortTitle(title) {
     return title.length > 50 ? title.substring(0,47)+"..." : title;
 }
 
+/* Nuevo: obtener enlace "inteligente" que prioriza season_links (series) y después terabox */
+function obtenerEnlaceInteligente(item) {
+    // 1) Si tiene season_links y es JSON -> parsear y buscar link o episodio
+    const rawSeasons = item.season_links || item.seasonLinks || "";
+    if (rawSeasons) {
+        const seasons = safeParseSeasonLinks(rawSeasons);
+        if (seasons.length) {
+            // priorizar primer episodio con link en la primera temporada que tenga
+            for (let s of seasons) {
+                if (Array.isArray(s.episodes) && s.episodes.length) {
+                    // episodio -> tomar su link
+                    const epLink = s.episodes[0].link || s.episodes[0].dlink || "";
+                    if (epLink) return epLink;
+                }
+                // si la temporada tiene 'link' directo (carpeta terabox)
+                if (s.link && String(s.link).indexOf("http") === 0) return s.link;
+            }
+        }
+    }
+
+    // 2) Si no hay season_links con enlaces, intentar terabox / link / enlace / enlace general
+    return extractTeraboxLink(item.terabox || item.link || item.enlace || "");
+}
+
 /* =============================
    OCULTAR SECCIONES
 ============================= */
 function updateSectionsVisibility() {
     const show = activeFilter === "all";
 
-    document.getElementById("bienvenida").style.display = show ? "" : "none";
-    document.getElementById("tendencias").style.display = show ? "" : "none";
-    document.getElementById("populares").style.display = show ? "" : "none";
-    document.getElementById("top10").style.display = show ? "" : "none";
+    const bn = document.getElementById("bienvenida");
+    const td = document.getElementById("tendencias");
+    const pop = document.getElementById("populares");
+    const t10 = document.getElementById("top10");
+
+    if (bn) bn.style.display = show ? "" : "none";
+    if (td) td.style.display = show ? "" : "none";
+    if (pop) pop.style.display = show ? "" : "none";
+    if (t10) t10.style.display = show ? "" : "none";
 }
 
 /* =============================
@@ -69,7 +99,10 @@ async function fetchData() {
 
     } catch (e) {
         console.error("Error cargando hoja:", e);
-        container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
+        if (container) container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
+        const t = document.getElementById("tendenciasList"); if (t) t.innerHTML = "<p class='empty'>Error</p>";
+        const p = document.getElementById("popularesList"); if (p) p.innerHTML = "<p class='empty'>Error</p>";
+        const tt = document.getElementById("top10List"); if (tt) tt.innerHTML = "<p class='empty'>Error</p>";
     }
 }
 
@@ -222,6 +255,7 @@ function render(list) {
 
 /* =============================
    TENDENCIAS (24 HORAS)
+   - compara correctamente timestamps ISO como "2025-12-06T18:34:47.114Z"
 ============================= */
 function renderTendencias(list) {
     const out = document.getElementById("tendenciasList");
@@ -237,7 +271,10 @@ function renderTendencias(list) {
             i.updated ||
             i.published_at ||
             "";
+        // si raw está vacío -> excluir
+        if (!raw) return false;
         const fechaNum = new Date(raw).getTime();
+        if (isNaN(fechaNum)) return false;
         return fechaNum >= hace24h;
     });
 
@@ -268,6 +305,7 @@ function renderPopulares(list) {
 
 /* =============================
    TOP 10
+   - ahora las filas también abren el enlace correcto
 ============================= */
 function renderTop10(list) {
     const out = document.getElementById("top10List");
@@ -288,12 +326,18 @@ function renderTop10(list) {
             <div class="name">${item.title}</div>
             <div class="rate">⭐ ${item.vote_average || item.rating || "-"}</div>
         `;
+        // abrir enlace inteligente al click en la fila
+        row.onclick = () => {
+            const link = obtenerEnlaceInteligente(item) || "https://t.me/movfrezon";
+            window.open(link, "_blank");
+        };
         out.appendChild(row);
     });
 }
 
 /* =============================
    MINI CARD
+   - aquí está la corrección: usa obtenerEnlaceInteligente para series
 ============================= */
 function createMiniCard(item) {
     const div = document.createElement("div");
@@ -308,7 +352,7 @@ function createMiniCard(item) {
     `;
 
     div.onclick = () => {
-        const link = extractTeraboxLink(item.terabox || item.link) || "https://t.me/movfrezon";
+        const link = obtenerEnlaceInteligente(item) || "https://t.me/movfrezon";
         window.open(link, "_blank");
     };
 
