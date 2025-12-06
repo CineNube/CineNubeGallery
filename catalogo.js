@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", cargarDatos);
 async function cargarDatos() {
     try {
         const respuesta = await fetch(
-            "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec"
+            "https://opensheet.elk.sh/1o6IuSEgLP1KhLZq49j6ZyuegFCLmPdVs_pr-JOpPFMs/Hoja1"
         );
         const datos = await respuesta.json();
 
