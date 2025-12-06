@@ -1,4 +1,4 @@
-// catalogo.js — versión estable + corregida (solo se ajusta la detección de 24h para Tendencias)
+// catalogo.js — versión estable + corregida (Tendencias OK)
 
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
@@ -38,17 +38,15 @@ function shortTitle(title) {
 }
 
 /* =============================
-   OCULTAR SECCIONES (seguro)
+   OCULTAR SECCIONES
 ============================= */
 function updateSectionsVisibility() {
     const show = activeFilter === "all";
 
-    const ids = ["bienvenida","tendencias","populares","top10"];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.style.display = show ? "" : "none";
-    });
+    document.getElementById("bienvenida").style.display = show ? "" : "none";
+    document.getElementById("tendencias").style.display = show ? "" : "none";
+    document.getElementById("populares").style.display = show ? "" : "none";
+    document.getElementById("top10").style.display = show ? "" : "none";
 }
 
 /* =============================
@@ -71,20 +69,18 @@ async function fetchData() {
 
     } catch (e) {
         console.error("Error cargando hoja:", e);
-        if (container) container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
-        const t = document.getElementById("tendenciasList"); if (t) t.innerHTML = "<p class='empty'>Error</p>";
-        const p = document.getElementById("popularesList"); if (p) p.innerHTML = "<p class='empty'>Error</p>";
-        const tt = document.getElementById("top10List"); if (tt) tt.innerHTML = "<p class='empty'>Error</p>";
+        container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
     }
 }
 
 /* =============================
-   RENDER PRINCIPAL (sin tocarlo)
+   RENDER PRINCIPAL
 ============================= */
 function render(list) {
     if (!container) return;
 
     const q = (searchInput?.value || "").toLowerCase().trim();
+
     const filtered = list.filter(i => {
         if (activeFilter !== "all" && i.type !== activeFilter) return false;
         if (q && (!i.title || !i.title.toLowerCase().includes(q))) return false;
@@ -166,7 +162,7 @@ function render(list) {
 
                     const numSpan = document.createElement("span");
                     numSpan.className = "season-number";
-                    numSpan.textContent = s.season || s.season_number || "?";
+                    numSpan.textContent = s.season || "?";
                     sd.appendChild(numSpan);
 
                     const hasEps = Array.isArray(s.episodes) && s.episodes.length;
@@ -225,7 +221,7 @@ function render(list) {
 }
 
 /* =============================
-   TENDENCIAS (24 HORAS) — CORRECCIÓN
+   TENDENCIAS (24 HORAS)
 ============================= */
 function renderTendencias(list) {
     const out = document.getElementById("tendenciasList");
@@ -235,11 +231,13 @@ function renderTendencias(list) {
     const hace24h = ahora - 24 * 60 * 60 * 1000;
 
     const hoy = list.filter(i => {
-        const raw = (i.updated || i.published_at || "");
-        if (!raw) return false;
-        // parsear de forma segura la fecha ISO o timestamps
+        const raw =
+            i.updated_ts ||
+            i.published_ts ||
+            i.updated ||
+            i.published_at ||
+            "";
         const fechaNum = new Date(raw).getTime();
-        if (isNaN(fechaNum)) return false;
         return fechaNum >= hace24h;
     });
 
