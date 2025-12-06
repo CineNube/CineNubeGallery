@@ -1,4 +1,4 @@
-// catalogo.js — versión estable + corregida
+// catalogo.js — versión estable + corregida (solo se ajusta la detección de 24h para Tendencias)
 
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
@@ -38,15 +38,17 @@ function shortTitle(title) {
 }
 
 /* =============================
-   OCULTAR SECCIONES
+   OCULTAR SECCIONES (seguro)
 ============================= */
 function updateSectionsVisibility() {
     const show = activeFilter === "all";
 
-    document.getElementById("bienvenida").style.display = show ? "" : "none";
-    document.getElementById("tendencias").style.display = show ? "" : "none";
-    document.getElementById("populares").style.display = show ? "" : "none";
-    document.getElementById("top10").style.display = show ? "" : "none";
+    const ids = ["bienvenida","tendencias","populares","top10"];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = show ? "" : "none";
+    });
 }
 
 /* =============================
@@ -69,7 +71,10 @@ async function fetchData() {
 
     } catch (e) {
         console.error("Error cargando hoja:", e);
-        container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
+        if (container) container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
+        const t = document.getElementById("tendenciasList"); if (t) t.innerHTML = "<p class='empty'>Error</p>";
+        const p = document.getElementById("popularesList"); if (p) p.innerHTML = "<p class='empty'>Error</p>";
+        const tt = document.getElementById("top10List"); if (tt) tt.innerHTML = "<p class='empty'>Error</p>";
     }
 }
 
@@ -161,7 +166,7 @@ function render(list) {
 
                     const numSpan = document.createElement("span");
                     numSpan.className = "season-number";
-                    numSpan.textContent = s.season || "?";
+                    numSpan.textContent = s.season || s.season_number || "?";
                     sd.appendChild(numSpan);
 
                     const hasEps = Array.isArray(s.episodes) && s.episodes.length;
@@ -220,7 +225,7 @@ function render(list) {
 }
 
 /* =============================
-   TENDENCIAS (24 HORAS)
+   TENDENCIAS (24 HORAS) — CORRECCIÓN
 ============================= */
 function renderTendencias(list) {
     const out = document.getElementById("tendenciasList");
@@ -231,7 +236,10 @@ function renderTendencias(list) {
 
     const hoy = list.filter(i => {
         const raw = (i.updated || i.published_at || "");
+        if (!raw) return false;
+        // parsear de forma segura la fecha ISO o timestamps
         const fechaNum = new Date(raw).getTime();
+        if (isNaN(fechaNum)) return false;
         return fechaNum >= hace24h;
     });
 
