@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CineNube</title>
 
-<!-- CSS PRINCIPAL -->
+<!-- CSS PRINCIPAL (usa tu styles.css actual, no lo cambié) -->
 <link rel="stylesheet" href="styles.css">
 
 <!-- Iconos Font Awesome -->
@@ -45,46 +45,40 @@
   </div>
 </header>
 
-<!-- ======================================================
-     🔥 SECCIONES AÑADIDAS: AQUÍ, DEBAJO DEL BUSCADOR
-   ====================================================== -->
+<!-- ===========================
+     BLOQUES NUEVOS (DEBAJO DEL BUSCADOR)
+   =========================== -->
 
-<!-- SECCIÓN BIENVENIDA -->
 <section id="bienvenida" class="home-section">
   <h2>Te damos la bienvenida</h2>
-  <p>Millones de películas, series y estrenos por descubrir. Explora ya.</p>
-  <button id="scrollToCatalog">Buscar contenido</button>
+  <p>Millones de películas, series y gente por descubrir. Explora ya.</p>
+  <button id="scrollToCatalog">Buscar</button>
 </section>
 
-<!-- TENDENCIAS (HOY) -->
 <section id="tendencias" class="home-section">
   <h2>Tendencias de hoy</h2>
-  <div class="home-row" id="tendenciasList">Cargando…</div>
+  <div id="tendenciasList" class="home-row">Cargando…</div>
 </section>
 
-<!-- POPULARES (SEMANA) -->
 <section id="populares" class="home-section">
   <h2>Lo más popular esta semana</h2>
-  <div class="home-row" id="popularesList">Cargando…</div>
+  <div id="popularesList" class="home-row">Cargando…</div>
 </section>
 
-<!-- TOP 10 VALORADAS -->
 <section id="top10" class="home-section">
   <h2>Top 10 Mejor Valoradas</h2>
-  <div class="top10-table" id="top10List">Cargando…</div>
+  <div id="top10List" class="top10-table">Cargando…</div>
 </section>
 
-<!-- ======================================================
-     FIN DE BLOQUES AÑADIDOS
-   ====================================================== -->
-
+<!-- ===========================
+     CATÁLOGO PRINCIPAL
+   =========================== -->
 <main id="catalogo" role="main">
-  <!-- contenido generado dinámicamente -->
   <div class="empty">Cargando contenido...</div>
 </main>
 
 <script>
-/* Rotating top banner (mismo texto que tenías) */
+/* Rotating top banner (mismo texto) */
 const messages = [
   "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
   "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
@@ -94,21 +88,14 @@ const messages = [
   "💬 Escríbeme al privado → @movfrezon",
   "🚀 Actualizaciones diarias + soporte directo garantizado"
 ];
-let index = 0;
+let rIndex = 0;
 const textElement = document.getElementById("rotating-text");
 function updateText() {
-    textElement.textContent = messages[index];
-    index = (index + 1) % messages.length;
+    textElement.textContent = messages[rIndex];
+    rIndex = (rIndex + 1) % messages.length;
 }
 textElement.textContent = messages[0];
 setInterval(updateText, 3000);
-
-/* Registrar Service Worker (si existe) */
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-    .then(() => console.log('Service Worker registrado.'))
-    .catch(console.error);
-}
 </script>
 
 </body>
