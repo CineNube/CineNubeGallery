@@ -257,3 +257,93 @@ if (filterButtons && filterButtons.length) filterButtons.forEach((btn) => {
 
 // iniciar fetchData()
 fetchData();
+
+/* =============================
+   NUEVAS SECCIONES HOME
+   ============================= */
+
+// scroll a catálogo
+document.getElementById("scrollToCatalog")?.addEventListener("click", () => {
+    document.getElementById("catalogo").scrollIntoView({ behavior: "smooth" });
+});
+
+// Render rápido mini-card estilo tu card (pero en horizontal)
+function miniCard(item) {
+    return `
+      <div class="mini-card">
+        <img src="${item.poster || item.portada}" loading="lazy">
+        <div class="mini-info">
+          <span class="mini-title">${item.title || item.titulo}</span>
+          <span class="mini-meta">${item.year || ""}</span>
+        </div>
+      </div>
+    `;
+}
+
+// ------------------------------
+// 1 — TENDENCIAS HOY
+// ------------------------------
+function renderTendencias() {
+    const cont = document.getElementById("tendenciasList");
+    if (!cont) return;
+
+    const hoy = new Date().toISOString().slice(0, 10);
+
+    const hoyItems = items.filter(i => {
+        if (!i.published_date) return false;
+        return i.published_date.slice(0, 10) === hoy;
+    });
+
+    cont.innerHTML = hoyItems.length
+        ? hoyItems.map(miniCard).join("")
+        : "<div class='empty'>Hoy no hay estrenos nuevos</div>";
+}
+
+// ------------------------------
+// 2 — POPULARES (ULTIMOS 7 DÍAS)
+// ------------------------------
+function renderPopulares() {
+    const cont = document.getElementById("popularesList");
+    if (!cont) return;
+
+    const now = Date.now();
+    const semana = 86400000 * 7;
+
+    const pop = items.filter(i => {
+        const t = i.published_ts || 0;
+        return now - t < semana;
+    }).slice(0, 20);
+
+    cont.innerHTML = pop.length
+        ? pop.map(miniCard).join("")
+        : "<div class='empty'>No hay contenido reciente</div>";
+}
+
+// ------------------------------
+// 3 — TOP 10 VALORADAS
+// ------------------------------
+function renderTop10() {
+    const cont = document.getElementById("top10List");
+    if (!cont) return;
+
+    const top = [...items]
+        .filter(i => Number(i.rating) > 0)
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 10);
+
+    cont.innerHTML = top.map((i, idx) => `
+      <div class="top10-item">
+        <span class="pos">${idx + 1}</span>
+        <img src="${i.poster}" loading="lazy">
+        <span class="name">${i.title}</span>
+        <span class="rate">⭐ ${i.rating}</span>
+      </div>
+    `).join("");
+}
+
+// Ejecutar cuando cargan los datos
+setTimeout(() => {
+    renderTendencias();
+    renderPopulares();
+    renderTop10();
+}, 800);
