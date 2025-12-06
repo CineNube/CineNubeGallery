@@ -225,3 +225,121 @@ main#catalogo {
   main#catalogo { gap:10px; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); margin-top:80px; }
   .movie-card:hover { transform:none; box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
 }
+
+/* =============================
+   NUEVAS SECCIONES HOME
+   ============================= */
+
+.home-section {
+  max-width:1300px;
+  margin:60px auto;
+  padding:0 12px;
+}
+
+.home-section h2 {
+  font-size:1.4rem;
+  margin-bottom:14px;
+  font-weight:900;
+  color:#fff;
+}
+
+#bienvenida {
+  text-align:center;
+  margin-top:40px;
+}
+
+#bienvenida p {
+  color:#ccd2df;
+  font-size:1rem;
+  margin:10px 0 20px;
+}
+
+#bienvenida button {
+  padding:12px 24px;
+  border-radius:999px;
+  background:#00d48a;
+  border:none;
+  font-weight:800;
+  font-size:1rem;
+  cursor:pointer;
+  color:#01221a;
+  box-shadow:0 4px 16px rgba(0,212,138,0.25);
+}
+
+.home-row {
+  display:flex;
+  overflow-x:auto;
+  gap:14px;
+  padding-bottom:10px;
+}
+
+/* mini cards */
+.mini-card {
+  min-width:120px;
+  background:#0c112b;
+  border-radius:10px;
+  overflow:hidden;
+  flex-shrink:0;
+  box-shadow:0 6px 14px rgba(0,0,0,0.5);
+}
+.mini-card img {
+  width:100%;
+  height:170px;
+  object-fit:cover;
+}
+.mini-info {
+  padding:8px 10px;
+}
+.mini-title {
+  display:block;
+  font-size:0.9rem;
+  font-weight:700;
+  color:#fff;
+}
+.mini-meta {
+  font-size:0.8rem;
+  color:#9aa0ab;
+}
+
+/* TOP 10 */
+.top10-table {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.top10-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#0c112b;
+  padding:10px 12px;
+  border-radius:10px;
+  box-shadow:0 6px 14px rgba(0,0,0,0.5);
+}
+
+.top10-item .pos {
+  font-weight:900;
+  font-size:1.2rem;
+  color:#00d48a;
+  width:26px;
+  text-align:center;
+}
+
+.top10-item img {
+  width:46px;
+  height:64px;
+  border-radius:6px;
+  object-fit:cover;
+}
+
+.top10-item .name {
+  flex:1;
+  font-size:0.95rem;
+  font-weight:700;
+}
+
+.top10-item .rate {
+  font-weight:900;
+  color:#00d48a;
+}
