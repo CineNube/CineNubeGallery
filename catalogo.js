@@ -1,128 +1,392 @@
-//------------------------------------------------------------
-// Cargar datos desde Google Sheets
-//------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", cargarDatos);
+// catalogo.js — versión final integrada (catálogo + secciones Tendencias / Populares / Top10)
+// Usa TU SHEET_JSON_URL (la misma que ya funcionaba para el catálogo)
 
-async function cargarDatos() {
+const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
+const container = document.getElementById("catalogo");
+const searchInput = document.getElementById("searchInput");
+const filterButtons = document.querySelectorAll("#filterButtons button");
+
+let items = [];
+let activeFilter = "all";
+
+// -----------------------------
+// UTIL: parse seguro season_links / JSON si viene string
+// -----------------------------
+function safeParseJSON(raw) {
+    if (!raw) return null;
+    if (typeof raw === "object") return raw;
     try {
-        const respuesta = await fetch(
-            "https://opensheet.elk.sh/1o6IuSEgLP1KhLZq49j6ZyuegFCLmPdVs_pr-JOpPFMs/Hoja1"
-        );
-        const datos = await respuesta.json();
-
-        window.catalogoData = datos;
-
-        renderCatalogo(datos);
-        renderTendencias(datos);
-        renderPopulares(datos);
-        renderTop10(datos);
-
-        console.log("Datos cargados correctamente.");
+        return JSON.parse(raw);
     } catch (e) {
-        console.error("Error cargando hoja:", e);
+        return null;
     }
 }
 
-//------------------------------------------------------------
-// RENDER PRINCIPAL (CATÁLOGO COMPLETO)
-//------------------------------------------------------------
-function renderCatalogo(datos) {
-    const cont = document.getElementById("catalogo");
-    if (!cont) return;
-
-    cont.innerHTML = "";
-
-    datos.forEach(item => {
-        const card = crearCard(item);
-        cont.appendChild(card);
-    });
+// -----------------------------
+// EXTRAER LINK TERABOX (mantiene compatibilidad)
+// -----------------------------
+function extractTeraboxLink(raw) {
+    if (!raw) return "";
+    if (typeof raw === "string") {
+        // try parse JSON first
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
+        } catch (e) { /* ignore */ }
+        // fallback regex
+        const match = String(raw || "").match(/https?:\/\/[^\s"]+/);
+        return match ? match[0] : "";
+    }
+    // if object/array
+    try {
+        if (Array.isArray(raw) && raw[0] && raw[0].link) return raw[0].link;
+    } catch (e) {}
+    return "";
 }
 
-//------------------------------------------------------------
-// TENDENCIAS = items actualizados "HOY"
-// usa el campo "updated" de tu hoja
-//------------------------------------------------------------
+// -----------------------------
+// FETCH DATA
+// -----------------------------
+async function fetchData() {
+    try {
+        const res = await fetch(SHEET_JSON_URL);
+        if (!res.ok) throw new Error("Error en la respuesta: " + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("JSON inválido (no es array)");
+
+        // normalizar y ordenar por published_ts / published_at / updated
+        items = data.map(d => d || {});
+        items.sort((a, b) => {
+            const ta = Date.parse(a.published_at || a.updated || a.published_ts || 0) || 0;
+            const tb = Date.parse(b.published_at || b.updated || b.published_ts || 0) || 0;
+            return tb - ta;
+        });
+
+        // Render principal y secciones
+        render(items);
+        renderSections(items);
+
+    } catch (e) {
+        console.error(e);
+        if (container) container.innerHTML = `<div class="empty">Error al cargar los datos</div>`;
+        // También limpiar las secciones si existen
+        const t = document.getElementById("tendenciasList");
+        const p = document.getElementById("popularesList");
+        const t10 = document.getElementById("top10List");
+        if (t) t.innerHTML = "<p>Error cargando datos</p>";
+        if (p) p.innerHTML = "<p>Error cargando datos</p>";
+        if (t10) t10.innerHTML = "<p>Error cargando datos</p>";
+    }
+}
+
+// -----------------------------
+// RENDER PRINCIPAL (lista completa) - mantiene tu estilo original
+// -----------------------------
+function render(list) {
+    if (!container) return;
+    const q = (searchInput && (searchInput.value || "")).toLowerCase().trim();
+    const filtered = list.filter((i) => {
+        if (activeFilter !== "all" && String(i.type).toLowerCase() !== String(activeFilter).toLowerCase()) return false;
+        if (q && (!i.title || !String(i.title).toLowerCase().includes(q))) return false;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty">No hay resultados</div>`;
+        return;
+    }
+
+    container.innerHTML = "";
+    const frag = document.createDocumentFragment();
+
+    filtered.forEach((item) => {
+        const card = buildFullCard(item);
+        frag.appendChild(card);
+    });
+
+    container.appendChild(frag);
+}
+
+// -----------------------------
+// BUILD CARD (estructura similar a la que tenías)
+// -----------------------------
+function buildFullCard(item) {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    // movie-card wrapper
+    const mc = document.createElement("div");
+    mc.className = "movie-card";
+
+    // poster wrap
+    const pw = document.createElement("div");
+    pw.className = "poster-wrap";
+
+    const img = document.createElement("img");
+    img.className = "poster";
+    img.alt = item.title || "Poster";
+    img.src = item.poster || item.portada || "https://via.placeholder.com/600x900?text=No+Image";
+
+    // play overlay
+    const play = document.createElement("div");
+    play.className = "play-overlay";
+    play.innerHTML = '<i class="fa-solid fa-play"></i>';
+
+    // subtle fade
+    const fade = document.createElement("div");
+    fade.className = "poster-bottom-fade";
+
+    pw.appendChild(img);
+    pw.appendChild(fade);
+    pw.appendChild(play);
+    mc.appendChild(pw);
+
+    // info block
+    const info = document.createElement("div");
+    info.className = "card-info";
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "title-row";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "movie-title";
+    titleEl.textContent = shortTitle(item.title || item.titulo || "");
+
+    const ratingEl = document.createElement("div");
+    ratingEl.className = "rating";
+    ratingEl.textContent = item.rating || item.vote_average || "N/A";
+
+    titleRow.appendChild(titleEl);
+    titleRow.appendChild(ratingEl);
+
+    const metaRow = document.createElement("div");
+    metaRow.className = "movie-meta";
+    const year = item.year || item.año || "";
+    const genres = item.generos || item.genero || "";
+    metaRow.textContent = `${year}${genres ? " • " + genres : ""}`;
+
+    info.appendChild(titleRow);
+    info.appendChild(metaRow);
+    mc.appendChild(info);
+
+    // Seasons handling for series (compact + VIP badge inside square)
+    if (String(item.type).toLowerCase() === "series") {
+        const seasonsRaw = item.season_links || item.seasonLinks || item.season || "";
+        const parsed = safeParseJSON(seasonsRaw) || [];
+        if (parsed.length > 0) {
+            const seasonRow = document.createElement("div");
+            seasonRow.className = "season-row";
+
+            parsed.forEach((s) => {
+                const sd = document.createElement("div");
+                sd.className = "season";
+
+                // season number
+                const seasonNumber = s.season ?? s.season_number ?? s.seasonNumber ?? "";
+                const numSpan = document.createElement("span");
+                numSpan.className = "season-number";
+                numSpan.textContent = String(seasonNumber) || "T";
+                sd.appendChild(numSpan);
+
+                const hasEpisodes = Array.isArray(s.episodes) && s.episodes.length > 0;
+                const hasLink = !!(s.link && String(s.link).indexOf("http") === 0);
+
+                if (hasEpisodes || hasLink) {
+                    sd.classList.add("season-free");
+                    sd.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (hasEpisodes) {
+                            const link = s.episodes[0].link || s.episodes[0].dlink || "";
+                            if (link) window.open(link, "_blank");
+                            return;
+                        }
+                        if (hasLink) {
+                            window.open(s.link, "_blank");
+                            return;
+                        }
+                    });
+                } else {
+                    sd.classList.add("season-vip");
+                    // badge (gold) centered but keep number visible above
+                    const badge = document.createElement("span");
+                    badge.className = "badge";
+                    badge.textContent = "VIP";
+                    sd.appendChild(badge);
+                    sd.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        window.open("https://t.me/movfrezon", "_blank");
+                    });
+                }
+
+                seasonRow.appendChild(sd);
+            });
+
+            mc.appendChild(seasonRow);
+        }
+    }
+
+    // Poster click behaviour:
+    const anyLink = extractTeraboxLink(item.terabox || item.terabox_link || item.enlace || item.link);
+    if (String(item.type).toLowerCase() === "movie") {
+        if (anyLink) {
+            pw.style.cursor = "pointer";
+            pw.addEventListener("click", () => window.open(anyLink, "_blank"));
+        } else {
+            pw.style.cursor = "pointer";
+            pw.addEventListener("click", () => window.open("https://t.me/movfrezon", "_blank"));
+        }
+    } else if (String(item.type).toLowerCase() === "series") {
+        pw.style.cursor = "pointer";
+        pw.addEventListener("click", () => {
+            // try to open first episode or season link
+            const seasonsRaw = item.season_links || item.seasonLinks || item.season || "";
+            const parsed = safeParseJSON(seasonsRaw) || [];
+            for (let s of parsed) {
+                if (Array.isArray(s.episodes) && s.episodes.length) {
+                    const link = s.episodes[0].link || s.episodes[0].dlink || "";
+                    if (link) { window.open(link, "_blank"); return; }
+                }
+                if (s.link) { window.open(s.link, "_blank"); return; }
+            }
+            // fallback
+            window.open("https://t.me/movfrezon", "_blank");
+        });
+    } else {
+        if (anyLink) {
+            pw.style.cursor = "pointer";
+            pw.addEventListener("click", () => window.open(anyLink, "_blank"));
+        }
+    }
+
+    card.appendChild(mc);
+    return card;
+}
+
+// -----------------------------
+// Short title helper
+// -----------------------------
+function shortTitle(title) {
+    if (!title) return "";
+    return title.length > 50 ? title.substring(0, 47).trim() + "..." : title;
+}
+
+// -----------------------------
+// SECCIONES: Tendencias / Populares / Top10
+// -----------------------------
+function renderSections(data) {
+    renderTendencias(data);
+    renderPopulares(data);
+    renderTop10(data);
+}
+
 function renderTendencias(data) {
     const box = document.getElementById("tendenciasList");
     if (!box) return;
 
-    let hoy = new Date().toISOString().slice(0, 10);
-    let lista = data.filter(i => (i.updated || "").startsWith(hoy));
+    // Intentamos usar published_at o updated (ISO datetime)
+    const hoyISO = new Date().toISOString().slice(0, 10);
 
-    if (lista.length === 0) {
+    const lista = data.filter(i => {
+        const candidate = (i.published_at || i.updated || i.published || "");
+        return String(candidate).startsWith(hoyISO);
+    });
+
+    if (!lista || lista.length === 0) {
         box.innerHTML = "<p>Hoy no hay estrenos nuevos</p>";
         return;
     }
 
     box.innerHTML = "";
-    lista.slice(0, 12).forEach(item => box.appendChild(crearCard(item)));
+    lista.slice(0, 12).forEach(item => {
+        const c = compactCard(item);
+        box.appendChild(c);
+    });
 }
 
-//------------------------------------------------------------
-// POPULARES = rating más alto (top 12)
-//------------------------------------------------------------
 function renderPopulares(data) {
     const box = document.getElementById("popularesList");
     if (!box) return;
 
-    let lista = [...data]
-        .sort((a, b) => (parseFloat(b.rating || 0) - parseFloat(a.rating || 0)))
-        .slice(0, 12);
+    const lista = [...data].sort((a, b) => {
+        const ra = parseFloat(a.rating || a.vote_average || 0) || 0;
+        const rb = parseFloat(b.rating || b.vote_average || 0) || 0;
+        return rb - ra;
+    }).slice(0, 12);
+
+    if (!lista || lista.length === 0) {
+        box.innerHTML = "<p>No hay contenido reciente</p>";
+        return;
+    }
 
     box.innerHTML = "";
-    lista.forEach(item => box.appendChild(crearCard(item)));
+    lista.forEach(item => box.appendChild(compactCard(item)));
 }
 
-//------------------------------------------------------------
-// TOP 10 = basado en "vote_average" o rating
-//------------------------------------------------------------
 function renderTop10(data) {
     const box = document.getElementById("top10List");
     if (!box) return;
 
-    let lista = [...data]
-        .sort((a, b) => (parseFloat(b.vote_average || b.rating || 0) - parseFloat(a.vote_average || a.rating || 0)))
-        .slice(0, 10);
+    const lista = [...data].sort((a, b) => {
+        const va = parseFloat(a.vote_average || a.rating || 0) || 0;
+        const vb = parseFloat(b.vote_average || b.rating || 0) || 0;
+        return vb - va;
+    }).slice(0, 10);
+
+    if (!lista || lista.length === 0) {
+        box.innerHTML = "<p>No hay datos para Top 10</p>";
+        return;
+    }
 
     box.innerHTML = "";
-
-    lista.forEach((item, index) => {
-        let fila = document.createElement("div");
-        fila.className = "top10-item";
-
-        fila.innerHTML = `
-            <span class="pos">${index + 1}</span>
-            <img src="${item.poster}" loading="lazy">
-            <span class="title">${item.title}</span>
-            <span class="score">⭐ ${item.vote_average || item.rating}</span>
+    lista.forEach((item, idx) => {
+        const row = document.createElement("div");
+        row.className = "top10-row";
+        row.innerHTML = `
+            <div class="top10-pos">${idx + 1}</div>
+            <div class="top10-thumb"><img src="${item.poster || ''}" loading="lazy" /></div>
+            <div class="top10-meta">
+                <div class="top10-title">${item.title || ''}</div>
+                <div class="top10-score">⭐ ${item.vote_average || item.rating || 'N/A'}</div>
+            </div>
         `;
-
-        box.appendChild(fila);
+        box.appendChild(row);
     });
 }
 
-//------------------------------------------------------------
-// CREAR CARD DE CATÁLOGO (PELIS/SERIES)
-//------------------------------------------------------------
-function crearCard(item) {
-    let div = document.createElement("div");
-    div.className = "item-card";
+// -----------------------------
+// Compact card (para secciones)
+// devuelve Element
+// -----------------------------
+function compactCard(item) {
+    const el = document.createElement("div");
+    el.className = "compact-card";
 
-    let isVIP = !item.terabox || item.terabox.trim() === "";
-    let vipBadge = isVIP ? `<div class="vip-badge">VIP</div>` : "";
-    let enlace = isVIP ? "#" : item.terabox;
+    const link = extractTeraboxLink(item.terabox || item.enlace || item.link) || "";
 
-    div.innerHTML = `
-        <div class="poster">
-            <img src="${item.poster}" loading="lazy">
-            ${vipBadge}
-            <a href="${enlace}" target="_blank" class="play-btn">
-                <i class="fa-solid fa-play"></i>
-            </a>
+    el.innerHTML = `
+        <div class="compact-poster">
+            <img src="${item.poster || ''}" loading="lazy" />
+            <div class="compact-play">${ link ? '<a href="'+link+'" target="_blank" class="play-mini"><i class="fa-solid fa-play"></i></a>' : '<a href="https://t.me/movfrezon" target="_blank" class="play-mini"><i class="fa-solid fa-play"></i></a>' }</div>
+            ${ ( !link ) ? '<div class="compact-vip">VIP</div>' : '' }
         </div>
-        <h4>${item.title}</h4>
-        <span class="year">${item.year}</span>
+        <div class="compact-title">${item.title || ''}</div>
     `;
 
-    return div;
+    return el;
 }
+
+// -----------------------------
+// FILTROS Y BUSCADOR (mantener comportamiento anterior)
+// -----------------------------
+if (searchInput) searchInput.addEventListener("input", () => render(items));
+if (filterButtons && filterButtons.length) filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        filterButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.type || "all";
+        render(items);
+    });
+});
+
+// iniciar fetchData()
+fetchData();
