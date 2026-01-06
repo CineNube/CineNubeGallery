@@ -227,8 +227,9 @@ function render(list) {
 
         // click poster
         if (item.type === "movie") {
-            const link = extractTeraboxLink(item.terabox || item.link);
-            pw.onclick = () => window.open(link || "https://t.me/movfrezon","_blank");
+  const link = obtenerEnlaceInteligente(item);
+  pw.onclick = () => window.open(link || "https://cinenube.pages.dev", "_blank");
+}
         } else if (item.type === "series") {
             pw.onclick = () => {
                 const seasons = safeParseSeasonLinks(item.season_links);
