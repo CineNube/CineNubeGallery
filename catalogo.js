@@ -30,12 +30,16 @@ function obtenerEnlaceInteligente(item) {
     // Si no es serie o no tiene season_links, buscar en los enlaces de la película (exe.io, etc)
     const link = item.terabox || item.link || item.enlace || "";
     if (link) {
-        // Asegurarse de que el enlace contenga 'exe.io' o redirigir a la URL de descarga
-        const match = link.match(/https?:\/\/(exe\.io|[a-zA-Z0-9\-\.]+)([^\s]*)/);
-        if (match) return match[0]; // Retorna el enlace exe.io o cualquier otro enlace válido
+        // Verificación más robusta de los enlaces para películas (exe.io)
+        const exeLink = link.match(/https?:\/\/(exe\.io|[a-zA-Z0-9\-\.]+)([^\s]*)/);
+        if (exeLink) {
+            console.log(`Enlace de película encontrado: ${exeLink[0]}`); // Debug
+            return exeLink[0]; // Retorna el enlace exe.io o cualquier otro enlace válido
+        }
     }
 
     // Si no hay enlaces adecuados, regresar la URL por defecto
+    console.log("Enlace no encontrado, redirigiendo a la página de error"); // Debug
     return "https://cinenube.pages.dev";
 }
 
@@ -126,6 +130,7 @@ function render(list) {
         // Manejo de enlace al hacer clic (película o serie)
         if (item.type === "movie") {
             const link = obtenerEnlaceInteligente(item);
+            console.log(`Enlace de película para redirigir: ${link}`); // Debug
             pw.onclick = () => window.open(link, "_blank");
         } else if (item.type === "series") {
             pw.onclick = () => {
