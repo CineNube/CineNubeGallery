@@ -1,6 +1,6 @@
-// catalogo.js — versión estable + corregida (Tendencias OK)
+// catalogo.js — versión revisada para depurar el error de "Cargando contenido"
 
-// URL hoja (la tuya)
+// URL de la hoja (ajusta esta URL a la tuya)
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
 const container = document.getElementById("catalogo");
@@ -10,121 +10,36 @@ const filterButtons = document.querySelectorAll("#filterButtons button");
 let items = [];
 let activeFilter = "all";
 
-/* -----------------------------
-   HELPERS
------------------------------ */
-function safeParseSeasonLinks(raw) {
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-    } catch (e) {}
-    return [];
-}
-
-function extractTeraboxLink(raw) {
-    if (!raw) return "";
-    try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
-    } catch (e) {}
-    const match = String(raw || "").match(/https?:\/\/[^\s"]+/);
-    return match ? match[0] : "";
-}
-
-function shortTitle(title) {
-    if (!title) return "";
-    return title.length > 50 ? title.substring(0, 47) + "..." : title;
-}
-
-/* Nuevo: obtener enlace "inteligente" que prioriza season_links (series) y después terabox */
-function obtenerEnlaceInteligente(item) {
-    // 1) Si tiene season_links y es JSON -> parsear y buscar link o episodio
-    const rawSeasons = item.season_links || item.seasonLinks || "";
-    if (rawSeasons) {
-        const seasons = safeParseSeasonLinks(rawSeasons);
-        if (seasons.length) {
-            // priorizar primer episodio con link en la primera temporada que tenga
-            for (let s of seasons) {
-                if (Array.isArray(s.episodes) && s.episodes.length) {
-                    // episodio -> tomar su link
-                    const epLink = s.episodes[0].link || s.episodes[0].dlink || "";
-                    if (epLink) return epLink;
-                }
-                // si la temporada tiene 'link' directo (carpeta terabox)
-                if (s.link && String(s.link).indexOf("http") === 0) return s.link;
-            }
-        }
-    }
-
-    // 2) Si no hay season_links con enlaces, intentar terabox / link / enlace / enlace general
-    const teraboxLink = extractTeraboxLink(item.terabox || item.link || item.enlace || "");
-    
-    if (teraboxLink) {
-        return teraboxLink;
-    }
-
-    // Fallback si no se encontró ningún enlace
-    console.warn("No se encontró enlace válido para:", item.title);
-    return "https://cinenube.pages.dev"; // Asegúrate de que esto no sea un "stale" enlace
-}
-
-/* =============================
-   OCULTAR SECCIONES
-============================= */
-function updateSectionsVisibility() {
-    const show = activeFilter === "all";
-
-    const bn = document.getElementById("bienvenida");
-    const td = document.getElementById("tendencias");
-    const pop = document.getElementById("populares");
-    const t10 = document.getElementById("top10");
-
-    if (bn) bn.style.display = show ? "" : "none";
-    if (td) td.style.display = show ? "" : "none";
-    if (pop) pop.style.display = show ? "" : "none";
-    if (t10) t10.style.display = show ? "" : "none";
-}
-
-/* =============================
-   FETCH DATA
-============================= */
+// Fetch los datos desde la URL
 async function fetchData() {
     const loadingElement = document.getElementById("loading");
     if (loadingElement) loadingElement.style.display = "block"; // Mostrar mensaje de carga
 
     try {
         const res = await fetch(SHEET_JSON_URL);
-        if (!res.ok) throw new Error("Error al cargar Google Sheet");
+        if (!res.ok) throw new Error("Error al cargar los datos desde la hoja.");
 
         const data = await res.json();
-        if (!Array.isArray(data)) throw new Error("Formato inválido");
+        if (!Array.isArray(data)) throw new Error("Formato de datos inválido.");
 
         console.log("Datos cargados correctamente:", data); // Verifica los datos aquí
-        items = data.sort((a, b) => ((b.published_ts || 0) - (a.published_ts || 0)));
+        items = data;
 
         render(items);
-        renderTendencias(items);
-        renderPopulares(items);
-        renderTop10(items);
 
     } catch (e) {
-        console.error("Error cargando hoja:", e);
-        if (container) container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
+        console.error("Error cargando los datos:", e);
+        container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
     } finally {
         if (loadingElement) loadingElement.style.display = "none"; // Ocultar mensaje de carga
     }
 }
 
-/* =============================
-   RENDER PRINCIPAL
-============================= */
+// Renderiza el contenido
 function render(list) {
     if (!container) return;
 
     const q = (searchInput?.value || "").toLowerCase().trim();
-
     const filtered = list.filter(i => {
         if (activeFilter !== "all" && i.type !== activeFilter) return false;
         if (q && (!i.title || !i.title.toLowerCase().includes(q))) return false;
@@ -154,16 +69,7 @@ function render(list) {
         img.alt = item.title || "";
         img.src = item.poster || item.portada || "https://via.placeholder.com/600x900?text=No+Image";
 
-        const play = document.createElement("div");
-        play.className = "play-overlay";
-        play.innerHTML = '<i class="fa-solid fa-play"></i>';
-
-        const fade = document.createElement("div");
-        fade.className = "poster-bottom-fade";
-
         pw.appendChild(img);
-        pw.appendChild(fade);
-        pw.appendChild(play);
         mc.appendChild(pw);
 
         const info = document.createElement("div");
@@ -174,46 +80,12 @@ function render(list) {
 
         const titleEl = document.createElement("div");
         titleEl.className = "movie-title";
-        titleEl.textContent = shortTitle(item.title || "");
-
-        const ratingEl = document.createElement("div");
-        ratingEl.className = "rating";
-        ratingEl.textContent = item.rating || item.vote_average || "N/A";
+        titleEl.textContent = item.title || "Sin título";
 
         titleRow.appendChild(titleEl);
-        titleRow.appendChild(ratingEl);
-
-        const metaRow = document.createElement("div");
-        metaRow.className = "movie-meta";
-        const year = item.year || "";
-        const genres = item.generos || "";
-        metaRow.textContent = `${year}${genres ? " • " + genres : ""}`;
 
         info.appendChild(titleRow);
-        info.appendChild(metaRow);
         mc.appendChild(info);
-
-        // click poster
-        if (item.type === "movie") {
-            const link = obtenerEnlaceInteligente(item);
-            pw.onclick = () => window.open(link, "_blank");
-        } else if (item.type === "series") {
-            pw.onclick = () => {
-                const seasons = safeParseSeasonLinks(item.season_links);
-                for (let s of seasons) {
-                    if (Array.isArray(s.episodes) && s.episodes[0]?.link) {
-                        window.open(s.episodes[0].link, "_blank");
-                        return;
-                    }
-                    if (s.link) {
-                        window.open(s.link, "_blank");
-                        return;
-                    }
-                }
-                window.open("https://t.me/movfrezon", "_blank");
-            };
-        }
-
         card.appendChild(mc);
         frag.appendChild(card);
     });
@@ -221,115 +93,7 @@ function render(list) {
     container.appendChild(frag);
 }
 
-/* =============================
-   TENDENCIAS (24 HORAS)
-   - compara correctamente timestamps ISO como "2025-12-06T18:34:47.114Z"
-============================= */
-function renderTendencias(list) {
-    const out = document.getElementById("tendenciasList");
-    if (!out) return;
-
-    const ahora = Date.now();
-    const hace24h = ahora - 24 * 60 * 60 * 1000;
-
-    const hoy = list.filter(i => {
-        const raw =
-            i.updated_ts ||
-            i.published_ts ||
-            i.updated ||
-            i.published_at ||
-            "";
-        // si raw está vacío -> excluir
-        if (!raw) return false;
-        const fechaNum = new Date(raw).getTime();
-        if (isNaN(fechaNum)) return false;
-        return fechaNum >= hace24h;
-    });
-
-    if (!hoy.length) {
-        out.innerHTML = "<p class='empty'>Hoy no hay estrenos nuevos</p>";
-        return;
-    }
-
-    out.innerHTML = "";
-    hoy.slice(0, 12).forEach(item => out.appendChild(createMiniCard(item)));
-}
-
-/* =============================
-   POPULARES
-============================= */
-function renderPopulares(list) {
-    const out = document.getElementById("popularesList");
-    if (!out) return;
-
-    out.innerHTML = "";
-    const sorted = [...list].sort((a, b) =>
-        parseFloat(b.rating || b.vote_average || 0) -
-        parseFloat(a.rating || a.vote_average || 0)
-    );
-
-    sorted.slice(0, 12).forEach(item => out.appendChild(createMiniCard(item)));
-}
-
-/* =============================
-   TOP 10
-   - ahora las filas también abren el enlace correcto
-============================= */
-function renderTop10(list) {
-    const out = document.getElementById("top10List");
-    if (!out) return;
-
-    out.innerHTML = "";
-    const sorted = [...list].sort((a, b) =>
-        parseFloat(b.vote_average || b.rating || 0) -
-        parseFloat(a.vote_average || a.rating || 0)
-    );
-
-    sorted.slice(0, 10).forEach((item, idx) => {
-        const row = document.createElement("div");
-        row.className = "top10-item";
-        row.innerHTML = `
-            <span class="pos">${idx+1}</span>
-            <img src="${item.poster}" alt="${item.title}">
-            <div class="name">${item.title}</div>
-            <div class="rate">⭐ ${item.vote_average || item.rating || "-"}</div>
-        `;
-        // abrir enlace inteligente al click en la fila
-        row.onclick = () => {
-            const link = obtenerEnlaceInteligente(item) || "https://t.me/movfrezon";
-            window.open(link, "_blank");
-        };
-        out.appendChild(row);
-    });
-}
-
-/* =============================
-   MINI CARD
-   - aquí está la corrección: usa obtenerEnlaceInteligente para series
-============================= */
-function createMiniCard(item) {
-    const div = document.createElement("div");
-    div.className = "mini-card";
-
-    div.innerHTML = `
-        <img src="${item.poster}" alt="${item.title}">
-        <div class="mini-info">
-            <span class="mini-title">${item.title}</span>
-            <span class="mini-meta">${item.year || ""}</span>
-        </div>
-    `;
-
-    div.onclick = () => {
-        const link = obtenerEnlaceInteligente(item) || "https://t.me/movfrezon";
-        window.open(link, "_blank");
-    };
-
-    return div;
-}
-
-/* =============================
-   FILTROS
-============================= */
+// Filtros de búsqueda
 if (searchInput) searchInput.addEventListener("input", () => render(items));
 
 if (filterButtons) {
@@ -339,13 +103,10 @@ if (filterButtons) {
             btn.classList.add("active");
 
             activeFilter = btn.dataset.type || "all";
-
-            updateSectionsVisibility();
             render(items);
         });
     });
 }
 
-/* START */
+// Iniciar la carga de datos
 fetchData();
-updateSectionsVisibility();
