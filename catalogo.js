@@ -1,6 +1,6 @@
-// catalogo.js — versión con enlace inteligente para películas (incluyendo exe.io)
+// catalogo.js — versión estable + corregida (Tendencias OK)
 
-// URL de la hoja (ajusta esta URL a la tuya)
+// URL hoja (la tuya)
 const SHEET_JSON_URL = "https://script.google.com/macros/s/AKfycbyE2R8nl85RXUA7_dZsKkpXZ8nVvfp-tfQi5tjmGF9p1sQHkTZCFQBb2fV5lP3RDswLjA/exec";
 
 const container = document.getElementById("catalogo");
@@ -10,40 +10,9 @@ const filterButtons = document.querySelectorAll("#filterButtons button");
 let items = [];
 let activeFilter = "all";
 
-// Función para obtener el enlace inteligente
-function obtenerEnlaceInteligente(item) {
-    // Si es serie, buscar en season_links primero
-    const rawSeasons = item.season_links || item.seasonLinks || "";
-    if (rawSeasons) {
-        const seasons = safeParseSeasonLinks(rawSeasons);
-        if (seasons.length) {
-            for (let s of seasons) {
-                if (Array.isArray(s.episodes) && s.episodes.length) {
-                    const epLink = s.episodes[0].link || s.episodes[0].dlink || "";
-                    if (epLink) return epLink;
-                }
-                if (s.link && String(s.link).indexOf("http") === 0) return s.link;
-            }
-        }
-    }
-
-    // Si no es serie o no tiene season_links, buscar en los enlaces de la película (exe.io, etc)
-    const link = item.terabox || item.link || item.enlace || "";
-    if (link) {
-        // Verificación más robusta de los enlaces para películas (exe.io)
-        const exeLink = link.match(/https?:\/\/(exe\.io|[a-zA-Z0-9\-\.]+)([^\s]*)/);
-        if (exeLink) {
-            console.log(`Enlace de película encontrado: ${exeLink[0]}`); // Debug
-            return exeLink[0]; // Retorna el enlace exe.io o cualquier otro enlace válido
-        }
-    }
-
-    // Si no hay enlaces adecuados, regresar la URL por defecto
-    console.log("Enlace no encontrado, redirigiendo a la página de error"); // Debug
-    return "https://cinenube.pages.dev";
-}
-
-// Función para procesar datos de temporada (si es serie)
+/* -----------------------------
+   HELPERS
+----------------------------- */
 function safeParseSeasonLinks(raw) {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
@@ -54,11 +23,97 @@ function safeParseSeasonLinks(raw) {
     return [];
 }
 
-// Función para renderizar los datos
+function extractTeraboxLink(raw) {
+    if (!raw) return "";
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
+    } catch(e){}
+    const match = String(raw || "").match(/https?:\/\/[^\s"]+/);
+    return match ? match[0] : "";
+}
+
+function shortTitle(title) {
+    if (!title) return "";
+    return title.length > 50 ? title.substring(0,47)+"..." : title;
+}
+
+/* Nuevo: obtener enlace "inteligente" que prioriza season_links (series) y después terabox */
+function obtenerEnlaceInteligente(item) {
+    // 1) Si tiene season_links y es JSON -> parsear y buscar link o episodio
+    const rawSeasons = item.season_links || item.seasonLinks || "";
+    if (rawSeasons) {
+        const seasons = safeParseSeasonLinks(rawSeasons);
+        if (seasons.length) {
+            // priorizar primer episodio con link en la primera temporada que tenga
+            for (let s of seasons) {
+                if (Array.isArray(s.episodes) && s.episodes.length) {
+                    // episodio -> tomar su link
+                    const epLink = s.episodes[0].link || s.episodes[0].dlink || "";
+                    if (epLink) return epLink;
+                }
+                // si la temporada tiene 'link' directo (carpeta terabox)
+                if (s.link && String(s.link).indexOf("http") === 0) return s.link;
+            }
+        }
+    }
+
+    // 2) Si no hay season_links con enlaces, intentar terabox / link / enlace / enlace general
+    return extractTeraboxLink(item.terabox || item.link || item.enlace || "");
+}
+
+/* =============================
+   OCULTAR SECCIONES
+============================= */
+function updateSectionsVisibility() {
+    const show = activeFilter === "all";
+
+    const bn = document.getElementById("bienvenida");
+    const td = document.getElementById("tendencias");
+    const pop = document.getElementById("populares");
+    const t10 = document.getElementById("top10");
+
+    if (bn) bn.style.display = show ? "" : "none";
+    if (td) td.style.display = show ? "" : "none";
+    if (pop) pop.style.display = show ? "" : "none";
+    if (t10) t10.style.display = show ? "" : "none";
+}
+
+/* =============================
+   FETCH DATA
+============================= */
+async function fetchData() {
+    try {
+        const res = await fetch(SHEET_JSON_URL);
+        if (!res.ok) throw new Error("Error al cargar Google Sheet");
+
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("Formato inválido");
+
+        items = data.sort((a,b) => ( (b.published_ts||0) - (a.published_ts||0) ));
+
+        render(items);
+        renderTendencias(items);
+        renderPopulares(items);
+        renderTop10(items);
+
+    } catch (e) {
+        console.error("Error cargando hoja:", e);
+        if (container) container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
+        const t = document.getElementById("tendenciasList"); if (t) t.innerHTML = "<p class='empty'>Error</p>";
+        const p = document.getElementById("popularesList"); if (p) p.innerHTML = "<p class='empty'>Error</p>";
+        const tt = document.getElementById("top10List"); if (tt) tt.innerHTML = "<p class='empty'>Error</p>";
+    }
+}
+
+/* =============================
+   RENDER PRINCIPAL
+============================= */
 function render(list) {
     if (!container) return;
 
     const q = (searchInput?.value || "").toLowerCase().trim();
+
     const filtered = list.filter(i => {
         if (activeFilter !== "all" && i.type !== activeFilter) return false;
         if (q && (!i.title || !i.title.toLowerCase().includes(q))) return false;
@@ -108,7 +163,7 @@ function render(list) {
 
         const titleEl = document.createElement("div");
         titleEl.className = "movie-title";
-        titleEl.textContent = item.title || "Sin título";
+        titleEl.textContent = shortTitle(item.title || "");
 
         const ratingEl = document.createElement("div");
         ratingEl.className = "rating";
@@ -127,74 +182,75 @@ function render(list) {
         info.appendChild(metaRow);
         mc.appendChild(info);
 
-        // Manejo de enlace al hacer clic (película o serie)
-        if (item.type === "movie") {
-            const link = obtenerEnlaceInteligente(item);
-            console.log(`Enlace de película para redirigir: ${link}`); // Debug
-            pw.onclick = () => window.open(link, "_blank");
-        } else if (item.type === "series") {
-            pw.onclick = () => {
-                const seasons = safeParseSeasonLinks(item.season_links);
-                for (let s of seasons) {
-                    if (Array.isArray(s.episodes) && s.episodes[0]?.link) {
-                        window.open(s.episodes[0].link, "_blank");
-                        return;
+        // Serie: temporadas
+        if (String(item.type).toLowerCase() === "series") {
+            const seasons = safeParseSeasonLinks(item.season_links);
+            if (seasons.length) {
+                const seasonRow = document.createElement("div");
+                seasonRow.className = "season-row";
+
+                seasons.forEach(s => {
+                    const sd = document.createElement("div");
+                    sd.className = "season";
+
+                    const numSpan = document.createElement("span");
+                    numSpan.className = "season-number";
+                    numSpan.textContent = s.season || "?";
+                    sd.appendChild(numSpan);
+
+                    const hasEps = Array.isArray(s.episodes) && s.episodes.length;
+                    const hasLink = !!s.link;
+
+                    if (hasEps || hasLink) {
+                        sd.classList.add("season-free");
+                        sd.onclick = () => {
+                            if (hasEps) {
+                                const epLink = s.episodes[0].link || s.episodes[0].dlink || "";
+                                if (epLink) window.open(epLink, "_blank");
+                                return;
+                            }
+                            if (hasLink) window.open(s.link, "_blank");
+                        };
+                    } else {
+                        sd.classList.add("season-vip");
+                        const badge = document.createElement("span");
+                        badge.className = "badge";
+                        badge.textContent = "VIP";
+                        sd.appendChild(badge);
+                        sd.onclick = () => window.open("https://t.me/movfrezon", "_blank");
                     }
-                    if (s.link) {
-                        window.open(s.link, "_blank");
-                        return;
-                    }
-                }
-                window.open("https://t.me/movfrezon", "_blank");
-            };
+                    seasonRow.appendChild(sd);
+                });
+                mc.appendChild(seasonRow);
+            }
         }
 
-        card.appendChild(mc);
+        // click poster (ahora para las películas va a exe.io)
+        if (item.type === "movie") {
+            const link = obtenerEnlaceInteligente(item);
+            const exeLink = `https://exe.io/api?api=eb74818dfc07b8fd688d1a517234e5479a082193&url=${encodeURIComponent(link)}`;
+            mc.onclick = () => window.open(exeLink, "_blank");
+        } else {
+            mc.onclick = () => window.open(item.link || item.enlace || "https://cinenube.pages.dev", "_blank");
+        }
+
         frag.appendChild(card);
     });
 
     container.appendChild(frag);
 }
 
-// Función para buscar y filtrar resultados
-if (searchInput) searchInput.addEventListener("input", () => render(items));
+/* =============================
+   FILTROS (FÍLTROS SELECCIONADOS)
+============================= */
+searchInput.addEventListener("input", () => fetchData());
 
-if (filterButtons) {
-    filterButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            filterButtons.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-
-            activeFilter = btn.dataset.type || "all";
-            render(items);
-        });
+filterButtons.forEach(button => {
+    button.addEventListener("click", (e) => {
+        activeFilter = e.target.dataset.filter || "all";
+        updateSectionsVisibility();
+        fetchData();
     });
-}
+});
 
-// Cargar los datos
-async function fetchData() {
-    const loadingElement = document.getElementById("loading");
-    if (loadingElement) loadingElement.style.display = "block"; // Mostrar mensaje de carga
-
-    try {
-        const res = await fetch(SHEET_JSON_URL);
-        if (!res.ok) throw new Error("Error al cargar los datos desde la hoja.");
-
-        const data = await res.json();
-        if (!Array.isArray(data)) throw new Error("Formato de datos inválido.");
-
-        console.log("Datos cargados correctamente:", data);
-        items = data;
-
-        render(items);
-
-    } catch (e) {
-        console.error("Error cargando los datos:", e);
-        container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
-    } finally {
-        if (loadingElement) loadingElement.style.display = "none"; // Ocultar mensaje de carga
-    }
-}
-
-// Iniciar la carga de datos
 fetchData();
