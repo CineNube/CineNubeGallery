@@ -19,7 +19,7 @@ function safeParseSeasonLinks(raw) {
     try {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) return parsed;
-    } catch(e){}
+    } catch (e) {}
     return [];
 }
 
@@ -28,14 +28,14 @@ function extractTeraboxLink(raw) {
     try {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed[0] && parsed[0].link) return parsed[0].link;
-    } catch(e){}
+    } catch (e) {}
     const match = String(raw || "").match(/https?:\/\/[^\s"]+/);
     return match ? match[0] : "";
 }
 
 function shortTitle(title) {
     if (!title) return "";
-    return title.length > 50 ? title.substring(0,47)+"..." : title;
+    return title.length > 50 ? title.substring(0, 47) + "..." : title;
 }
 
 /* Nuevo: obtener enlace "inteligente" que prioriza season_links (series) y después terabox */
@@ -59,7 +59,15 @@ function obtenerEnlaceInteligente(item) {
     }
 
     // 2) Si no hay season_links con enlaces, intentar terabox / link / enlace / enlace general
-    return extractTeraboxLink(item.terabox || item.link || item.enlace || "");
+    const teraboxLink = extractTeraboxLink(item.terabox || item.link || item.enlace || "");
+    
+    if (teraboxLink) {
+        return teraboxLink;
+    }
+
+    // Fallback si no se encontró ningún enlace
+    console.warn("No se encontró enlace válido para:", item.title);
+    return "https://cinenube.pages.dev"; // Asegúrate de que esto no sea un "stale" enlace
 }
 
 /* =============================
@@ -83,6 +91,9 @@ function updateSectionsVisibility() {
    FETCH DATA
 ============================= */
 async function fetchData() {
+    const loadingElement = document.getElementById("loading");
+    if (loadingElement) loadingElement.style.display = "block"; // Mostrar mensaje de carga
+
     try {
         const res = await fetch(SHEET_JSON_URL);
         if (!res.ok) throw new Error("Error al cargar Google Sheet");
@@ -90,7 +101,8 @@ async function fetchData() {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("Formato inválido");
 
-        items = data.sort((a,b) => ( (b.published_ts||0) - (a.published_ts||0) ));
+        console.log("Datos cargados correctamente:", data); // Verifica los datos aquí
+        items = data.sort((a, b) => ((b.published_ts || 0) - (a.published_ts || 0)));
 
         render(items);
         renderTendencias(items);
@@ -100,9 +112,8 @@ async function fetchData() {
     } catch (e) {
         console.error("Error cargando hoja:", e);
         if (container) container.innerHTML = "<div class='empty'>Error al cargar los datos</div>";
-        const t = document.getElementById("tendenciasList"); if (t) t.innerHTML = "<p class='empty'>Error</p>";
-        const p = document.getElementById("popularesList"); if (p) p.innerHTML = "<p class='empty'>Error</p>";
-        const tt = document.getElementById("top10List"); if (tt) tt.innerHTML = "<p class='empty'>Error</p>";
+    } finally {
+        if (loadingElement) loadingElement.style.display = "none"; // Ocultar mensaje de carga
     }
 }
 
@@ -182,54 +193,10 @@ function render(list) {
         info.appendChild(metaRow);
         mc.appendChild(info);
 
-        // Serie: temporadas
-        if (String(item.type).toLowerCase() === "series") {
-            const seasons = safeParseSeasonLinks(item.season_links);
-            if (seasons.length) {
-                const seasonRow = document.createElement("div");
-                seasonRow.className = "season-row";
-
-                seasons.forEach(s => {
-                    const sd = document.createElement("div");
-                    sd.className = "season";
-
-                    const numSpan = document.createElement("span");
-                    numSpan.className = "season-number";
-                    numSpan.textContent = s.season || "?";
-                    sd.appendChild(numSpan);
-
-                    const hasEps = Array.isArray(s.episodes) && s.episodes.length;
-                    const hasLink = !!s.link;
-
-                    if (hasEps || hasLink) {
-                        sd.classList.add("season-free");
-                        sd.onclick = () => {
-                            if (hasEps) {
-                                const ep = s.episodes[0];
-                                if (ep.link) window.open(ep.link, "_blank");
-                                return;
-                            }
-                            if (hasLink) window.open(s.link, "_blank");
-                        };
-                    } else {
-                        sd.classList.add("season-vip");
-                        const badge = document.createElement("span");
-                        badge.className = "badge";
-                        badge.textContent = "VIP";
-                        sd.appendChild(badge);
-                        sd.onclick = () => window.open("https://t.me/movfrezon", "_blank");
-                    }
-                    seasonRow.appendChild(sd);
-                });
-                mc.appendChild(seasonRow);
-            }
-        }
-
         // click poster
         if (item.type === "movie") {
-  const link = obtenerEnlaceInteligente(item);
-  pw.onclick = () => window.open(link || "https://cinenube.pages.dev", "_blank");
-}
+            const link = obtenerEnlaceInteligente(item);
+            pw.onclick = () => window.open(link, "_blank");
         } else if (item.type === "series") {
             pw.onclick = () => {
                 const seasons = safeParseSeasonLinks(item.season_links);
@@ -296,12 +263,12 @@ function renderPopulares(list) {
     if (!out) return;
 
     out.innerHTML = "";
-    const sorted = [...list].sort((a,b) =>
+    const sorted = [...list].sort((a, b) =>
         parseFloat(b.rating || b.vote_average || 0) -
         parseFloat(a.rating || a.vote_average || 0)
     );
 
-    sorted.slice(0,12).forEach(item => out.appendChild(createMiniCard(item)));
+    sorted.slice(0, 12).forEach(item => out.appendChild(createMiniCard(item)));
 }
 
 /* =============================
@@ -313,12 +280,12 @@ function renderTop10(list) {
     if (!out) return;
 
     out.innerHTML = "";
-    const sorted = [...list].sort((a,b) =>
+    const sorted = [...list].sort((a, b) =>
         parseFloat(b.vote_average || b.rating || 0) -
         parseFloat(a.vote_average || a.rating || 0)
     );
 
-    sorted.slice(0,10).forEach((item, idx) => {
+    sorted.slice(0, 10).forEach((item, idx) => {
         const row = document.createElement("div");
         row.className = "top10-item";
         row.innerHTML = `
