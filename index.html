@@ -115,16 +115,19 @@ header {
 const API_URL = "https://script.google.com/macros/s/AKfycbzoqrBSteUmKkx-qFvPb1FEgI6Ex_0dKbkoXIVMmmbO4t1qlbbOSZXf3UgixwdBH1by/exec";
 
 async function cargarDatos() {
-  const res = await fetch(API_URL);
-  const data = await res.json();
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json(); // data es un array
 
-  // si tu API devuelve { "data": [...] }
-  iniciar(data.data); 
+    iniciar(data); // Aquí va directamente
+  } catch (error) {
+    console.error("Error al cargar la API:", error);
+  }
 }
 
 function iniciar(data) {
 
-  // ordenar por fecha real
+  // ordenar por fecha
   const ultimos = [...data].sort((a, b) =>
     new Date(b.published_at) - new Date(a.published_at)
   );
@@ -144,7 +147,6 @@ function render(lista, id) {
   contenedor.innerHTML = "";
 
   lista.forEach(item => {
-
     const titulo = item.title || "Sin título";
     const img = item.poster || "https://via.placeholder.com/300x450";
 
@@ -174,7 +176,6 @@ function buscar(texto) {
   render(filtrado, "contenido");
 }
 
-// Llamamos a la función para cargar datos
+// llamar a la API
 cargarDatos();
-
 </script>
