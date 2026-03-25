@@ -113,53 +113,67 @@ header {
 
 <script>
 
-// 🔥 AQUÍ AÑADES TU CONTENIDO
-const data = [
-  {
-    titulo: "El super poli (Piedone lo sbirro)",
-    img: "https://media.themoviedb.org/t/p/w600_and_h900_face/uWMRz9OAcBX3LPQq2XFYnuWidUu.jpg",
-    link: "https://t.me/estrenos_online_25/2/11447"
-  },
-  {
-    titulo: "El Rey de Reyes (The King of Kings)",
-    img: "https://media.themoviedb.org/t/p/w600_and_h900_face/oukn96XolAQBXykWTVT6h0HNgY7.jpg",
-    link: "https://t.me/estrenos_online_25/2/11445"
-  }
-];
+const API_URL = "https://script.google.com/macros/s/AKfycbzoqrBSteUmKkx-qFvPb1FEgI6Ex_0dKbkoXIVMmmbO4t1qlbbOSZXf3UgixwdBH1by/exec";
 
-// ordenar últimos (simula nuevo primero)
-const ultimos = [...data].reverse();
+async function cargarDatos() {
+  const res = await fetch(API_URL);
+  const data = await res.json();
 
-// random
-const random = [...data].sort(() => 0.5 - Math.random());
+  iniciar(data);
+}
+
+function iniciar(data) {
+
+  // ordenar por fecha real
+  const ultimos = [...data].sort((a, b) =>
+    new Date(b.published_at) - new Date(a.published_at)
+  );
+
+  // recomendados random
+  const random = [...data].sort(() => 0.5 - Math.random());
+
+  render(ultimos, "ultimos");
+  render(random, "random");
+  render(data, "contenido");
+
+  window.dataGlobal = data;
+}
 
 function render(lista, id) {
   const contenedor = document.getElementById(id);
   contenedor.innerHTML = "";
 
   lista.forEach(item => {
+
+    const titulo = item.title || "Sin título";
+    const img = item.poster || "https://via.placeholder.com/300x450";
+
+    let accion = "";
+    let texto = titulo;
+
+    if (item.vip_post && item.vip_post.trim() !== "") {
+      accion = `window.open('${item.vip_post}','_blank')`;
+    } else {
+      accion = `window.open('https://t.me/movfrezon','_blank')`;
+      texto = "Contactar con admin";
+    }
+
     contenedor.innerHTML += `
-      <div class="card" onclick="window.open('${item.link}','_blank')">
-        <img src="${item.img}" loading="lazy">
-        <div class="overlay">${item.titulo}</div>
+      <div class="card" onclick="${accion}">
+        <img src="${img}" loading="lazy">
+        <div class="overlay">${texto}</div>
       </div>
     `;
   });
 }
 
 function buscar(texto) {
-  const filtrado = data.filter(x =>
-    x.titulo.toLowerCase().includes(texto.toLowerCase())
+  const filtrado = window.dataGlobal.filter(x =>
+    (x.title || "").toLowerCase().includes(texto.toLowerCase())
   );
   render(filtrado, "contenido");
 }
 
-// render inicial
-render(ultimos, "ultimos");
-render(random, "random");
-render(data, "contenido");
+cargarDatos();
 
 </script>
-
-</body>
-</html>
