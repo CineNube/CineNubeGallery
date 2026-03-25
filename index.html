@@ -112,14 +112,15 @@ header {
 </div>
 
 <script>
-
 const API_URL = "https://script.google.com/macros/s/AKfycbzoqrBSteUmKkx-qFvPb1FEgI6Ex_0dKbkoXIVMmmbO4t1qlbbOSZXf3UgixwdBH1by/exec";
 
 async function cargarDatos() {
   const res = await fetch(API_URL);
   const data = await res.json();
 
-  iniciar(data.data); // si tu API devuelve { "data": [...] }
+  // si tu API devuelve { "data": [...] }
+  iniciar(data.data); 
+}
 
 function iniciar(data) {
 
@@ -128,7 +129,7 @@ function iniciar(data) {
     new Date(b.published_at) - new Date(a.published_at)
   );
 
-  // recomendados random
+  // random
   const random = [...data].sort(() => 0.5 - Math.random());
 
   render(ultimos, "ultimos");
@@ -173,6 +174,7 @@ function buscar(texto) {
   render(filtrado, "contenido");
 }
 
+// Llamamos a la función para cargar datos
 cargarDatos();
 
 </script>
