@@ -40,22 +40,22 @@ header {
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .card {
   position: relative;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: 0.3s;
 }
 
 .card:hover {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
 .card img {
   width: 100%;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .overlay {
@@ -63,8 +63,18 @@ header {
   bottom: 0;
   width: 100%;
   background: linear-gradient(transparent, black);
-  padding: 5px;
+  padding: 8px;
   font-size: 12px;
+}
+
+.btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: red;
+  padding: 5px 8px;
+  font-size: 10px;
+  border-radius: 5px;
 }
 
 .social {
@@ -78,7 +88,6 @@ header {
   text-decoration: none;
   font-size: 18px;
 }
-
 </style>
 </head>
 
@@ -90,25 +99,38 @@ header {
 </header>
 
 <div class="section">
-  <h2>🆕 Últimos</h2>
-  <div id="ultimos" class="grid"></div>
+  <h2>🚀 Hoy</h2>
+  <div id="hoy" class="grid"></div>
 </div>
 
 <div class="section">
-  <h2>🎯 Recomendado</h2>
+  <h2>⭐ Destacadas</h2>
+  <div id="destacadas" class="grid"></div>
+</div>
+
+<div class="section">
+  <h2>🎬 Películas</h2>
+  <div id="peliculas" class="grid"></div>
+</div>
+
+<div class="section">
+  <h2>📺 Series</h2>
+  <div id="series" class="grid"></div>
+</div>
+
+<div class="section">
+  <h2>🔥 Recomendado</h2>
   <div id="random" class="grid"></div>
 </div>
 
 <div class="section">
-  <h2>📁 Todo el contenido</h2>
+  <h2>📁 Todo</h2>
   <div id="contenido" class="grid"></div>
 </div>
 
 <div class="social">
   <h3>Sígueme</h3>
-  <a href="https://t.me/TUCANAL" target="_blank">Telegram</a>
-  <a href="#">Twitter</a>
-  <a href="#">Instagram</a>
+  <a href="https://t.me/estrenos_online_25" target="_blank">Telegram</a>
 </div>
 
 <script>
@@ -117,29 +139,60 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7
 async function cargarDatos() {
   try {
     const res = await fetch(API_URL);
-    const data = await res.json(); // data es un array
-
-    iniciar(data); // Aquí va directamente
+    const data = await res.json();
+    iniciar(data);
   } catch (error) {
-    console.error("Error al cargar la API:", error);
+    document.body.innerHTML = "<h2 style='text-align:center'>Error cargando contenido</h2>";
   }
 }
 
 function iniciar(data) {
 
-  // ordenar por fecha
-  const ultimos = [...data].sort((a, b) =>
-    new Date(b.published_at) - new Date(a.published_at)
-  );
+  const hoyStr = new Date().toISOString().split("T")[0];
 
-  // random
-  const random = [...data].sort(() => 0.5 - Math.random());
+  const hoy = data.filter(x => (x.published_at || "").startsWith(hoyStr));
 
-  render(ultimos, "ultimos");
+  const destacadas = data.filter(x => (x.destacada || "").toLowerCase() === "si").slice(0,20);
+
+  const peliculas = data.filter(x => x.type === "movie").slice(0,40);
+
+  const series = data.filter(x => x.type === "tv").slice(0,40);
+
+  const random = [...data].sort(() => 0.5 - Math.random()).slice(0,30);
+
+  const contenido = data.slice(0,80);
+
+  render(hoy, "hoy");
+  render(destacadas, "destacadas");
+  render(peliculas, "peliculas");
+  render(series, "series");
   render(random, "random");
-  render(data, "contenido");
+  render(contenido, "contenido");
 
   window.dataGlobal = data;
+}
+
+function abrirContenido(link) {
+  if (!link) {
+    window.open("https://t.me/estrenos_online_25", "_blank");
+    return;
+  }
+
+  const match = link.match(/\/(\d+)$/);
+  if (match) {
+    const postId = match[1];
+
+    // intento app Telegram
+    window.location.href = `tg://resolve?domain=estrenos_online_25&post=${postId}`;
+
+    // fallback web
+    setTimeout(() => {
+      window.open(`https://t.me/estrenos_online_25/${postId}`, "_blank");
+    }, 800);
+
+  } else {
+    window.open(link, "_blank");
+  }
 }
 
 function render(lista, id) {
@@ -149,33 +202,28 @@ function render(lista, id) {
   lista.forEach(item => {
     const titulo = item.title || "Sin título";
     const img = item.poster || "https://via.placeholder.com/300x450";
-
-    let accion = "";
-    let texto = titulo;
-
-    if (item.vip_post && item.vip_post.trim() !== "") {
-      accion = `window.open('${item.vip_post}','_blank')`;
-    } else {
-      accion = `window.open('https://t.me/movfrezon','_blank')`;
-      texto = "Contactar con admin";
-    }
+    const link = item.vip_post || "";
 
     contenedor.innerHTML += `
-      <div class="card" onclick="${accion}">
+      <div class="card" onclick="abrirContenido('${link}')">
         <img src="${img}" loading="lazy">
-        <div class="overlay">${texto}</div>
+        <div class="btn">VER</div>
+        <div class="overlay">${titulo}</div>
       </div>
     `;
   });
 }
-  
+
 function buscar(texto) {
-  const filtrado = window.dataGlobal.filter(x =>
-    (x.title || "").toLowerCase().includes(texto.toLowerCase())
-  );
+  const filtrado = window.dataGlobal
+    .filter(x => (x.title || "").toLowerCase().includes(texto.toLowerCase()))
+    .slice(0,50);
+
   render(filtrado, "contenido");
 }
 
-// llamar a la API
 cargarDatos();
 </script>
+
+</body>
+</html>
