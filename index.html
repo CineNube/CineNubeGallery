@@ -1,101 +1,164 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CineNube</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Canal Premium</title>
 
-<!-- CSS PRINCIPAL (usa tu styles.css actual, no lo cambié) -->
-<link rel="stylesheet" href="styles.css">
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0f0f0f;
+  color: white;
+}
 
-<!-- Iconos Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+header {
+  background: black;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-<!-- Scripts -->
-<script src="catalogo.js" defer></script>
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: red;
+}
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b6f4a">
+.search {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+.section {
+  padding: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+  gap: 10px;
+}
+
+.card {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.card img {
+  width: 100%;
+  border-radius: 6px;
+}
+
+.overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(transparent, black);
+  padding: 5px;
+  font-size: 12px;
+}
+
+.social {
+  padding: 20px;
+  text-align: center;
+}
+
+.social a {
+  margin: 10px;
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+</style>
 </head>
+
 <body>
 
-<div class="top-banner">
-  <span id="rotating-text"></span>
-</div>
-
 <header>
-  <div class="header-row">
-    <h1>CineNube</h1>
-    <div class="social-header">
-      <a href="https://facebook.com/TU_USUARIO" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-      <a href="https://instagram.com/cine_nube" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-      <a href="https://t.me/estrenos_online_25" target="_blank" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
-      <a href="https://www.tiktok.com/@cine_nube" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
-    </div>
-  </div>
-
-  <div class="search-row" style="width:100%; max-width:1200px; margin:10px auto 0; display:flex; gap:12px; align-items:center; justify-content:center;">
-    <input id="searchInput" type="text" placeholder="Buscar..." />
-    <div id="filterButtons">
-      <button data-type="all" class="active">Todo</button>
-      <button data-type="movie">Películas</button>
-      <button data-type="series">Series</button>
-    </div>
-  </div>
+  <div class="logo">🔥 Mi Canal</div>
+  <input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
 </header>
 
-<!-- ===========================
-     BLOQUES NUEVOS (DEBAJO DEL BUSCADOR)
-   =========================== -->
+<div class="section">
+  <h2>🆕 Últimos</h2>
+  <div id="ultimos" class="grid"></div>
+</div>
 
-<section id="bienvenida" class="home-section">
-  <h2>Te damos la bienvenida</h2>
-  <p>Millones de películas, series y gente por descubrir. Explora ya.</p>
-  <button id="scrollToCatalog">Buscar</button>
-</section>
+<div class="section">
+  <h2>🎯 Recomendado</h2>
+  <div id="random" class="grid"></div>
+</div>
 
-<section id="tendencias" class="home-section">
-  <h2>Tendencias de hoy</h2>
-  <div id="tendenciasList" class="home-row">Cargando…</div>
-</section>
+<div class="section">
+  <h2>📁 Todo el contenido</h2>
+  <div id="contenido" class="grid"></div>
+</div>
 
-<section id="populares" class="home-section">
-  <h2>Lo más popular esta semana</h2>
-  <div id="popularesList" class="home-row">Cargando…</div>
-</section>
-
-<section id="top10" class="home-section">
-  <h2>Top 10 Mejor Valoradas</h2>
-  <div id="top10List" class="top10-table">Cargando…</div>
-</section>
-
-<!-- ===========================
-     CATÁLOGO PRINCIPAL
-   =========================== -->
-<main id="catalogo" role="main">
-  <div class="empty">Cargando contenido...</div>
-</main>
+<div class="social">
+  <h3>Sígueme</h3>
+  <a href="https://t.me/TUCANAL" target="_blank">Telegram</a>
+  <a href="#">Twitter</a>
+  <a href="#">Instagram</a>
+</div>
 
 <script>
-/* Rotating top banner (mismo texto) */
-const messages = [
-  "🎬 Bienvenido a CineNube — Tu espacio de cine y series",
-  "🍿 ¿Listo para tu maratón? Activa la 🔔 y revisa las #reglas",
-  "🔥 Canal VIP: acceso completo por solo 1,49€/semana",
-  "✔️ Ve todo sin límites directamente desde Telegram",
-  "💳 Paga por PayPal → https://www.paypal.com/ncp/payment/GFVNT36R7E4TQ",
-  "💬 Escríbeme al privado → @movfrezon",
-  "🚀 Actualizaciones diarias + soporte directo garantizado"
+
+// 🔥 AQUÍ AÑADES TU CONTENIDO
+const data = [
+  {
+    titulo: "Video 1",
+    img: "https://via.placeholder.com/300x450",
+    link: "https://t.me/tu_post"
+  },
+  {
+    titulo: "Video 2",
+    img: "https://via.placeholder.com/300x450",
+    link: "https://t.me/tu_post"
+  }
 ];
-let rIndex = 0;
-const textElement = document.getElementById("rotating-text");
-function updateText() {
-    textElement.textContent = messages[rIndex];
-    rIndex = (rIndex + 1) % messages.length;
+
+// ordenar últimos (simula nuevo primero)
+const ultimos = [...data].reverse();
+
+// random
+const random = [...data].sort(() => 0.5 - Math.random());
+
+function render(lista, id) {
+  const contenedor = document.getElementById(id);
+  contenedor.innerHTML = "";
+
+  lista.forEach(item => {
+    contenedor.innerHTML += `
+      <div class="card" onclick="window.open('${item.link}','_blank')">
+        <img src="${item.img}" loading="lazy">
+        <div class="overlay">${item.titulo}</div>
+      </div>
+    `;
+  });
 }
-textElement.textContent = messages[0];
-setInterval(updateText, 3000);
+
+function buscar(texto) {
+  const filtrado = data.filter(x =>
+    x.titulo.toLowerCase().includes(texto.toLowerCase())
+  );
+  render(filtrado, "contenido");
+}
+
+// render inicial
+render(ultimos, "ultimos");
+render(random, "random");
+render(data, "contenido");
+
 </script>
 
 </body>
