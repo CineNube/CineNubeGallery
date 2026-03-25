@@ -112,7 +112,7 @@ header {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzoqrBSteUmKkx-qFvPb1FEgI6Ex_0dKbkoXIVMmmbO4t1qlbbOSZXf3UgixwdBH1by/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
 
 async function cargarDatos() {
   try {
@@ -168,7 +168,7 @@ function render(lista, id) {
     `;
   });
 }
-
+  
 function buscar(texto) {
   const filtrado = window.dataGlobal.filter(x =>
     (x.title || "").toLowerCase().includes(texto.toLowerCase())
