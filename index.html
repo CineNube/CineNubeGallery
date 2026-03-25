@@ -119,8 +119,7 @@ async function cargarDatos() {
   const res = await fetch(API_URL);
   const data = await res.json();
 
-  iniciar(data);
-}
+  iniciar(data.data); // si tu API devuelve { "data": [...] }
 
 function iniciar(data) {
 
