@@ -136,6 +136,44 @@ header {
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
 
+// Normaliza texto (quita tildes y minusculas)
+function normalizar(texto){
+  return texto.toString().toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"");
+}
+
+// Comprueba si la fecha es hoy
+function esHoy(fechaStr){
+  if(!fechaStr) return false;
+  const fecha = new Date(fechaStr);
+  if(isNaN(fecha)) return false;
+
+  const hoy = new Date();
+  return fecha.getFullYear() === hoy.getFullYear() &&
+         fecha.getMonth() === hoy.getMonth() &&
+         fecha.getDate() === hoy.getDate();
+}
+
+// Abre contenido Telegram con fallback
+function abrirContenido(link) {
+  if (!link) {
+    window.open("https://t.me/estrenos_online_25", "_blank");
+    return;
+  }
+
+  const match = link.match(/\/(\d+)$/);
+  if (match) {
+    const postId = match[1];
+    window.location.href = `tg://resolve?domain=estrenos_online_25&post=${postId}`;
+    setTimeout(() => {
+      window.open(`https://t.me/estrenos_online_25/${postId}`, "_blank");
+    }, 800);
+  } else {
+    window.open(link, "_blank");
+  }
+}
+
 async function cargarDatos() {
   try {
     const res = await fetch(API_URL);
@@ -148,18 +186,11 @@ async function cargarDatos() {
 
 function iniciar(data) {
 
-  const hoyStr = new Date().toISOString().split("T")[0];
-
-  const hoy = data.filter(x => (x.published_at || "").startsWith(hoyStr));
-
+  const hoy = data.filter(x => esHoy(x.published_at));
   const destacadas = data.filter(x => (x.destacada || "").toLowerCase() === "si").slice(0,20);
-
   const peliculas = data.filter(x => x.type === "movie").slice(0,40);
-
   const series = data.filter(x => x.type === "tv").slice(0,40);
-
   const random = [...data].sort(() => 0.5 - Math.random()).slice(0,30);
-
   const contenido = data.slice(0,80);
 
   render(hoy, "hoy");
@@ -170,29 +201,6 @@ function iniciar(data) {
   render(contenido, "contenido");
 
   window.dataGlobal = data;
-}
-
-function abrirContenido(link) {
-  if (!link) {
-    window.open("https://t.me/estrenos_online_25", "_blank");
-    return;
-  }
-
-  const match = link.match(/\/(\d+)$/);
-  if (match) {
-    const postId = match[1];
-
-    // intento app Telegram
-    window.location.href = `tg://resolve?domain=estrenos_online_25&post=${postId}`;
-
-    // fallback web
-    setTimeout(() => {
-      window.open(`https://t.me/estrenos_online_25/${postId}`, "_blank");
-    }, 800);
-
-  } else {
-    window.open(link, "_blank");
-  }
 }
 
 function render(lista, id) {
@@ -214,9 +222,12 @@ function render(lista, id) {
   });
 }
 
+// Buscador avanzado (ignorando tildes y errores ortográficos)
 function buscar(texto) {
+  if(!texto) return render(window.dataGlobal, "contenido");
+
   const filtrado = window.dataGlobal
-    .filter(x => (x.title || "").toLowerCase().includes(texto.toLowerCase()))
+    .filter(x => normalizar(x.title || "").includes(normalizar(texto)))
     .slice(0,50);
 
   render(filtrado, "contenido");
