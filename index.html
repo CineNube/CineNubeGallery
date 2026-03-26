@@ -162,37 +162,57 @@ header {
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
-const LOAD_STEP = 20; // items por scroll
+const LOAD_STEP = 20;
 
-// Normaliza texto (quita tildes y minusculas)
+// Normaliza texto
 function normalizar(texto){
   return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
 
-// Parsea fecha de cualquier formato Google Sheets
+// 🔥 NUEVA FUNCIÓN CORREGIDA
 function parseFecha(fechaStr){
   if(!fechaStr) return null;
-  // soporta dd/mm/yyyy o dd-mm-yyyy o ISO
-  let partes = fechaStr.split(/[\/\-]/);
-  if(partes.length >= 3){
-    const [d,m,a] = partes;
-    return new Date(`${a}-${m}-${d}`);
+
+  let fecha;
+
+  if(fechaStr.includes("-")){
+    const partes = fechaStr.split("-");
+    
+    // yyyy-mm-dd
+    if(partes[0].length === 4){
+      fecha = new Date(partes[0], partes[1]-1, partes[2]);
+    } 
+    // dd-mm-yyyy
+    else{
+      fecha = new Date(partes[2], partes[1]-1, partes[0]);
+    }
   }
-  const f = new Date(fechaStr);
-  return isNaN(f) ? null : f;
+  else if(fechaStr.includes("/")){
+    const partes = fechaStr.split("/");
+    fecha = new Date(partes[2], partes[1]-1, partes[0]);
+  }
+  else{
+    fecha = new Date(fechaStr);
+  }
+
+  return isNaN(fecha) ? null : fecha;
 }
 
-// Comprueba si la fecha es hoy
+// 🔥 NUEVA FUNCIÓN CORREGIDA
 function esHoy(fechaStr){
   const fecha = parseFecha(fechaStr);
   if(!fecha) return false;
+
   const hoy = new Date();
-  return fecha.getFullYear() === hoy.getFullYear() &&
-         fecha.getMonth() === hoy.getMonth() &&
-         fecha.getDate() === hoy.getDate();
+
+  return (
+    fecha.getFullYear() === hoy.getFullYear() &&
+    fecha.getMonth() === hoy.getMonth() &&
+    fecha.getDate() === hoy.getDate()
+  );
 }
 
-// Abre contenido Telegram con fallback
+// resto igual
 function abrirContenido(link) {
   if (!link) {
     window.open("https://t.me/estrenos_online_25", "_blank");
@@ -231,13 +251,13 @@ function iniciar(){
   
   for(const id in secciones){
     const grid = document.getElementById(id);
+    grid.innerHTML = "";
     grid.dataset.items = JSON.stringify(secciones[id]);
     grid.dataset.index = 0;
     renderSeccion(id);
   }
 }
 
-// Render parcial (LOAD_STEP)
 function renderSeccion(id){
   const grid = document.getElementById(id);
   let items = JSON.parse(grid.dataset.items);
@@ -270,7 +290,6 @@ function renderSeccion(id){
   grid.dataset.index = end;
 }
 
-// Scroll infinito
 window.addEventListener("scroll", ()=>{
   const bottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 150;
   if(bottom){
@@ -284,7 +303,6 @@ window.addEventListener("scroll", ()=>{
   }
 });
 
-// Buscador avanzado
 function buscar(texto){
   if(!texto) return iniciar();
   const filtrado = dataGlobal.filter(x=>normalizar(x.title||"").includes(normalizar(texto)));
