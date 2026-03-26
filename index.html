@@ -19,20 +19,9 @@ header {
   justify-content: space-between;
   align-items: center;
 }
-.logo {
-  font-size: 22px;
-  font-weight: bold;
-  color: red;
-}
-.search {
-  padding: 8px;
-  border-radius: 5px;
-  border: none;
-  width: 150px;
-}
-.section {
-  padding: 20px;
-}
+.logo { font-size: 22px; font-weight: bold; color: red; }
+.search { padding: 8px; border-radius: 5px; border: none; width: 150px; }
+.section { padding: 20px; }
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
@@ -45,14 +34,8 @@ header {
   border-radius: 10px;
   transition: 0.3s;
 }
-.card:hover {
-  transform: scale(1.06);
-}
-.card img {
-  width: 100%;
-  display: block;
-  border-radius: 10px;
-}
+.card:hover { transform: scale(1.06); }
+.card img { width: 100%; display: block; border-radius: 10px; }
 .overlay {
   position: absolute;
   bottom: 0;
@@ -89,20 +72,13 @@ header {
   color: white;
 }
 .badge.pago { background: red; }
-.social {
-  padding: 20px;
-  text-align: center;
-}
-.social a {
-  margin: 10px;
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
-}
+.social { padding: 20px; text-align: center; }
+.social a { margin: 10px; color: white; text-decoration: none; font-size: 18px; }
 </style>
 </head>
 
 <body>
+
 <header>
   <div class="logo">🔥 Mi Canal</div>
   <input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
@@ -144,54 +120,45 @@ header {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec?nocache=" + new Date().getTime();
 const LOAD_STEP = 20;
 
 // Normaliza texto
 function normalizar(texto){
-  return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+  return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
 
-// Parseo robusto de fecha
+// Parsea fecha cualquier formato
 function parseFecha(fechaStr){
   if(!fechaStr) return null;
-  fechaStr = fechaStr.toString().trim();
-  // YYYY-MM-DD
-  if(/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)){
-    return new Date(fechaStr);
-  }
-  // DD/MM/YYYY o DD-MM-YYYY
+  let f = new Date(fechaStr);
+  if(!isNaN(f)) return f;
   let partes = fechaStr.split(/[\/\-]/);
   if(partes.length===3){
-    let d=parseInt(partes[0],10);
-    let m=parseInt(partes[1],10)-1;
-    let y=parseInt(partes[2],10);
-    return new Date(y,m,d);
+    const [a,b,c] = partes;
+    if(a.length===4) return new Date(`${a}-${b}-${c}`);
+    return new Date(`${c}-${b}-${a}`);
   }
-  const f = new Date(fechaStr);
-  return isNaN(f)?null:f;
+  return null;
 }
 
-// Comprueba si la fecha es hoy
+// Comprueba si es hoy
 function esHoy(fechaStr){
-  const fecha = parseFecha(fechaStr);
-  if(!fecha) return false;
+  const f = parseFecha(fechaStr);
+  if(!f) return false;
   const hoy = new Date();
-  return fecha.getFullYear()===hoy.getFullYear() &&
-         fecha.getMonth()===hoy.getMonth() &&
-         fecha.getDate()===hoy.getDate();
+  return f.getFullYear()===hoy.getFullYear() &&
+         f.getMonth()===hoy.getMonth() &&
+         f.getDate()===hoy.getDate();
 }
 
-// Abre contenido Telegram con fallback
-function abrirContenido(link) {
-  if(!link){
-    window.open("https://t.me/estrenos_online_25","_blank");
-    return;
-  }
-  const match = link.match(/\/(\d+)\/?$/);
-  let postId = match ? match[1] : "";
-  if(postId){
-    window.location.href=`tg://resolve?domain=estrenos_online_25&post=${postId}`;
+// Abrir Telegram
+function abrirContenido(link){
+  if(!link){ window.open("https://t.me/estrenos_online_25","_blank"); return; }
+  const match = link.match(/\/(\d+)$/);
+  if(match){
+    const postId = match[1];
+    window.location.href = `tg://resolve?domain=estrenos_online_25&post=${postId}`;
     setTimeout(()=>window.open(`https://t.me/estrenos_online_25/${postId}`,"_blank"),800);
   } else {
     window.open(link,"_blank");
@@ -201,7 +168,7 @@ function abrirContenido(link) {
 let dataGlobal = [];
 async function cargarDatos(){
   try{
-    const res = await fetch(API_URL,{cache:"no-store"});
+    const res = await fetch(API_URL);
     dataGlobal = await res.json();
     iniciar();
   }catch(e){
@@ -210,20 +177,26 @@ async function cargarDatos(){
 }
 
 function iniciar(){
+  const hoyItems = dataGlobal.filter(x=>esHoy(x.published_at));
+  const destacadasItems = dataGlobal.filter(x=>(x.destacada||x.vote_average>=7.5));
+  const peliculasItems = dataGlobal.filter(x=>x.type==="movie");
+  const seriesItems = dataGlobal.filter(x=>x.type==="tv");
+  const randomItems = [...dataGlobal].sort(()=>0.5-Math.random());
+
   const secciones = {
-    hoy: dataGlobal.filter(x => esHoy(x.published_at)),
-    destacadas: dataGlobal.filter(x => normalizar(x.destacada) === "si"),
-    peliculas: dataGlobal.filter(x => x.type==="movie"),
-    series: dataGlobal.filter(x => x.type==="tv"),
-    random: [...dataGlobal].sort((a,b)=>parseFloat(b.vote_average||0)-parseFloat(a.vote_average||0)),
-    contenido: dataGlobal
+    hoy:hoyItems,
+    destacadas:destacadasItems,
+    peliculas:peliculasItems,
+    series:seriesItems,
+    random:randomItems,
+    contenido:dataGlobal
   };
 
   for(const id in secciones){
     const grid = document.getElementById(id);
     grid.dataset.items = JSON.stringify(secciones[id]);
     grid.dataset.index = 0;
-    grid.innerHTML = "";
+    grid.innerHTML="";
     renderSeccion(id);
   }
 }
@@ -232,7 +205,7 @@ function renderSeccion(id){
   const grid = document.getElementById(id);
   let items = JSON.parse(grid.dataset.items);
   let start = parseInt(grid.dataset.index);
-  let end = Math.min(start+LOAD_STEP, items.length);
+  let end = Math.min(start+LOAD_STEP,items.length);
   const fragment = document.createDocumentFragment();
 
   for(let i=start;i<end;i++){
@@ -246,6 +219,7 @@ function renderSeccion(id){
     const card = document.createElement("div");
     card.className="card";
     card.onclick=()=>abrirContenido(link);
+
     card.innerHTML=`
       <img src="${img}" loading="lazy">
       <div class="btn-ver">VER</div>
@@ -256,13 +230,12 @@ function renderSeccion(id){
   }
 
   grid.appendChild(fragment);
-  grid.dataset.index=end;
+  grid.dataset.index = end;
 }
 
-// Scroll infinito optimizado
+// Scroll infinito
 window.addEventListener("scroll",()=>{
-  const bottom = window.innerHeight+window.scrollY >= document.body.offsetHeight-150;
-  if(bottom){
+  if(window.innerHeight+window.scrollY>=document.body.offsetHeight-150){
     document.querySelectorAll(".grid").forEach(g=>{
       const items = JSON.parse(g.dataset.items);
       const index = parseInt(g.dataset.index);
@@ -271,7 +244,7 @@ window.addEventListener("scroll",()=>{
   }
 });
 
-// Buscador avanzado
+// Buscador
 function buscar(texto){
   if(!texto) return iniciar();
   const filtrado = dataGlobal.filter(x=>normalizar(x.title||"").includes(normalizar(texto)));
