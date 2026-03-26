@@ -89,7 +89,6 @@ header {
   color: white;
 }
 .badge.pago { background: red; }
-.badge.new { top: 35px; background: orange; }
 .social {
   padding: 20px;
   text-align: center;
@@ -100,23 +99,10 @@ header {
   text-decoration: none;
   font-size: 18px;
 }
-#visitas {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: #222;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  color: yellow;
-  font-weight: bold;
-  z-index: 999;
-}
 </style>
 </head>
 
 <body>
-
 <header>
   <div class="logo">🔥 Mi Canal</div>
   <input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
@@ -157,136 +143,149 @@ header {
   <a href="https://t.me/estrenos_online_25" target="_blank">Telegram</a>
 </div>
 
-<div id="visitas">👁 Visitas: 0</div>
-
 <script>
-const API_BASE = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
 const LOAD_STEP = 20;
 
-// ❌ Anti-caché
-function getAPI(){ return API_BASE + "?t=" + Date.now(); }
-
 // Normaliza texto
-function normalizar(t){ return (t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+function normalizar(texto){
+  return texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
 
-// Fecha PRO
-function parseFecha(f){
-  if(!f) return null;
-  if(f.includes("-")){
-    let p=f.split("-");
-    if(p[0].length===4) return new Date(p[0],p[1]-1,p[2]);
-    return new Date(p[2],p[1]-1,p[0]);
+// Parseo robusto de fecha
+function parseFecha(fechaStr){
+  if(!fechaStr) return null;
+  fechaStr = fechaStr.toString().trim();
+  // YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)){
+    return new Date(fechaStr);
   }
-  if(f.includes("/")){
-    let p=f.split("/");
-    return new Date(p[2],p[1]-1,p[0]);
+  // DD/MM/YYYY o DD-MM-YYYY
+  let partes = fechaStr.split(/[\/\-]/);
+  if(partes.length===3){
+    let d=parseInt(partes[0],10);
+    let m=parseInt(partes[1],10)-1;
+    let y=parseInt(partes[2],10);
+    return new Date(y,m,d);
   }
-  return new Date(f);
+  const f = new Date(fechaStr);
+  return isNaN(f)?null:f;
 }
 
-function esHoy(f){
-  let d=parseFecha(f);
-  if(!d) return false;
-  let h=new Date();
-  return d.getFullYear()==h.getFullYear() && d.getMonth()==h.getMonth() && d.getDate()==h.getDate();
+// Comprueba si la fecha es hoy
+function esHoy(fechaStr){
+  const fecha = parseFecha(fechaStr);
+  if(!fecha) return false;
+  const hoy = new Date();
+  return fecha.getFullYear()===hoy.getFullYear() &&
+         fecha.getMonth()===hoy.getMonth() &&
+         fecha.getDate()===hoy.getDate();
 }
 
-function esNuevo(f){
-  let d=parseFecha(f);
-  if(!d) return false;
-  return (Date.now()-d.getTime()) < 86400000;
+// Abre contenido Telegram con fallback
+function abrirContenido(link) {
+  if(!link){
+    window.open("https://t.me/estrenos_online_25","_blank");
+    return;
+  }
+  const match = link.match(/\/(\d+)\/?$/);
+  let postId = match ? match[1] : "";
+  if(postId){
+    window.location.href=`tg://resolve?domain=estrenos_online_25&post=${postId}`;
+    setTimeout(()=>window.open(`https://t.me/estrenos_online_25/${postId}`,"_blank"),800);
+  } else {
+    window.open(link,"_blank");
+  }
 }
 
-// Abrir Telegram PRO
-function abrir(link){
-  if(!link) return window.open("https://t.me/estrenos_online_25");
-  let m=link.match(/\/(\d+)/);
-  if(m){
-    let id=m[1];
-    window.location.href=`tg://resolve?domain=estrenos_online_25&post=${id}`;
-    setTimeout(()=>window.open(`https://t.me/estrenos_online_25/${id}`),800);
-  } else window.open(link);
-}
-
-let dataGlobal=[];
-let visitas=0;
-
-// Carga sin cache
-async function cargar(){
+let dataGlobal = [];
+async function cargarDatos(){
   try{
-    const res = await fetch(getAPI(), {cache:"no-store"});
+    const res = await fetch(API_URL,{cache:"no-store"});
     dataGlobal = await res.json();
-    dataGlobal.sort((a,b)=>parseFecha(b.published_at)-parseFecha(a.published_at));
     iniciar();
-    visitas++;
-    document.getElementById("visitas").textContent = "👁 Visitas: " + visitas;
-  }catch(e){ console.error("Error carga:", e);}
+  }catch(e){
+    document.body.innerHTML="<h2 style='text-align:center'>Error cargando contenido</h2>";
+  }
 }
 
-// Render principal
 function iniciar(){
-  pintar("hoy", dataGlobal.filter(x=>esHoy(x.published_at)));
-  pintar("destacadas", dataGlobal.filter(x=>(x.destacada||"").toLowerCase()=="si"));
-  pintar("peliculas", dataGlobal.filter(x=>x.type=="movie"));
-  pintar("series", dataGlobal.filter(x=>x.type=="tv"));
-  pintar("random", [...dataGlobal].sort(()=>0.5-Math.random()));
-  pintar("contenido", dataGlobal);
+  const secciones = {
+    hoy: dataGlobal.filter(x => esHoy(x.published_at)),
+    destacadas: dataGlobal.filter(x => normalizar(x.destacada) === "si"),
+    peliculas: dataGlobal.filter(x => x.type==="movie"),
+    series: dataGlobal.filter(x => x.type==="tv"),
+    random: [...dataGlobal].sort((a,b)=>parseFloat(b.vote_average||0)-parseFloat(a.vote_average||0)),
+    contenido: dataGlobal
+  };
+
+  for(const id in secciones){
+    const grid = document.getElementById(id);
+    grid.dataset.items = JSON.stringify(secciones[id]);
+    grid.dataset.index = 0;
+    grid.innerHTML = "";
+    renderSeccion(id);
+  }
 }
 
-function pintar(id, lista){
-  let cont=document.getElementById(id);
-  cont.innerHTML="";
-  lista.slice(0,LOAD_STEP).forEach(x=>cont.appendChild(crearCard(x)));
+function renderSeccion(id){
+  const grid = document.getElementById(id);
+  let items = JSON.parse(grid.dataset.items);
+  let start = parseInt(grid.dataset.index);
+  let end = Math.min(start+LOAD_STEP, items.length);
+  const fragment = document.createDocumentFragment();
+
+  for(let i=start;i<end;i++){
+    const item = items[i];
+    const titulo = item.title||"Sin título";
+    const img = item.poster||"https://via.placeholder.com/300x450";
+    const link = item.vip_post||"";
+    const tipo = (item.tipo_contenido||"gratis").toLowerCase();
+    const precio = item.precio_stars||0;
+
+    const card = document.createElement("div");
+    card.className="card";
+    card.onclick=()=>abrirContenido(link);
+    card.innerHTML=`
+      <img src="${img}" loading="lazy">
+      <div class="btn-ver">VER</div>
+      <div class="overlay">${titulo}</div>
+      <div class="badge ${tipo==='gratis'?'':'pago'}">${tipo==='gratis'?'Gratis':'💰 '+precio+'⭐'}</div>
+    `;
+    fragment.appendChild(card);
+  }
+
+  grid.appendChild(fragment);
+  grid.dataset.index=end;
 }
 
-function crearCard(x){
-  let d=document.createElement("div");
-  d.className="card";
-  d.onclick=()=>abrir(x.vip_post);
-  let tipo=(x.tipo_contenido||"gratis").toLowerCase();
-  let precio=x.precio_stars||0;
-  d.innerHTML=`
-    <img src="${x.poster||'https://via.placeholder.com/300x450'}" loading="lazy">
-    <div class="btn-ver">VER</div>
-    <div class="overlay">${x.title||''}</div>
-    <div class="badge ${tipo=='gratis'?'':'pago'}">${tipo=='gratis'?'Gratis':'💰 '+precio+'⭐'}</div>
-    ${esNuevo(x.published_at)?'<div class="badge new">🔥 Nuevo</div>':''}
-  `;
-  return d;
-}
-
-// Buscador avanzado
-function buscar(t){
-  if(!t) return iniciar();
-  let f=dataGlobal.filter(x=>normalizar(x.title||"").includes(normalizar(t)));
-  ["hoy","destacadas","peliculas","series","random","contenido"].forEach(id=>{
-    let c=document.getElementById(id);
-    c.innerHTML="";
-    f.slice(0,LOAD_STEP).forEach(x=>c.appendChild(crearCard(x)));
-  });
-}
-
-// Scroll infinito
-window.addEventListener("scroll", ()=>{
-  const bottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 150;
+// Scroll infinito optimizado
+window.addEventListener("scroll",()=>{
+  const bottom = window.innerHeight+window.scrollY >= document.body.offsetHeight-150;
   if(bottom){
     document.querySelectorAll(".grid").forEach(g=>{
-      let items = dataGlobal;
-      if(g.id!="random") items = JSON.parse(g.dataset.items||"[]");
-      let index = parseInt(g.dataset.index||0);
-      if(index < items.length){
-        items.slice(index,index+LOAD_STEP).forEach(x=>g.appendChild(crearCard(x)));
-        g.dataset.index = index+LOAD_STEP;
-      }
+      const items = JSON.parse(g.dataset.items);
+      const index = parseInt(g.dataset.index);
+      if(index<items.length) renderSeccion(g.id);
     });
   }
 });
 
-// Auto-refresh cada 60s
-setInterval(cargar,60000);
+// Buscador avanzado
+function buscar(texto){
+  if(!texto) return iniciar();
+  const filtrado = dataGlobal.filter(x=>normalizar(x.title||"").includes(normalizar(texto)));
+  const ids=["hoy","destacadas","peliculas","series","random","contenido"];
+  ids.forEach(id=>{
+    const grid=document.getElementById(id);
+    grid.innerHTML="";
+    grid.dataset.items=JSON.stringify(filtrado);
+    grid.dataset.index=0;
+    renderSeccion(id);
+  });
+}
 
-// Init
-cargar();
+cargarDatos();
 </script>
 </body>
 </html>
