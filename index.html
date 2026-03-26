@@ -12,7 +12,6 @@ body {
   background: #0f0f0f;
   color: white;
 }
-
 header {
   background: black;
   padding: 15px;
@@ -20,54 +19,40 @@ header {
   justify-content: space-between;
   align-items: center;
 }
-
 .logo {
   font-size: 22px;
   font-weight: bold;
   color: red;
 }
-
 .search {
   padding: 8px;
   border-radius: 5px;
   border: none;
   width: 150px;
 }
-
 .section {
   padding: 20px;
 }
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
   gap: 12px;
 }
-
 .card {
   position: relative;
   cursor: pointer;
   overflow: hidden;
   border-radius: 10px;
   transition: 0.3s;
-  animation: fadeIn 0.4s ease;
 }
-
-@keyframes fadeIn {
-  from {opacity:0; transform:scale(0.95);}
-  to {opacity:1; transform:scale(1);}
-}
-
 .card:hover {
   transform: scale(1.06);
 }
-
 .card img {
   width: 100%;
   display: block;
   border-radius: 10px;
 }
-
 .overlay {
   position: absolute;
   bottom: 0;
@@ -75,39 +60,57 @@ header {
   background: linear-gradient(transparent, rgba(0,0,0,0.9));
   padding: 10px;
   font-size: 12px;
+  color: white;
   text-align: center;
 }
-
 .btn-ver {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: red;
-  padding: 8px 16px;
+  padding: 6px 12px;
   font-weight: bold;
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: white;
+  text-align: center;
   pointer-events: none;
 }
-
 .badge {
   position: absolute;
   top: 10px;
   left: 10px;
   background: green;
-  padding: 4px 7px;
+  padding: 3px 6px;
   font-size: 12px;
   border-radius: 5px;
   font-weight: bold;
+  color: white;
 }
-
 .badge.pago { background: red; }
-.badge.new { background: orange; right:10px; left:auto; }
-
+.badge.new { top: 35px; background: orange; }
 .social {
   padding: 20px;
   text-align: center;
+}
+.social a {
+  margin: 10px;
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+}
+#visitas {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #222;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: yellow;
+  font-weight: bold;
+  z-index: 999;
 }
 </style>
 </head>
@@ -119,41 +122,65 @@ header {
   <input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
 </header>
 
-<div class="section"><h2>🚀 Hoy</h2><div id="hoy" class="grid"></div></div>
-<div class="section"><h2>⭐ Destacadas</h2><div id="destacadas" class="grid"></div></div>
-<div class="section"><h2>🎬 Películas</h2><div id="peliculas" class="grid"></div></div>
-<div class="section"><h2>📺 Series</h2><div id="series" class="grid"></div></div>
-<div class="section"><h2>🔥 Recomendado</h2><div id="random" class="grid"></div></div>
-<div class="section"><h2>📁 Todo</h2><div id="contenido" class="grid"></div></div>
+<div class="section">
+  <h2>🚀 Hoy</h2>
+  <div id="hoy" class="grid" data-index="0"></div>
+</div>
+
+<div class="section">
+  <h2>⭐ Destacadas</h2>
+  <div id="destacadas" class="grid" data-index="0"></div>
+</div>
+
+<div class="section">
+  <h2>🎬 Películas</h2>
+  <div id="peliculas" class="grid" data-index="0"></div>
+</div>
+
+<div class="section">
+  <h2>📺 Series</h2>
+  <div id="series" class="grid" data-index="0"></div>
+</div>
+
+<div class="section">
+  <h2>🔥 Recomendado</h2>
+  <div id="random" class="grid" data-index="0"></div>
+</div>
+
+<div class="section">
+  <h2>📁 Todo</h2>
+  <div id="contenido" class="grid" data-index="0"></div>
+</div>
 
 <div class="social">
   <h3>Sígueme</h3>
   <a href="https://t.me/estrenos_online_25" target="_blank">Telegram</a>
 </div>
 
+<div id="visitas">👁 Visitas: 0</div>
+
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
+const API_BASE = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec";
 const LOAD_STEP = 20;
 
-function normalizar(t){
-  return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
+// ❌ Anti-caché
+function getAPI(){ return API_BASE + "?t=" + Date.now(); }
 
-// FECHA PRO
+// Normaliza texto
+function normalizar(t){ return (t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+
+// Fecha PRO
 function parseFecha(f){
   if(!f) return null;
-
   if(f.includes("-")){
     let p=f.split("-");
     if(p[0].length===4) return new Date(p[0],p[1]-1,p[2]);
     return new Date(p[2],p[1]-1,p[0]);
   }
-
   if(f.includes("/")){
     let p=f.split("/");
     return new Date(p[2],p[1]-1,p[0]);
   }
-
   return new Date(f);
 }
 
@@ -161,18 +188,16 @@ function esHoy(f){
   let d=parseFecha(f);
   if(!d) return false;
   let h=new Date();
-  return d.getFullYear()==h.getFullYear() &&
-         d.getMonth()==h.getMonth() &&
-         d.getDate()==h.getDate();
+  return d.getFullYear()==h.getFullYear() && d.getMonth()==h.getMonth() && d.getDate()==h.getDate();
 }
 
-// NUEVO 24H
 function esNuevo(f){
   let d=parseFecha(f);
   if(!d) return false;
   return (Date.now()-d.getTime()) < 86400000;
 }
 
+// Abrir Telegram PRO
 function abrir(link){
   if(!link) return window.open("https://t.me/estrenos_online_25");
   let m=link.match(/\/(\d+)/);
@@ -184,17 +209,21 @@ function abrir(link){
 }
 
 let dataGlobal=[];
+let visitas=0;
 
+// Carga sin cache
 async function cargar(){
-  let r=await fetch(API_URL);
-  dataGlobal=await r.json();
-
-  // ordenar por fecha real
-  dataGlobal.sort((a,b)=>parseFecha(b.published_at)-parseFecha(a.published_at));
-
-  iniciar();
+  try{
+    const res = await fetch(getAPI(), {cache:"no-store"});
+    dataGlobal = await res.json();
+    dataGlobal.sort((a,b)=>parseFecha(b.published_at)-parseFecha(a.published_at));
+    iniciar();
+    visitas++;
+    document.getElementById("visitas").textContent = "👁 Visitas: " + visitas;
+  }catch(e){ console.error("Error carga:", e);}
 }
 
+// Render principal
 function iniciar(){
   pintar("hoy", dataGlobal.filter(x=>esHoy(x.published_at)));
   pintar("destacadas", dataGlobal.filter(x=>(x.destacada||"").toLowerCase()=="si"));
@@ -207,30 +236,26 @@ function iniciar(){
 function pintar(id, lista){
   let cont=document.getElementById(id);
   cont.innerHTML="";
-  lista.slice(0,LOAD_STEP).forEach(x=>{
-    cont.appendChild(crearCard(x));
-  });
+  lista.slice(0,LOAD_STEP).forEach(x=>cont.appendChild(crearCard(x)));
 }
 
 function crearCard(x){
   let d=document.createElement("div");
   d.className="card";
   d.onclick=()=>abrir(x.vip_post);
-
   let tipo=(x.tipo_contenido||"gratis").toLowerCase();
   let precio=x.precio_stars||0;
-
   d.innerHTML=`
-    <img src="${x.poster||""}" loading="lazy">
+    <img src="${x.poster||'https://via.placeholder.com/300x450'}" loading="lazy">
     <div class="btn-ver">VER</div>
-    <div class="overlay">${x.title||""}</div>
+    <div class="overlay">${x.title||''}</div>
     <div class="badge ${tipo=='gratis'?'':'pago'}">${tipo=='gratis'?'Gratis':'💰 '+precio+'⭐'}</div>
     ${esNuevo(x.published_at)?'<div class="badge new">🔥 Nuevo</div>':''}
   `;
   return d;
 }
 
-// BUSCADOR PRO
+// Buscador avanzado
 function buscar(t){
   if(!t) return iniciar();
   let f=dataGlobal.filter(x=>normalizar(x.title||"").includes(normalizar(t)));
@@ -241,6 +266,26 @@ function buscar(t){
   });
 }
 
+// Scroll infinito
+window.addEventListener("scroll", ()=>{
+  const bottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 150;
+  if(bottom){
+    document.querySelectorAll(".grid").forEach(g=>{
+      let items = dataGlobal;
+      if(g.id!="random") items = JSON.parse(g.dataset.items||"[]");
+      let index = parseInt(g.dataset.index||0);
+      if(index < items.length){
+        items.slice(index,index+LOAD_STEP).forEach(x=>g.appendChild(crearCard(x)));
+        g.dataset.index = index+LOAD_STEP;
+      }
+    });
+  }
+});
+
+// Auto-refresh cada 60s
+setInterval(cargar,60000);
+
+// Init
 cargar();
 </script>
 </body>
