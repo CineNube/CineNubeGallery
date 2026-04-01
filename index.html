@@ -86,7 +86,13 @@ function esHoy(f){let d=parseFecha(f);if(!d)return false;return d.toDateString()
 
 function abrirContenido(link,tipo){
 if(tipo!=="gratis"){
-if(!confirm("🔒 Contenido VIP\n\nDebes pagar en Telegram para desbloquear.\n\n¿Continuar?")){
+let mensaje = "🔒 CONTENIDO VIP\n\n";
+mensaje += "🔥 Este contenido es PREMIUM y limitado\n";
+mensaje += "💎 Solo usuarios VIP pueden acceder\n\n";
+mensaje += "⚡ Accede ahora antes de que lo quiten\n\n";
+mensaje += "👉 Pulsa OK para desbloquear en Telegram";
+
+if(!confirm(mensaje)){
 return;
 }
 }
@@ -105,7 +111,6 @@ async function cargarDatos(){
 let res=await fetch(API_URL);
 dataGlobal=await res.json();
 
-// eliminar duplicados
 dataGlobal = Object.values(dataGlobal.reduce((acc,item)=>{
 acc[item.title]=item;
 return acc;
