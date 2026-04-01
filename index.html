@@ -6,180 +6,180 @@
 <title>Mi Canal Premium</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
-}
-header {
-  background: black;
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.logo { font-size: 22px; font-weight: bold; color: red; cursor:pointer; }
-.search { padding: 8px; border-radius: 5px; border: none; width: 150px; }
-.section { padding: 20px; }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
-  gap: 12px;
-}
-.card {
-  position: relative;
-  cursor: pointer;
-  overflow: hidden;
-  border-radius: 10px;
-  transition: 0.3s;
-}
-.card:hover { transform: scale(1.06); }
-.card img { width: 100%; border-radius: 10px; }
+body {margin:0;font-family:Arial;background:#0f0f0f;color:white;}
+header {background:black;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+.logo {font-size:22px;font-weight:bold;color:red;cursor:pointer;}
+.search {padding:8px;border-radius:5px;border:none;width:150px;}
+
+.section {padding:20px;}
+.grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+
+.card {position:relative;cursor:pointer;overflow:hidden;border-radius:10px;transition:.3s;}
+.card:hover {transform:scale(1.08);}
+.card img {width:100%;border-radius:10px;}
 
 .overlay {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  background: linear-gradient(transparent, rgba(0,0,0,0.9));
-  padding: 10px;
-  font-size: 12px;
-  text-align: center;
+position:absolute;bottom:0;width:100%;
+background:linear-gradient(transparent,rgba(0,0,0,0.9));
+padding:10px;font-size:12px;text-align:center;
 }
 
 .btn-ver {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: red;
-  padding: 6px 12px;
-  font-weight: bold;
-  border-radius: 6px;
-  font-size: 14px;
-  pointer-events: none;
+position:absolute;top:50%;left:50%;
+transform:translate(-50%,-50%);
+background:red;padding:6px 12px;
+font-weight:bold;border-radius:6px;
 }
 
 .badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: green;
-  padding: 3px 6px;
-  font-size: 12px;
-  border-radius: 5px;
-  font-weight: bold;
+position:absolute;top:10px;left:10px;
+background:green;padding:3px 6px;
+font-size:12px;border-radius:5px;
 }
-.badge.pago { background: red; }
+.badge.pago {background:red;}
 
-.social { padding: 20px; text-align: center; }
-.social a { margin: 10px; color: white; text-decoration: none; font-size: 18px; }
+.social {padding:20px;text-align:center;}
+.social a {margin:10px;color:white;text-decoration:none;font-size:18px;}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="logo" onclick="resetBusqueda()">🔥 Mi Canal</div>
-  <input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
+<div class="logo" onclick="resetBusqueda()">🔥 Mi Canal</div>
+<input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
 </header>
 
-<div class="section"><h2>🚀 Hoy</h2><div id="hoy" class="grid"></div></div>
-<div class="section"><h2>⭐ Destacadas</h2><div id="destacadas" class="grid"></div></div>
-<div class="section"><h2>🎬 Películas</h2><div id="peliculas" class="grid"></div></div>
-<div class="section"><h2>📺 Series</h2><div id="series" class="grid"></div></div>
-<div class="section"><h2>🔥 Recomendado</h2><div id="random" class="grid"></div></div>
-<div class="section"><h2>📁 Todo</h2><div id="contenido" class="grid"></div></div>
+<div class="section"><h2>🚀 Hoy</h2><div id="hoy" class="grid" data-index="0"></div></div>
+<div class="section"><h2>🔥 Trending</h2><div id="trending" class="grid" data-index="0"></div></div>
+<div class="section"><h2>⭐ Destacadas</h2><div id="destacadas" class="grid" data-index="0"></div></div>
+<div class="section"><h2>🎬 Películas</h2><div id="peliculas" class="grid" data-index="0"></div></div>
+<div class="section"><h2>📺 Series</h2><div id="series" class="grid" data-index="0"></div></div>
+<div class="section"><h2>🔥 Recomendado</h2><div id="random" class="grid" data-index="0"></div></div>
+<div class="section"><h2>📁 Todo</h2><div id="contenido" class="grid" data-index="0"></div></div>
 
 <div class="social">
-  <h3>Sígueme</h3>
-  <a href="https://t.me/estrenos_online_25" target="_blank">Telegram</a>
-  <a href="https://www.instagram.com/blackscreencine" target="_blank">Instagram</a>
+<h3>Sígueme</h3>
+<a href="https://t.me/estrenos_online_25" target="_blank">Telegram</a>
+<a href="https://www.instagram.com/blackscreencine" target="_blank">Instagram</a>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec?nocache=" + Date.now();
-const LOAD_STEP = 20;
+const API_URL="https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec?nocache="+Date.now();
+const LOAD_STEP=20;
 
 function normalizar(t){return (t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
-
-function parseFecha(f){
-  if(!f) return null;
-  let d=new Date(f);
-  return isNaN(d)?null:d;
-}
-
-function esHoy(f){
-  let d=parseFecha(f);
-  if(!d) return false;
-  let h=new Date();
-  return d.toDateString()===h.toDateString();
-}
+function parseFecha(f){let d=new Date(f);return isNaN(d)?null:d;}
+function esHoy(f){let d=parseFecha(f);if(!d)return false;return d.toDateString()===new Date().toDateString();}
 
 function abrirContenido(link){
-  if(!link) return window.open("https://t.me/estrenos_online_25","_blank");
-  let id=link.match(/\/(\d+)$/);
-  if(id){
-    window.location.href=`tg://resolve?domain=estrenos_online_25&post=${id[1]}`;
-    setTimeout(()=>window.open(link,"_blank"),800);
-  }else window.open(link,"_blank");
+if(!link) return window.open("https://t.me/estrenos_online_25","_blank");
+let id=link.match(/\/(\d+)$/);
+if(id){
+window.location.href=`tg://resolve?domain=estrenos_online_25&post=${id[1]}`;
+setTimeout(()=>window.open(link,"_blank"),800);
+}else window.open(link,"_blank");
 }
 
 let dataGlobal=[];
 
 async function cargarDatos(){
-  let res=await fetch(API_URL);
-  dataGlobal=await res.json();
-  iniciar();
+let res=await fetch(API_URL);
+dataGlobal=await res.json();
+
+// eliminar duplicados por título
+dataGlobal = Object.values(
+  dataGlobal.reduce((acc,item)=>{
+    acc[item.title]=item;
+    return acc;
+  },{})
+);
+
+iniciar();
 }
 
 function getSecciones(data){
-  return {
-    hoy:data.filter(x=>esHoy(x.published_at)),
-    destacadas:data.filter(x=>x.destacada||x.vote_average>=7.5),
-    peliculas:data.filter(x=>x.type==="movie"),
-    series:data.filter(x=>x.type==="tv"),
-    random:[...data].sort(()=>0.5-Math.random()),
-    contenido:data
-  };
+return {
+hoy:data.filter(x=>esHoy(x.published_at)),
+trending:[...data].sort((a,b)=>(b.popularity||0)-(a.popularity||0)).slice(0,50),
+destacadas:data.filter(x=>x.destacada||x.vote_average>=7.5),
+peliculas:data.filter(x=>x.type==="movie"),
+series:data.filter(x=>x.type==="tv"),
+random:[...data].sort(()=>0.5-Math.random()),
+contenido:data
+};
 }
 
-function pintar(id,items){
-  let grid=document.getElementById(id);
-  grid.innerHTML="";
-  items.slice(0,LOAD_STEP).forEach(item=>{
-    let card=document.createElement("div");
-    card.className="card";
-    card.onclick=()=>abrirContenido(item.vip_post);
-    card.innerHTML=`
-      <img src="${item.poster||''}">
-      <div class="btn-ver">VER</div>
-      <div class="overlay">${item.title||''}</div>
-      <div class="badge ${item.tipo_contenido==='gratis'?'':'pago'}">
-        ${item.tipo_contenido==='gratis'?'Gratis':'💰 '+item.precio_stars+'⭐'}
-      </div>`;
-    grid.appendChild(card);
-  });
+function renderSeccion(id){
+let grid=document.getElementById(id);
+let items=JSON.parse(grid.dataset.items);
+let index=parseInt(grid.dataset.index);
+
+let end=Math.min(index+LOAD_STEP,items.length);
+
+for(let i=index;i<end;i++){
+let item=items[i];
+
+let card=document.createElement("div");
+card.className="card";
+card.onclick=()=>abrirContenido(item.vip_post);
+
+card.innerHTML=`
+<img src="${item.poster||''}">
+<div class="btn-ver">VER</div>
+<div class="overlay">${item.title||''}</div>
+<div class="badge ${item.tipo_contenido==='gratis'?'':'pago'}">
+${item.tipo_contenido==='gratis'?'Gratis':'💰 '+item.precio_stars+'⭐'}
+</div>`;
+
+grid.appendChild(card);
+}
+
+grid.dataset.index=end;
 }
 
 function iniciar(){
-  let sec=getSecciones(dataGlobal);
-  for(let id in sec) pintar(id,sec[id]);
+let sec=getSecciones(dataGlobal);
+
+for(let id in sec){
+let grid=document.getElementById(id);
+grid.innerHTML="";
+grid.dataset.items=JSON.stringify(sec[id]);
+grid.dataset.index=0;
+renderSeccion(id);
+}
 }
 
 function buscar(txt){
-  if(!txt) return iniciar();
+if(!txt) return iniciar();
 
-  let f=dataGlobal.filter(x=>normalizar(x.title).includes(normalizar(txt)));
-  let sec=getSecciones(f);
+let f=dataGlobal.filter(x=>normalizar(x.title).includes(normalizar(txt)));
+let sec=getSecciones(f);
 
-  for(let id in sec) pintar(id,sec[id]);
+for(let id in sec){
+let grid=document.getElementById(id);
+grid.innerHTML="";
+grid.dataset.items=JSON.stringify(sec[id]);
+grid.dataset.index=0;
+renderSeccion(id);
+}
 }
 
 function resetBusqueda(){
-  document.querySelector(".search").value="";
-  iniciar();
+document.querySelector(".search").value="";
+iniciar();
 }
+
+// scroll infinito real
+window.addEventListener("scroll",()=>{
+if(window.innerHeight+window.scrollY>=document.body.offsetHeight-100){
+document.querySelectorAll(".grid").forEach(g=>{
+let items=JSON.parse(g.dataset.items);
+let index=parseInt(g.dataset.index);
+if(index<items.length) renderSeccion(g.id);
+});
+}
+});
 
 cargarDatos();
 </script>
