@@ -84,18 +84,33 @@ function normalizar(t){return (t||"").toLowerCase().normalize("NFD").replace(/[\
 function parseFecha(f){let d=new Date(f);return isNaN(d)?null:d;}
 function esHoy(f){let d=parseFecha(f);if(!d)return false;return d.toDateString()===new Date().toDateString();}
 
-function abrirContenido(link,tipo){
+// 🔥 MODO DIOS → MENSAJE DINÁMICO
+function abrirContenido(link,tipo,precio,pop){
+
 if(tipo!=="gratis"){
+
 let mensaje = "🔒 CONTENIDO VIP\n\n";
-mensaje += "🔥 Este contenido es PREMIUM y limitado\n";
-mensaje += "💎 Solo usuarios VIP pueden acceder\n\n";
-mensaje += "⚡ Accede ahora antes de que lo quiten\n\n";
-mensaje += "👉 Pulsa OK para desbloquear en Telegram";
+
+if(pop > 150){
+mensaje += "🔥 MUY DEMANDADO AHORA\n";
+}
+
+if(precio <= 10){
+mensaje += "💸 PRECIO BAJO SOLO POR HOY\n";
+}else if(precio <= 25){
+mensaje += "⭐ MUY RECOMENDADO POR USUARIOS\n";
+}else{
+mensaje += "💎 CONTENIDO PREMIUM TOP\n";
+}
+
+mensaje += "\n⚡ Acceso inmediato en Telegram\n";
+mensaje += "👉 Pulsa OK para desbloquear";
 
 if(!confirm(mensaje)){
 return;
 }
 }
+
 if(!link) return window.open("https://t.me/estrenos_online_25","_blank");
 
 let id=link.match(/\/(\d+)$/);
@@ -145,7 +160,7 @@ let item=items[i];
 
 let card=document.createElement("div");
 card.className="card "+(item.tipo_contenido!=="gratis"?"vipGlow":"");
-card.onclick=()=>abrirContenido(item.vip_post,item.tipo_contenido);
+card.onclick=()=>abrirContenido(item.vip_post,item.tipo_contenido,item.precio_stars,item.popularity);
 
 card.innerHTML=`
 <img src="${item.poster||''}">
