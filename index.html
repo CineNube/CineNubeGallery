@@ -65,7 +65,7 @@ box-shadow:0 0 12px rgba(255,0,0,0.7);
 <div class="section"><h2>🎬 Películas</h2><div id="peliculas" class="grid" data-index="0"></div></div>
 <div class="section"><h2>📺 Series</h2><div id="series" class="grid" data-index="0"></div></div>
 
-<!-- ocultas pero funcionando -->
+<!-- ocultas -->
 <div style="display:none"><div id="random" class="grid"></div></div>
 <div style="display:none"><div id="contenido" class="grid"></div></div>
 
@@ -97,21 +97,21 @@ async function cargarDatos(){
 let res=await fetch(API_URL);
 dataGlobal=await res.json();
 
-// eliminar duplicados
+// quitar duplicados globales
 dataGlobal=Object.values(dataGlobal.reduce((acc,item)=>{
 acc[item.title]=item;return acc;
 },{}));
 
 iniciar();
 
-// 🔥 actualización automática estilo plataforma
-setInterval(actualizarDinamico, 300000); // cada 5 min
+// actualización automática
+setInterval(actualizarDinamico, 300000);
 }
 
 function getSecciones(data){
 
-let usados = new Set();
 function unicos(lista){
+let usados = new Set();
 return lista.filter(x=>{
 if(usados.has(x.title)) return false;
 usados.add(x.title);
@@ -126,7 +126,7 @@ hoy = [...data].sort((a,b)=> new Date(b.published_at)-new Date(a.published_at)).
 }
 hoy = unicos(hoy);
 
-// TRENDING dinámico
+// TRENDING
 let trending = unicos(
 [...data]
 .sort((a,b)=>(b.popularity||0)-(a.popularity||0))
@@ -134,7 +134,7 @@ let trending = unicos(
 .sort(()=>0.5-Math.random())
 );
 
-// VIP (optimizado dinero + interés)
+// VIP
 let topventas = unicos(
 [...data]
 .filter(x=>x.tipo_contenido!=="gratis")
@@ -150,12 +150,19 @@ let destacadas = unicos(
 data.filter(x=>x.destacada || x.vote_average>=7.5)
 );
 
-// PELÍCULAS / SERIES
-let peliculas = unicos(data.filter(x=>x.type==="movie"));
-let series = unicos(data.filter(x=>x.type==="tv"));
+// PELÍCULAS
+let peliculas = unicos(
+data.filter(x=>x.type && x.type.toLowerCase()==="movie")
+);
 
-// ocultos pero útiles
+// SERIES (ARREGLADO)
+let series = unicos(
+data.filter(x=>x.type && x.type.toLowerCase()==="tv")
+);
+
+// RANDOM
 let random = unicos([...data].sort(()=>0.5-Math.random()));
+
 let contenido = data;
 
 return {hoy,trending,topventas,destacadas,peliculas,series,random,contenido};
@@ -200,7 +207,7 @@ renderSeccion(id);
 }
 }
 
-// 🔥 refresco automático solo de lo dinámico
+// refresco automático
 function actualizarDinamico(){
 let sec=getSecciones(dataGlobal);
 
