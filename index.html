@@ -42,9 +42,6 @@ font-weight:bold;
 .vipGlow {
 box-shadow:0 0 12px rgba(255,0,0,0.7);
 }
-
-.social {padding:20px;text-align:center;}
-.social a {margin:10px;color:white;text-decoration:none;font-size:18px;}
 </style>
 </head>
 
@@ -62,19 +59,15 @@ box-shadow:0 0 12px rgba(255,0,0,0.7);
 </div>
 
 <div class="section"><h2>🚀 Hoy</h2><div id="hoy" class="grid" data-index="0"></div></div>
-<div class="section"><h2>🔥 Trending</h2><div id="trending" class="grid" data-index="0"></div></div>
-<div class="section"><h2>💰 Más vendidos</h2><div id="topventas" class="grid" data-index="0"></div></div>
-<div class="section"><h2>⭐ Destacadas</h2><div id="destacadas" class="grid" data-index="0"></div></div>
+<div class="section"><h2>🔥 Lo más visto</h2><div id="trending" class="grid" data-index="0"></div></div>
+<div class="section"><h2>💎 Solo VIP</h2><div id="topventas" class="grid" data-index="0"></div></div>
+<div class="section"><h2>⭐ Top calidad</h2><div id="destacadas" class="grid" data-index="0"></div></div>
 <div class="section"><h2>🎬 Películas</h2><div id="peliculas" class="grid" data-index="0"></div></div>
 <div class="section"><h2>📺 Series</h2><div id="series" class="grid" data-index="0"></div></div>
-<div class="section"><h2>🔥 Recomendado</h2><div id="random" class="grid" data-index="0"></div></div>
-<div class="section"><h2>📁 Todo</h2><div id="contenido" class="grid" data-index="0"></div></div>
 
-<div class="social">
-<h3>Sígueme</h3>
-<a href="https://t.me/estrenos_online_25" target="_blank">Telegram</a>
-<a href="https://www.instagram.com/blackscreencine" target="_blank">Instagram</a>
-</div>
+<!-- ocultas pero funcionando -->
+<div style="display:none"><div id="random" class="grid"></div></div>
+<div style="display:none"><div id="contenido" class="grid"></div></div>
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec?nocache="+Date.now();
@@ -87,10 +80,10 @@ function esHoy(f){let d=parseFecha(f);if(!d)return false;return d.toDateString()
 function abrirContenido(link,tipo,precio,pop){
 if(tipo!=="gratis"){
 let mensaje="🔒 CONTENIDO VIP\n\n";
-if(pop>150) mensaje+="🔥 MUY DEMANDADO AHORA\n";
-if(precio<=10) mensaje+="💸 PRECIO BAJO SOLO POR HOY\n";
-else if(precio<=25) mensaje+="⭐ MUY RECOMENDADO\n";
-else mensaje+="💎 PREMIUM TOP\n";
+if(pop>150) mensaje+="🔥 MUY DEMANDADO\n";
+if(precio<=10) mensaje+="💸 PRECIO BAJO\n";
+else if(precio<=25) mensaje+="⭐ RECOMENDADO\n";
+else mensaje+="💎 PREMIUM\n";
 mensaje+="\n⚡ Acceso en Telegram";
 if(!confirm(mensaje)) return;
 }
@@ -103,38 +96,75 @@ let dataGlobal=[];
 async function cargarDatos(){
 let res=await fetch(API_URL);
 dataGlobal=await res.json();
-dataGlobal=Object.values(dataGlobal.reduce((acc,item)=>{acc[item.title]=item;return acc;},{}));
+
+// eliminar duplicados
+dataGlobal=Object.values(dataGlobal.reduce((acc,item)=>{
+acc[item.title]=item;return acc;
+},{}));
+
 iniciar();
+
+// 🔥 actualización automática estilo plataforma
+setInterval(actualizarDinamico, 300000); // cada 5 min
 }
 
 function getSecciones(data){
-return {
-hoy:data.filter(x=>esHoy(x.published_at)).length
-  ? data.filter(x=>esHoy(x.published_at))
-  : [...data].sort((a,b)=> new Date(b.published_at)-new Date(a.published_at)).slice(0,20),
 
-trending:[...data].sort((a,b)=>(b.popularity||0)-(a.popularity||0)),
+let usados = new Set();
+function unicos(lista){
+return lista.filter(x=>{
+if(usados.has(x.title)) return false;
+usados.add(x.title);
+return true;
+});
+}
 
-topventas:[...data]
-  .filter(x=>x.tipo_contenido!=="gratis")
-  .sort((a,b)=>(b.popularity||0)*(b.precio_stars||1)-(a.popularity||0)*(a.precio_stars||1)),
+// HOY
+let hoy = data.filter(x=>esHoy(x.published_at));
+if(!hoy.length){
+hoy = [...data].sort((a,b)=> new Date(b.published_at)-new Date(a.published_at)).slice(0,20);
+}
+hoy = unicos(hoy);
 
-destacadas:data.filter(x=>x.destacada||x.vote_average>=7.5),
+// TRENDING dinámico
+let trending = unicos(
+[...data]
+.sort((a,b)=>(b.popularity||0)-(a.popularity||0))
+.slice(0,50)
+.sort(()=>0.5-Math.random())
+);
 
-peliculas:data.filter(x=>x.type==="movie"),
+// VIP (optimizado dinero + interés)
+let topventas = unicos(
+[...data]
+.filter(x=>x.tipo_contenido!=="gratis")
+.sort((a,b)=>{
+let scoreA=(a.popularity||0)*0.7+(a.precio_stars||0)*0.3;
+let scoreB=(b.popularity||0)*0.7+(b.precio_stars||0)*0.3;
+return scoreB-scoreA;
+})
+);
 
-series:data.filter(x=>x.type==="tv"),
+// DESTACADAS
+let destacadas = unicos(
+data.filter(x=>x.destacada || x.vote_average>=7.5)
+);
 
-random:[...data].sort(()=>0.5-Math.random()),
+// PELÍCULAS / SERIES
+let peliculas = unicos(data.filter(x=>x.type==="movie"));
+let series = unicos(data.filter(x=>x.type==="tv"));
 
-contenido:data
-};
+// ocultos pero útiles
+let random = unicos([...data].sort(()=>0.5-Math.random()));
+let contenido = data;
+
+return {hoy,trending,topventas,destacadas,peliculas,series,random,contenido};
 }
 
 function renderSeccion(id){
 let grid=document.getElementById(id);
-let items=JSON.parse(grid.dataset.items);
-let index=parseInt(grid.dataset.index);
+let items=JSON.parse(grid.dataset.items || "[]");
+let index=parseInt(grid.dataset.index || 0);
 let end=Math.min(index+LOAD_STEP,items.length);
 
 for(let i=index;i<end;i++){
@@ -162,11 +192,26 @@ function iniciar(){
 let sec=getSecciones(dataGlobal);
 for(let id in sec){
 let grid=document.getElementById(id);
+if(!grid) continue;
 grid.innerHTML="";
 grid.dataset.items=JSON.stringify(sec[id]);
 grid.dataset.index=0;
 renderSeccion(id);
 }
+}
+
+// 🔥 refresco automático solo de lo dinámico
+function actualizarDinamico(){
+let sec=getSecciones(dataGlobal);
+
+["trending"].forEach(id=>{
+let grid=document.getElementById(id);
+if(!grid) return;
+grid.innerHTML="";
+grid.dataset.items=JSON.stringify(sec[id]);
+grid.dataset.index=0;
+renderSeccion(id);
+});
 }
 
 function buscar(txt){
@@ -176,6 +221,7 @@ let sec=getSecciones(f);
 
 for(let id in sec){
 let grid=document.getElementById(id);
+if(!grid) continue;
 grid.innerHTML="";
 grid.dataset.items=JSON.stringify(sec[id]);
 grid.dataset.index=0;
@@ -191,8 +237,8 @@ iniciar();
 window.addEventListener("scroll",()=>{
 if(window.innerHeight+window.scrollY>=document.body.offsetHeight-100){
 document.querySelectorAll(".grid").forEach(g=>{
-let items=JSON.parse(g.dataset.items);
-let index=parseInt(g.dataset.index);
+let items=JSON.parse(g.dataset.items || "[]");
+let index=parseInt(g.dataset.index || 0);
 if(index<items.length) renderSeccion(g.id);
 });
 }
