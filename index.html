@@ -3,14 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CineNube</title>
+<title>𝐁𝐥𝐚𝐜𝐤𝐒𝐜𝐫𝐞𝐞𝐧𝐂𝐢𝐧𝐞</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f0f">
 
 <style>
 body {margin:0;font-family:Arial;background:#0f0f0f;color:white;}
 
 header {
 background:black;
-padding:15px;
+padding:12px;
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -19,71 +23,31 @@ top:0;
 z-index:1000;
 }
 
-.logo {font-size:22px;font-weight:bold;color:red;cursor:pointer;}
-.search {padding:8px;border-radius:5px;border:none;width:150px;}
+.logo {font-size:20px;font-weight:bold;color:red;cursor:pointer;}
+.search {padding:8px;border-radius:20px;border:none;width:140px;background:#1a1a1a;color:white;}
 
-/* 🔥 MENU SUPERIOR */
-.menu {
-display:flex;
-gap:10px;
-padding:10px;
-overflow-x:auto;
-background:#111;
-border-bottom:1px solid #222;
-}
+/* MENU */
+.menu {display:flex;gap:8px;padding:10px;overflow-x:auto;background:#111;}
+.menu button {background:#1a1a1a;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;}
+.menu button.active {background:red;}
 
-.menu button {
-background:#1a1a1a;
-color:white;
-border:none;
-padding:8px 14px;
-border-radius:20px;
-cursor:pointer;
-white-space:nowrap;
-}
+/* HERO */
+.hero {position:relative;height:220px;background:#000;display:flex;align-items:flex-end;padding:20px;}
+.hero img {position:absolute;width:100%;height:100%;object-fit:cover;top:0;left:0;opacity:0.4;}
+.hero h1 {z-index:2;margin:0;font-size:20px;}
+.hero button {z-index:2;margin-top:10px;background:red;border:none;padding:8px 14px;border-radius:6px;color:white;}
 
-.menu button.active {
-background:red;
-}
+.section {padding:10px;}
 
-.section {padding:20px;display:none;}
-.section.active {display:block;}
+/* CAROUSEL */
+.row {display:flex;overflow-x:auto;gap:10px;padding:10px 0;}
+.card {min-width:140px;position:relative;border-radius:10px;overflow:hidden;cursor:pointer;transition:.3s;}
+.card:hover {transform:scale(1.05);} 
+.card img {width:100%;}
 
-.grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
-
-.card {position:relative;cursor:pointer;overflow:hidden;border-radius:10px;transition:.3s;}
-.card:hover {transform:scale(1.08);}
-.card img {width:100%;border-radius:10px;}
-
-.overlay {
-position:absolute;bottom:0;width:100%;
-background:linear-gradient(transparent,rgba(0,0,0,0.9));
-padding:10px;font-size:12px;text-align:center;
-}
-
-.btn-ver {
-position:absolute;top:50%;left:50%;
-transform:translate(-50%,-50%);
-background:red;padding:6px 12px;
-font-weight:bold;border-radius:6px;
-}
-
-.badge {
-position:absolute;top:10px;left:10px;
-background:green;padding:3px 6px;
-font-size:12px;border-radius:5px;
-font-weight:bold;
-}
+.badge {position:absolute;top:6px;left:6px;background:green;padding:2px 6px;font-size:10px;border-radius:4px;}
 .badge.pago {background:red;}
 
-.extraTag{
-position:absolute;bottom:10px;left:10px;
-background:black;padding:3px 6px;
-font-size:11px;border-radius:5px;
-opacity:0.8;
-}
-
-.vipGlow {box-shadow:0 0 12px rgba(255,0,0,0.7);} 
 </style>
 </head>
 
@@ -94,57 +58,51 @@ opacity:0.8;
 <input class="search" placeholder="Buscar..." oninput="buscar(this.value)">
 </header>
 
-<!-- 🔥 NUEVO MENU -->
 <div class="menu">
-<button onclick="mostrar('hoy')" class="active">Hoy</button>
-<button onclick="mostrar('trending')">Popular</button>
+<button onclick="mostrar('home')" class="active">Inicio</button>
 <button onclick="mostrar('peliculas')">Películas</button>
 <button onclick="mostrar('series')">Series</button>
-<button onclick="mostrar('viendo')">En vivo</button>
-<button onclick="mostrar('vip')">VIP</button>
+<button onclick="toggleFiltro('gratis')">Gratis</button>
+<button onclick="toggleFiltro('vip')">VIP</button>
 </div>
 
-<div id="hoy" class="section active"><div class="grid"></div></div>
-<div id="trending" class="section"><div class="grid"></div></div>
-<div id="peliculas" class="section"><div class="grid"></div></div>
-<div id="series" class="section"><div class="grid"></div></div>
-<div id="viendo" class="section"><div class="grid"></div></div>
-<div id="vip" class="section"><div class="grid"></div></div>
+<!-- HERO -->
+<div class="hero" id="hero">
+<img id="heroImg">
+<div>
+<h1 id="heroTitle"></h1>
+<button onclick="playHero()">▶ Ver ahora</button>
+</div>
+</div>
+
+<div id="home" class="section"></div>
+<div id="peliculas" class="section"></div>
+<div id="series" class="section"></div>
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbxWfCboKOh6Gez4dDbP0BG7Wq8AZEV5fO3-YR3wUOrCNU-0ETH31DMM8D9_2KVVgIUb/exec?nocache="+Date.now();
 
 let dataGlobal=[];
+let filtroActual=null;
+let heroItem=null;
 
 function mostrar(id){
-document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-
-// activar botón
+document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+document.getElementById(id).style.display="block";
 Array.from(document.querySelectorAll(".menu button")).forEach(b=>b.classList.remove("active"));
 event.target.classList.add("active");
 }
 
-function getClicks(){
-return JSON.parse(localStorage.getItem("clicks")||"{}");
-}
-
-function addClick(title){
-let clicks=getClicks();
-clicks[title]=(clicks[title]||0)+1;
-localStorage.setItem("clicks",JSON.stringify(clicks));
+function toggleFiltro(tipo){
+filtroActual = (filtroActual===tipo?null:tipo);
+iniciar();
 }
 
 function abrirContenido(link,tipo,precio,pop,title){
-addClick(title);
 if(tipo!=="gratis"){
-let mensaje="🔒 CONTENIDO VIP\n\n";
-if(pop>150) mensaje+="🔥 MUY DEMANDADO\n";
-mensaje+="⚡ Acceso en Telegram";
-if(!confirm(mensaje)) return;
+if(!confirm("🔒 Contenido VIP\nAccede desde Telegram")) return;
 }
-if(!link) return window.open("https://t.me/estrenos_online_25","_blank");
-window.open(link,"_blank");
+window.open(link||"https://t.me/estrenos_online_25","_blank");
 }
 
 async function cargarDatos(){
@@ -155,58 +113,71 @@ acc[item.title]=item;return acc;
 iniciar();
 }
 
-function tagExtra(item){
-if(item.vote_average>=8) return "🔥 TOP";
-if(item.popularity>200) return "💥 VIRAL";
-if(item.tipo_contenido!=="gratis") return "💎 VIP";
-return "🆕 NUEVO";
+function renderRow(lista,titulo,containerId){
+let cont=document.getElementById(containerId);
+let html=`<h3>${titulo}</h3><div class="row">`;
+
+lista.forEach(item=>{
+html+=`
+<div class="card" onclick="abrirContenido('${item.vip_post}','${item.tipo_contenido}',${item.precio_stars},${item.popularity},'${item.title}')">
+<img src="${item.poster}">
+<div class="badge ${item.tipo_contenido==='gratis'?'':'pago'}">
+${item.tipo_contenido==='gratis'?'Gratis':'VIP'}
+</div>
+</div>`;
+});
+
+html+="</div>";
+cont.innerHTML+=html;
 }
 
-function render(lista,id){
-let grid=document.querySelector(`#${id} .grid`);
-grid.innerHTML="";
-
-lista.slice(0,20).forEach(item=>{
-let div=document.createElement("div");
-div.className="card "+(item.tipo_contenido!=="gratis"?"vipGlow":"");
-
- div.onclick=()=>abrirContenido(item.vip_post,item.tipo_contenido,item.precio_stars,item.popularity,item.title);
-
- div.innerHTML=`
-<img src="${item.poster||''}">
-<div class="btn-ver">VER</div>
-<div class="overlay">${item.title}</div>
-<div class="badge ${item.tipo_contenido==='gratis'?'':'pago'}">
-${item.tipo_contenido==='gratis'?'Gratis':'🔒 VIP'}
-</div>
-<div class="extraTag">${tagExtra(item)}</div>
-`;
-
-grid.appendChild(div);
-});
+function aplicarFiltro(lista){
+if(!filtroActual) return lista;
+return lista.filter(x=> filtroActual==='gratis' ? x.tipo_contenido==='gratis' : x.tipo_contenido!=='gratis');
 }
 
 function iniciar(){
-let clicks=getClicks();
-
-let trending=[...dataGlobal].sort((a,b)=>(b.popularity||0)-(a.popularity||0));
-let vip=[...dataGlobal].filter(x=>x.tipo_contenido!=="gratis");
 let pelis=dataGlobal.filter(x=>x.type==="movie");
 let series=dataGlobal.filter(x=>x.type && x.type.toLowerCase()==="tv");
-let viendo=[...dataGlobal].sort((a,b)=>(clicks[b.title]||0)-(clicks[a.title]||0));
-let hoy=[...dataGlobal].sort((a,b)=> new Date(b.published_at)-new Date(a.published_at));
+let trending=[...dataGlobal].sort((a,b)=>(b.popularity||0)-(a.popularity||0));
 
-render(hoy,"hoy");
-render(trending,"trending");
-render(pelis,"peliculas");
-render(series,"series");
-render(viendo,"viendo");
-render(vip,"vip");
+pelis=aplicarFiltro(pelis);
+series=aplicarFiltro(series);
+trending=aplicarFiltro(trending);
+
+// HERO
+heroItem=trending[0];
+if(heroItem){
+document.getElementById("heroImg").src=heroItem.poster;
+document.getElementById("heroTitle").innerText=heroItem.title;
+}
+
+// HOME
+let home=document.getElementById("home");
+home.innerHTML="";
+renderRow(trending.slice(0,10),"🔥 Popular","home");
+renderRow(pelis.slice(0,10),"🎬 Películas","home");
+renderRow(series.slice(0,10),"📺 Series","home");
+
+// PELIS
+let pelisDiv=document.getElementById("peliculas");
+pelisDiv.innerHTML="";
+renderRow(pelis,"Películas","peliculas");
+
+// SERIES
+let seriesDiv=document.getElementById("series");
+seriesDiv.innerHTML="";
+renderRow(series,"Series","series");
+}
+
+function playHero(){
+if(heroItem) abrirContenido(heroItem.vip_post,heroItem.tipo_contenido,heroItem.precio_stars,heroItem.popularity,heroItem.title);
 }
 
 function buscar(txt){
 let f=dataGlobal.filter(x=>x.title.toLowerCase().includes(txt.toLowerCase()));
-render(f,"trending");
+document.getElementById("home").innerHTML="";
+renderRow(f,"Resultados","home");
 }
 
 function resetBusqueda(){
@@ -214,7 +185,13 @@ document.querySelector(".search").value="";
 iniciar();
 }
 
+// PWA SW
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js');
+}
+
 cargarDatos();
 </script>
+
 </body>
 </html>
